@@ -204,6 +204,28 @@ $$
 
 ---
 
+## 关键图表
+
+### 定价误差与市场价格时序（BS / ZL）
+
+![BS 定价与市场价格时序](backtest/Fig1_BS_Price_Time_Series.png)
+
+![ZL 定价与市场价格时序](backtest/Fig1_ZL_Price_Time_Series.png)
+
+### 多空策略表现（BS / ZL）
+
+![BS 多空策略绩效](long-short%20strategy/BS_model_performance.png)
+
+![ZL 多空策略绩效](long-short%20strategy/ZL_model_performance.png)
+
+### 错误定价因子相关性（BS / ZL）
+
+![BS 错误定价因子相关性](mispricing%20factor/BS_factor_correlation.png)
+
+![ZL 错误定价因子相关性](mispricing%20factor/ZL_factor_correlation.png)
+
+---
+
 ## 核心洞察
 
 - BS 捕捉**估值扩张 + 动量**。
@@ -440,6 +462,28 @@ The strategy is constructed based on **mispricing (RD)** defined above.
 | ZL Long  | ~15.3%        | 1.44   | -13.74%      |
 
 Summary: ZL performs better on relative pricing-error control, while BS is stronger in directional capture and offensive upside.
+
+---
+
+## 🖼️ Key Figures
+
+### Pricing vs Market Time Series (BS / ZL)
+
+![BS Pricing vs Market Time Series](backtest/Fig1_BS_Price_Time_Series.png)
+
+![ZL Pricing vs Market Time Series](backtest/Fig1_ZL_Price_Time_Series.png)
+
+### Long-Short Strategy Performance (BS / ZL)
+
+![BS Long-Short Strategy Performance](long-short%20strategy/BS_model_performance.png)
+
+![ZL Long-Short Strategy Performance](long-short%20strategy/ZL_model_performance.png)
+
+### Mispricing Factor Correlation (BS / ZL)
+
+![BS Mispricing Factor Correlation](mispricing%20factor/BS_factor_correlation.png)
+
+![ZL Mispricing Factor Correlation](mispricing%20factor/ZL_factor_correlation.png)
 
 ---
 
