@@ -168,7 +168,7 @@ MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 ## 错误定价因子
 
 $$
-\operatorname{Mispricing} = V_{model} - V_{market}
+Mispricing = V_{model} - V_{market}
 $$
 
 - 正值 -> 低估 -> 做多。
@@ -407,7 +407,7 @@ Lower MAE/MAPE/SMAPE indicates better pricing fit.
 ## 📊 Mispricing Signal
 
 $$
-\operatorname{Mispricing} = V_{model} - V_{market}
+Mispricing = V_{model} - V_{market}
 $$
 
 - Positive -> undervalued -> long.
