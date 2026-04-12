@@ -1,8 +1,26 @@
-﻿# Convertible Bond Pricing Research (China Market)
+﻿<div align="center">
 
-# 中国市场可转债定价模型研究
+# Convertible Bond Pricing Research (China Market)
 
-👉 See concise summary: /summary/key_findings.md | 面试官建议先看这个摘要。
+---
+
+## 中国市场可转债定价模型研究 | Convertible Bond Pricing Research (China Market)
+
+[![LANGUAGE 中文](https://img.shields.io/badge/LANGUAGE-%E4%B8%AD%E6%96%87-e74c3c?style=for-the-badge)](#简体中文)
+[![LANGUAGE ENGLISH](https://img.shields.io/badge/LANGUAGE-ENGLISH-2f7de1?style=for-the-badge)](#english-version)
+
+</div>
+
+---
+
+## 简体中文
+
+**当前语言：中文 | [Switch to English](#english-version)**
+
+👉 面试官建议先看摘要：[summary/key_findings.md](summary/key_findings.md)  
+👉 See concise summary: [summary/key_findings.md](summary/key_findings.md)
+
+<a id="english-version"></a>
 
 ---
 
