@@ -136,6 +136,10 @@ $$
 
 模型来源与机制：
 
+- 从定价本质上看，ZL 可以理解为对经典二叉树模型（Binomial Pricing Model, BPM）的扩展与优化。二叉树模型的核心是“无套利 + 风险中性”：若能用正股与无风险借贷复制期权未来收益，则当前价格必须等于复制组合成本；进一步可写成风险中性折现形式，即先用虚拟概率 $q = \frac{(1+r)-d}{u-d}$ 对未来节点价值求期望，再以无风险利率折现。
+- 二叉树的美感在于把复杂市场压缩为每期“上涨 / 下跌”两个状态，并从到期日 payoff 出发逐层向前倒推。其成立依赖无套利边界 $d < 1+r < u$；若该关系不满足，模型中的复制与定价逻辑就会失效。
+- ZL 并不是否定这套逻辑，而是在其之上继续前进：把简单的单一涨跌节点，升级为包含赎回、回售、下修、转股等条款触发条件的动态决策问题。因此可以把 ZL 看作“二叉树思想在可转债复杂条款场景下的优化版本”。
+- 在工程实现上，本项目采用蒙特卡洛路径模拟来承载这一优化框架，用更高维的路径信息近似替代简单树节点，从而更好处理真实可转债中显著的路径依赖和博弈特征。
 - ZL 框架建立在可赎回、可回售、可下修条款下发行人与投资者的博弈逻辑之上。
 - 模型在每条路径上显式刻画发行人的最优决策（赎回/下修）与投资者响应（转股/回售/持有）。
 - 相较静态闭式模型，ZL 更能刻画路径依赖与条款触发导致的非线性收益结构。
@@ -397,6 +401,10 @@ Monte Carlo simulation with optimal stopping.
 
 Model origin and mechanism
 
+- At its pricing core, ZL can be viewed as an extension and optimization of the classical Binomial Pricing Model (BPM). The binomial model rests on no-arbitrage and risk-neutral valuation: if stock plus risk-free borrowing can replicate the option payoff, the option price must equal the replication cost; equivalently, future node values are averaged under the virtual probability $q = \frac{(1+r)-d}{u-d}$ and discounted at the risk-free rate.
+- The beauty of the binomial tree is that it compresses the market into two states per step, up or down, and then works backward from terminal payoff to today's value. This logic requires the no-arbitrage condition $d < 1+r < u$; otherwise the replication argument breaks down.
+- ZL does not replace this logic; it builds on it. It upgrades the simple up/down node structure into a clause-aware dynamic decision problem with call, put, reset, and conversion features. In that sense, ZL is the optimized version of binomial-tree thinking for real-world convertible bonds.
+- In implementation, this project uses Monte Carlo path simulation to carry that richer structure, replacing the simple tree with higher-dimensional path information so that strong path dependence and issuer-investor game effects can be handled more realistically.
 - The ZL framework is built on issuer-investor clause game logic under callable/putable/adjustable convertibles.
 - It explicitly models optimal issuer decisions (call/reset) and investor response (convert/put/hold) along each path.
 - Compared with static closed-form models, it better captures path dependency and clause-triggered nonlinear payoff.
