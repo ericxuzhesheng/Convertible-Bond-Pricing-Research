@@ -22,41 +22,65 @@ warnings.filterwarnings('ignore')
 # ==========================================
 # 1. 配置与数据读取
 # ==========================================
-# 请修改为您的实际文件路径
-BASE_DIR = r"D:\Python\浙商证券固收\转债错误定价"
-EXCEL_PATH = os.path.join(BASE_DIR, "【浙商固收】转债资产端特征数据库【周更新外发】.xlsx")
-DATA_FILE = os.path.join(BASE_DIR, "转债错误定价数据.xlsx")
+# USE_PIPELINE=True  → 从 data_pipeline.py 生成的 CSV 读取（无需手动更新 Excel）
+# USE_PIPELINE=False → 从原始 Excel 文件读取（旧流程，向后兼容）
+USE_PIPELINE = True
 
-# 定义 Sheet 名称
-SHEET_PRICE = "可转债价格"
-SHEET_CV = "转换价值"
-SHEET_FLOOR = "纯债价值"
+PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
+
+# 原始 Excel 路径（USE_PIPELINE=False 时使用）
+BASE_DIR  = r"D:\Python\浙商证券固收\转债错误定价"
+EXCEL_PATH = os.path.join(BASE_DIR, "【浙商固收】转债资产端特征数据库【周更新外发】.xlsx")
+DATA_FILE  = os.path.join(BASE_DIR, "转债错误定价数据.xlsx")
+
+SHEET_PRICE    = "可转债价格"
+SHEET_CV       = "转换价值"
+SHEET_FLOOR    = "纯债价值"
 SHEET_MATURITY = "剩余期限"
 SHEET_STOCK_MAP = "正股市值"
-SHEET_RATING = "信用评级"
+SHEET_RATING   = "信用评级"
 
 
 def load_data(file_path, sheet_name):
-    # 读取并解析索引为日期
-    # 使用 openpyxl 引擎读取 Excel
     df = pd.read_excel(file_path, sheet_name=sheet_name, index_col=0, engine='openpyxl')
     df.index = pd.to_datetime(df.index, errors='coerce')
     df = df.dropna(how='all')
-    # 去重索引
     df = df[~df.index.duplicated(keep='first')]
     return df.apply(pd.to_numeric, errors='coerce')
 
-print("1. 正在读取 Excel 静态数据 ...")
-df_price = load_data(EXCEL_PATH, SHEET_PRICE)
-df_cv = load_data(EXCEL_PATH, SHEET_CV)
-df_floor = load_data(EXCEL_PATH, SHEET_FLOOR)
-df_maturity = load_data(EXCEL_PATH, SHEET_MATURITY)
+
+def _load_csv(filename):
+    path = os.path.join(PIPELINE_DIR, filename)
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"Pipeline cache not found: {path}\n"
+            "请先运行 python backtest/data_pipeline.py 生成数据缓存。"
+        )
+    df = pd.read_csv(path, index_col=0, parse_dates=True)
+    df.index = pd.to_datetime(df.index, errors='coerce')
+    df = df[df.index.notna()]
+    df = df[~df.index.duplicated(keep='first')]
+    return df.apply(pd.to_numeric, errors='coerce')
+
+
+if USE_PIPELINE:
+    print("1. 正在从 Tushare Pipeline CSV 读取数据 ...")
+    df_price    = _load_csv('cb_price_cache.csv')
+    df_cv       = _load_csv('cb_convert_val_cache.csv')
+    df_floor    = _load_csv('cb_bond_floor_cache.csv')
+    df_maturity = _load_csv('cb_maturity_cache.csv')
+else:
+    print("1. 正在读取 Excel 静态数据 ...")
+    df_price    = load_data(EXCEL_PATH, SHEET_PRICE)
+    df_cv       = load_data(EXCEL_PATH, SHEET_CV)
+    df_floor    = load_data(EXCEL_PATH, SHEET_FLOOR)
+    df_maturity = load_data(EXCEL_PATH, SHEET_MATURITY)
 
 # 对齐日期索引（取交集）
 common_idx = df_price.index.intersection(df_cv.index).intersection(df_floor.index)
-df_price = df_price.loc[common_idx]
-df_cv = df_cv.loc[common_idx]
-df_floor = df_floor.loc[common_idx]
+df_price    = df_price.loc[common_idx]
+df_cv       = df_cv.loc[common_idx]
+df_floor    = df_floor.loc[common_idx]
 df_maturity = df_maturity.loc[common_idx]
 
 # ==========================================
@@ -64,13 +88,6 @@ df_maturity = df_maturity.loc[common_idx]
 # ==========================================
 print("2. 正在读取转债列表与 BPS 数据...")
 
-
-# 2.1 读取转债列表 (映射关系)
-# 转债 list Sheet 结构：
-# Row 0: 正股代码
-# Row 1: 转债代码
-# Row 2: 转债名称
-df_list_raw = pd.read_excel(DATA_FILE, sheet_name=0, header=None, engine='openpyxl')
 
 def normalize_code(v):
     if pd.isna(v):
@@ -80,83 +97,69 @@ def normalize_code(v):
         return np.nan
     return s
 
-# 提取正股代码行和转债代码行
-stock_codes_row = df_list_raw.iloc[0, 1:].map(normalize_code)
-bond_codes_row = df_list_raw.iloc[1, 1:].map(normalize_code)
 
-# 构建映射：转债代码 -> 正股代码
-df_map = pd.DataFrame({"bond": bond_codes_row, "stock": stock_codes_row}).dropna()
-df_map = df_map.drop_duplicates(subset=["bond"], keep="first")
-bond_to_stock = dict(zip(df_map["bond"], df_map["stock"]))
-stock_code_to_bond = dict(zip(df_map["stock"], df_map["bond"]))
+if USE_PIPELINE:
+    # 2.1 从 cb_basic_info.csv 读取映射
+    try:
+        df_basic_info = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
+        df_map = df_basic_info.dropna(subset=['ts_code', 'stk_cd'])
+        df_map = df_map.drop_duplicates(subset=['ts_code'], keep='first')
+        bond_to_stock      = dict(zip(df_map['ts_code'], df_map['stk_cd']))
+        stock_code_to_bond = dict(zip(df_map['stk_cd'],  df_map['ts_code']))
+        stock_name_to_bond = {}
+        print(f"   已加载 {len(bond_to_stock)} 条转债映射关系（来源：cb_basic_info.csv）")
+    except Exception as e:
+        print(f"   映射读取失败: {e}")
+        bond_to_stock = {}
+        stock_code_to_bond = {}
+        stock_name_to_bond = {}
 
-# 尝试读取转债名称行（如果有）
-stock_name_to_bond = {}
-if len(df_list_raw) > 2:
-    stock_names_row = df_list_raw.iloc[2, 1:]
-    stock_names_row = stock_names_row.astype(str).str.strip()
-    stock_names_row = stock_names_row[(stock_names_row != "") & (stock_names_row != "NAN")]
-    
-    df_name_map = pd.DataFrame({"name": stock_names_row, "bond": bond_codes_row.iloc[:len(stock_names_row)]})
-    df_name_map = df_name_map.dropna(subset=["bond"]).drop_duplicates(subset=["name"], keep="first")
-    stock_name_to_bond = dict(zip(df_name_map["name"], df_name_map["bond"]))
-
-print(f"   已加载 {len(bond_to_stock)} 条转债映射关系")
-
-# 2.2 读取每股净资产 (BPS)
-# BPS Sheet 结构：
-# Row 0: 开始日期
-# Row 1: 截止日期
-# Row 2: 每股净资产 BPS
-# Row 3: 日期（中文）
-# Row 4: Date（英文，代码行）- 作为 header
-# 数据从第 5 行开始
-df_bps_raw = pd.read_excel(DATA_FILE, sheet_name='每股净资产', header=4, index_col=0, engine='openpyxl')
-
-# 第一行是代码，需要剔除
-df_bps_raw = df_bps_raw.iloc[1:]
-
-df_bps_raw.index = pd.to_datetime(df_bps_raw.index, errors='coerce')
-df_bps_raw = df_bps_raw[~df_bps_raw.index.duplicated(keep='first')]
-# 必须对索引排序才能使用 method='ffill' 进行重索引
-df_bps_raw = df_bps_raw.sort_index()
-
-# 重命名列：正股代码 -> 转债代码
-# BPS 列名是正股代码格式：002241.SZ
-# 使用 stock_code_to_bond 映射
-mapped_cols = {}
-for col in df_bps_raw.columns:
-    if col in stock_code_to_bond:
-        bond_code = stock_code_to_bond[col]
-        mapped_cols[col] = bond_code
-
-if not mapped_cols:
-    print("   警告：BPS 列名无法映射到转债代码，请检查转债 list 与每股净资产格式")
+    # 2.2 从 cb_bps_cache.csv 读取 BPS
+    try:
+        df_bps = _load_csv('cb_bps_cache.csv')
+        df_bps = df_bps.reindex(df_price.index, method='ffill')
+        print(f"   BPS 数据加载完成（来源：cb_bps_cache.csv）")
+    except Exception as e:
+        print(f"   BPS 读取失败: {e}，将使用全零 BPS")
+        df_bps = pd.DataFrame(0.0, index=df_price.index, columns=df_price.columns)
 else:
-    print(f"   成功映射 {len(mapped_cols)} 个 BPS 列")
+    # 2.1 原始 Excel 读取
+    df_list_raw = pd.read_excel(DATA_FILE, sheet_name=0, header=None, engine='openpyxl')
+    stock_codes_row = df_list_raw.iloc[0, 1:].map(normalize_code)
+    bond_codes_row  = df_list_raw.iloc[1, 1:].map(normalize_code)
+    df_map = pd.DataFrame({"bond": bond_codes_row, "stock": stock_codes_row}).dropna()
+    df_map = df_map.drop_duplicates(subset=["bond"], keep="first")
+    bond_to_stock      = dict(zip(df_map["bond"],  df_map["stock"]))
+    stock_code_to_bond = dict(zip(df_map["stock"], df_map["bond"]))
+    stock_name_to_bond = {}
+    if len(df_list_raw) > 2:
+        stock_names_row = df_list_raw.iloc[2, 1:].astype(str).str.strip()
+        stock_names_row = stock_names_row[(stock_names_row != "") & (stock_names_row != "NAN")]
+        df_name_map = pd.DataFrame({"name": stock_names_row, "bond": bond_codes_row.iloc[:len(stock_names_row)]})
+        df_name_map = df_name_map.dropna(subset=["bond"]).drop_duplicates(subset=["name"], keep="first")
+        stock_name_to_bond = dict(zip(df_name_map["name"], df_name_map["bond"]))
+    print(f"   已加载 {len(bond_to_stock)} 条转债映射关系")
 
-df_bps = df_bps_raw[list(mapped_cols.keys())].rename(columns=mapped_cols)
-
-# 对齐到 df_price 的索引 (Forward Fill)
-# BPS 是季频数据，需要填充到周频
-# 1. 先在季度层面 ffill，防止中间某个季度数据缺失（沿用上季度）
-df_bps = df_bps.ffill()
-
-# 确保索引单调递增 (reindex with method='ffill' requires monotonic index)
-df_bps = df_bps.sort_index()
-
-# 2. 使用 method='ffill' 进行重索引，确保：
-#    a. 季度末非交易日的数据能正确填充到后续交易日
-#    b. 交易日之间的数据沿用最近的季度末数据
-df_bps = df_bps.reindex(df_price.index, method='ffill')
+    # 2.2 原始 Excel 读取 BPS
+    df_bps_raw = pd.read_excel(DATA_FILE, sheet_name='每股净资产', header=4, index_col=0, engine='openpyxl')
+    df_bps_raw = df_bps_raw.iloc[1:]
+    df_bps_raw.index = pd.to_datetime(df_bps_raw.index, errors='coerce')
+    df_bps_raw = df_bps_raw[~df_bps_raw.index.duplicated(keep='first')].sort_index()
+    mapped_cols = {col: stock_code_to_bond[col] for col in df_bps_raw.columns if col in stock_code_to_bond}
+    if not mapped_cols:
+        print("   警告：BPS 列名无法映射到转债代码")
+    else:
+        print(f"   成功映射 {len(mapped_cols)} 个 BPS 列")
+    df_bps = df_bps_raw[list(mapped_cols.keys())].rename(columns=mapped_cols)
+    df_bps = df_bps.ffill().sort_index().reindex(df_price.index, method='ffill')
 
 # 确保列与 df_price 一致 (取交集)
 valid_bonds = df_price.columns.intersection(df_bps.columns)
-df_price = df_price[valid_bonds]
-df_cv = df_cv[valid_bonds]
-df_floor = df_floor[valid_bonds]
+df_price    = df_price[valid_bonds]
+df_cv       = df_cv[valid_bonds]
+df_floor    = df_floor[valid_bonds]
 df_maturity = df_maturity[valid_bonds]
-df_bps = df_bps[valid_bonds]
+df_bps      = df_bps[valid_bonds]
 
 print(f"   BPS 数据处理完成，有效对齐转债数量: {len(valid_bonds)}")
 
@@ -234,16 +237,16 @@ except Exception as e:
     pro = None
 
 # Z-L 模型缓存文件
-VOL_CACHE_FILE = "zl_stock_volatility_cache.csv"
-PRICE_CACHE_FILE = "zl_stock_price_cache.csv"
+VOL_CACHE_FILE = os.path.join(PIPELINE_DIR, "zl_stock_volatility_cache.csv")
+PRICE_CACHE_FILE = os.path.join(PIPELINE_DIR, "zl_stock_price_cache.csv")
 
 if os.path.exists(VOL_CACHE_FILE) and os.path.exists(PRICE_CACHE_FILE):
     print(" 发现缓存，正在读取...")
     df_volatility = pd.read_csv(VOL_CACHE_FILE, index_col=0, parse_dates=True)
-    df_volatility = df_volatility.reindex(df_price.index)
-    
+    df_volatility = df_volatility.reindex(index=df_price.index, columns=df_price.columns)
+
     df_stock_price = pd.read_csv(PRICE_CACHE_FILE, index_col=0, parse_dates=True)
-    df_stock_price = df_stock_price.reindex(df_price.index)
+    df_stock_price = df_stock_price.reindex(index=df_price.index, columns=df_price.columns)
 else:
     df_volatility = pd.DataFrame(index=df_price.index, columns=df_price.columns)
     df_stock_price = pd.DataFrame(index=df_price.index, columns=df_price.columns)
@@ -298,12 +301,12 @@ print("   股票数据准备完成。")
 # 4. 获取无风险利率 (Akshare)
 # ==========================================
 print("4. 获取国债收益率...")
-RF_CACHE_FILE = "rf_yield_cache.csv"
+RF_CACHE_FILE = os.path.join(PIPELINE_DIR, "rf_yield_cache.csv")
 
 if os.path.exists(RF_CACHE_FILE):
     print("   发现利率缓存，正在读取...")
     rf_df = pd.read_csv(RF_CACHE_FILE, index_col=0, parse_dates=True)
-    rf_df = rf_df.reindex(df_price.index).fillna(0.02)
+    rf_df = rf_df.reindex(index=df_price.index, columns=df_price.columns).fillna(0.02)
 else:
     try:
         df_yield = ak.bond_china_yield(start_date="20200101", end_date="20261231")
@@ -594,7 +597,7 @@ df_zl_error = pd.DataFrame(index=df_price.index, columns=df_price.columns)
 df_diff_pct = pd.DataFrame(index=df_price.index, columns=df_price.columns)
 
 # 增量计算逻辑
-SUMMARY_FILE = os.path.join(BASE_DIR, "ZL_Model_Summary.xlsx")
+SUMMARY_FILE = os.path.join(PIPELINE_DIR, "ZL_Model_Summary.xlsx")
 if os.path.exists(SUMMARY_FILE):
     print(f"   发现已存在的汇总文件：{SUMMARY_FILE}")
     print("   读取历史结果并执行增量计算...")
@@ -729,10 +732,10 @@ df_diff = df_zl_error
 safe_price = df_price.replace(0, np.nan)
 df_diff_pct = df_diff / safe_price
 
-df_zl_model.to_csv(os.path.join(BASE_DIR, "ZL_Model_Prices.csv"))
-df_price.to_csv(os.path.join(BASE_DIR, "Market_Prices.csv"))
-df_diff.to_csv(os.path.join(BASE_DIR, "ZL_Model_Deviation_Abs.csv"))
-df_diff_pct.to_csv(os.path.join(BASE_DIR, "ZL_Model_Deviation_Pct.csv"))
+df_zl_model.to_csv(os.path.join(PIPELINE_DIR, "ZL_Model_Prices.csv"))
+df_price.to_csv(os.path.join(PIPELINE_DIR, "Market_Prices.csv"))
+df_diff.to_csv(os.path.join(PIPELINE_DIR, "ZL_Model_Deviation_Abs.csv"))
+df_diff_pct.to_csv(os.path.join(PIPELINE_DIR, "ZL_Model_Deviation_Pct.csv"))
 
 print("计算完成！")
 print("结果已保存:")
@@ -874,7 +877,7 @@ labels.append('定价错误')
 ax1.legend(lines, labels, loc='upper center')
 
 plt.title('图1 ZL模型定价结果与市场价格对比')
-plt.savefig(os.path.join(BASE_DIR, "Fig1_ZL_Price_Time_Series.png"), dpi=300)
+plt.savefig(os.path.join(PIPELINE_DIR, "Fig1_ZL_Price_Time_Series.png"), dpi=300)
 plt.close()
 
 # 图2: 定价结果与在值程度的关系 (Moneyness)
@@ -910,7 +913,7 @@ plt.ylabel('平均价格 (元)')
 plt.legend()
 plt.title('图2 ZL模型定价结果与在值程度的关系')
 plt.grid(True, linestyle='--', alpha=0.3)
-plt.savefig(os.path.join(BASE_DIR, "Fig2_ZL_Moneyness.png"), dpi=300)
+plt.savefig(os.path.join(PIPELINE_DIR, "Fig2_ZL_Moneyness.png"), dpi=300)
 plt.close()
 
 # 图3: 定价结果与剩余期限的关系
@@ -941,7 +944,7 @@ plt.ylabel('平均价格 (元)')
 plt.legend()
 plt.title('图3 ZL模型定价结果与剩余期限的关系')
 plt.grid(True, linestyle='--', alpha=0.3)
-plt.savefig(os.path.join(BASE_DIR, "Fig3_ZL_Maturity.png"), dpi=300)
+plt.savefig(os.path.join(PIPELINE_DIR, "Fig3_ZL_Maturity.png"), dpi=300)
 plt.close()
 
 print("绘图完成！")
@@ -1075,7 +1078,7 @@ try:
                 plt.axhline(0, color='k', linewidth=0.8)
                 plt.grid(axis='y', linestyle='--', alpha=0.3)
                 
-                plt.savefig(os.path.join(BASE_DIR, "Fig4_ZL_Rating.png"), dpi=300)
+                plt.savefig(os.path.join(PIPELINE_DIR, "Fig4_ZL_Rating.png"), dpi=300)
                 plt.close()
                 print("4. Fig4_ZL_Rating.png")
         

@@ -55,3 +55,31 @@ Mispricing = Model Price - Market Price
 The mispricing factor shows low correlation with traditional factors, indicating it captures non-linear option misvaluation rather than market style exposure.
 
 错误定价因子与传统风格因子相关性较低，说明其主要捕捉的是期权非线性错配，而非一般市场风格暴露。
+
+---
+
+## Live Signal System | 实盘信号系统
+
+### Daily Top-5 Signal | 每日 Top-5 信号
+
+- Score = (BS deviation + ZL deviation) / 2 — higher score = more undervalued by both models
+- 评分 = (BS低估度 + ZL低估度) / 2 — 分数越高代表两个模型共同认为越被低估
+
+### Filters | 过滤条件
+
+| Filter | Threshold |
+|--------|-----------|
+| Remaining maturity | > 0.5 yr |
+| Conversion premium | < 30% |
+| Stock market cap | > 50B CNY |
+| Credit rating | ≥ AA- |
+
+### Infrastructure | 基础设施
+
+- `data_pipeline.py` — Tushare Pro API replaces manual Excel updates
+- `daily_signal.py` — runs at 15:30 via Windows Task Scheduler, emails Top-5
+- `setup_notification.py` — one-click SMTP email wizard (Gmail/QQ/163/Outlook)
+
+- `data_pipeline.py` — Tushare Pro 接口替代手动 Excel 维护
+- `daily_signal.py` — 每日 15:30 由 Windows 任务计划自动运行，邮件推送 Top-5
+- `setup_notification.py` — 一键 SMTP 邮件配置向导（支持主流邮箱）

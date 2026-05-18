@@ -50,11 +50,17 @@
 
 ```text
 Convertible-Bond-Pricing-Research/
-├─ backtest/                #  BS 与 ZL 定价回测主程序
+├─ backtest/                #  BS 与 ZL 定价回测主程序 + 数据管道 + 每日信号
+│   ├─ data_pipeline.py     #  Tushare 全量数据拉取（替代手动 Excel 更新）
+│   ├─ B-S_backtest.py      #  Black-Scholes 定价回测
+│   ├─ Z-L_backtest_CPU.py  #  郑-林 Monte Carlo 定价（CPU）
+│   ├─ daily_signal.py      #  每日 Top-5 低估转债信号 + 邮件推送
+│   └─ setup_notification.py#  一键配置邮件推送向导
 ├─ mispricing factor/       #  错误定价因子与相关性分析
 ├─ long-short strategy/     #  横截面多空策略与绩效输出
 ├─ summary/                 #  面试优先阅读精简总结
 ├─ report/                  #  完整研究报告（PDF）
+├─ CLAUDE.md                #  AI Agent 使用说明（代码导航与运行指南）
 └─ README.md                #  项目总览与方法框架
 ```
 
@@ -167,6 +173,55 @@ $$
 | SMAPE                  | 9.66% | 8.14% |
 
 MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
+
+---
+
+## 数据基础设施
+
+### 自动化数据管道
+
+`backtest/data_pipeline.py` 通过 **Tushare Pro API** 替代了原有的手动 Excel 维护流程，支持全量历史拉取与每日增量更新。
+
+| 数据字段 | Tushare 接口 |
+|----------|-------------|
+| 可转债收盘价 | `pro.cb_daily(fields='close')` |
+| 转换价值 | `pro.cb_daily(fields='convert_val')` |
+| 剩余期限 | `pro.cb_basic()` 到期日推算 |
+| 正股总市值 | `pro.daily_basic(fields='total_mv')` |
+| 信用评级 | `pro.rating(bond_type='CB')` |
+| 每股净资产 | `pro.fina_indicator(fields='bps')` |
+| 无风险利率 | Akshare 国债收益率曲线 |
+| 纯债价值 | DCF 现金流折现（内置计算） |
+
+所有输出以宽表 CSV 缓存（行=日期，列=转债代码），增量更新时只补充缺失日期。
+
+---
+
+## 每日信号系统
+
+`backtest/daily_signal.py` 在每个交易日 15:30 后自动运行，输出当日最值得关注的 5 只低估转债。
+
+### 过滤条件
+
+| 维度 | 阈值 |
+|------|------|
+| 剩余期限 | > 0.5 年 |
+| 转股溢价率 | < 30% |
+| 正股总市值 | > 50 亿元 |
+| 信用评级 | ≥ AA- |
+
+### 评分逻辑
+
+$$
+Score = \frac{Dev_{BS} + Dev_{ZL}}{2}, \quad Dev = \frac{V_{model} - V_{market}}{V_{market}}
+$$
+
+分数越高代表模型认为该债越被低估，两个模型共同背书的信号更可靠。
+
+### 自动推送
+
+运行 `python backtest/setup_notification.py` 完成一键邮件配置，
+之后每个交易日 15:30 由 Windows 任务计划程序自动触发推送。
 
 ---
 
@@ -316,11 +371,17 @@ This repository is organized by research workflow from model pricing to factor c
 
 ```text
 Convertible-Bond-Pricing-Research/
-├─ backtest/                # BS and ZL pricing/backtest engines
+├─ backtest/                # BS and ZL pricing engines + data pipeline + daily signal
+│   ├─ data_pipeline.py     # Tushare-based data ingestion (replaces manual Excel)
+│   ├─ B-S_backtest.py      # Black-Scholes pricing backtest
+│   ├─ Z-L_backtest_CPU.py  # Zheng-Lin Monte Carlo pricing (CPU)
+│   ├─ daily_signal.py      # Daily Top-5 undervalued bond signal + email push
+│   └─ setup_notification.py# One-click email configuration wizard
 ├─ mispricing factor/       # Mispricing factor and correlation analysis
 ├─ long-short strategy/     # Cross-sectional long-short strategy outputs
 ├─ summary/                 # Concise summary for interview reading
 ├─ report/                  # Full research reports (PDF)
+├─ CLAUDE.md                # AI agent instructions (codebase navigation + run guide)
 └─ README.md                # Project overview and methodology
 ```
 
@@ -433,6 +494,54 @@ Key characteristics
 | SMAPE                  | 9.66% | 8.14% |
 
 Lower MAE/MAPE/SMAPE indicates better pricing fit.
+
+---
+
+## 🏗️ Data Infrastructure
+
+### Automated Data Pipeline
+
+`backtest/data_pipeline.py` replaces the previous manual Excel workflow with a **Tushare Pro API** pipeline supporting both full historical pulls and daily incremental updates.
+
+| Data Field | Tushare API |
+|------------|-------------|
+| CB closing price | `pro.cb_daily(fields='close')` |
+| Conversion value | `pro.cb_daily(fields='convert_val')` |
+| Remaining maturity | Derived from `pro.cb_basic()` maturity date |
+| Stock market cap | `pro.daily_basic(fields='total_mv')` |
+| Credit rating | `pro.rating(bond_type='CB')` |
+| Book value per share | `pro.fina_indicator(fields='bps')` |
+| Risk-free yield curve | Akshare treasury rate data |
+| Bond floor (DCF) | Computed internally from coupon + yield curve |
+
+All outputs are cached as wide-format CSVs (rows = trade date, columns = bond code). Incremental runs only fill missing dates.
+
+---
+
+## 📡 Daily Signal System
+
+`backtest/daily_signal.py` runs automatically after market close each trading day, ranking the top 5 most undervalued convertible bonds based on combined BS + ZL pricing deviation.
+
+### Filters Applied
+
+| Dimension | Threshold |
+|-----------|-----------|
+| Remaining maturity | > 0.5 years |
+| Conversion premium | < 30% |
+| Stock market cap | > 50B CNY |
+| Credit rating | ≥ AA- |
+
+### Scoring Logic
+
+$$
+Score = \frac{Dev_{BS} + Dev_{ZL}}{2}, \quad Dev = \frac{V_{model} - V_{market}}{V_{market}}
+$$
+
+Higher score = more undervalued per model. Bonds backed by both models carry stronger signal.
+
+### Automated Delivery
+
+Run `python backtest/setup_notification.py` once to configure your email provider (Gmail / QQ / 163 / Outlook). After that, Windows Task Scheduler pushes results at 15:30 every weekday with no further intervention.
 
 ---
 
