@@ -5,11 +5,16 @@ daily_signal.py — 每日收盘后自动运行，输出最值得买的 5 只可
   1. 增量更新数据 (data_pipeline.py)
   2. 增量运行 B-S / Z-L 模型
   3. 按过滤条件 + 综合评分选出 Top 5
-  4. 通过 SMTP 邮件推送
+  4. 推送通知（PushPlus 微信 / SMTP 邮件）
 
 配置:
-  先运行 python setup_notification.py 完成一键邮件配置，
-  配置保存至 signal_config.json。
+  signal_config.json 示例（PushPlus）:
+      {"provider": "pushplus", "token": "YOUR_TOKEN"}
+  signal_config.json 示例（SMTP 邮件）:
+      {"provider": "smtp", "smtp_server": "...", "smtp_port": 587,
+       "use_ssl": false, "sender_email": "...", "sender_password": "...",
+       "recipient_emails": ["..."]}
+  或运行 python setup_notification.py 一键配置。
 
 过滤条件:
   - 剩余期限 > 0.5 年
@@ -32,6 +37,8 @@ import sys
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
+import requests
 
 # Windows GBK console 兼容: emoji 回退为 ?
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
@@ -220,7 +227,25 @@ def format_message(top5: pd.DataFrame, date_str: str) -> str:
     return "\n".join(lines)
 
 
-def send_email(subject: str, body: str, cfg: dict) -> bool:
+def _send_pushplus(title: str, content: str, token: str) -> bool:
+    try:
+        resp = requests.post(
+            "https://www.pushplus.plus/send",
+            json={"token": token, "title": title, "content": content, "template": "txt"},
+            timeout=15,
+        )
+        data = resp.json()
+        if data.get("code") == 200:
+            print("  PushPlus 推送成功。")
+            return True
+        print(f"  PushPlus 推送失败: {data.get('msg')}")
+        return False
+    except Exception as e:
+        print(f"  PushPlus 推送异常: {e}")
+        return False
+
+
+def _send_email(subject: str, body: str, cfg: dict) -> bool:
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"]    = cfg["sender_email"]
@@ -240,6 +265,16 @@ def send_email(subject: str, body: str, cfg: dict) -> bool:
     except Exception as e:
         print(f"  邮件推送失败: {e}")
         return False
+
+
+def send_notification(title: str, body: str, cfg: dict) -> bool:
+    provider = cfg.get("provider", "")
+    if provider == "pushplus":
+        return _send_pushplus(title, body, cfg["token"])
+    if provider == "smtp":
+        return _send_email(title, body, cfg)
+    print("  [WARN] signal_config.json 未配置推送，跳过。")
+    return False
 
 
 # ── 主入口 ────────────────────────────────────────────────────
@@ -282,17 +317,19 @@ def main() -> None:
     print(top5[[c for c in cols if c in top5.columns]].to_string(index=False))
     print("─" * 60)
 
-    # 邮件推送
+    # 推送通知
     message = format_message(top5, date_str)
     cfg = _load_config()
-    if args.dry_run or not cfg.get("sender_email"):
-        if not cfg.get("sender_email"):
-            print("\n[WARN] 未配置邮件，跳过推送。")
-            print("   运行: python setup_notification.py")
+    if args.dry_run:
+        print("\n── 消息预览 (dry-run) ──")
+        print(message)
+    elif not cfg.get("provider"):
+        print("\n[WARN] signal_config.json 未配置推送，跳过。")
+        print("   运行: python setup_notification.py")
         print("\n── 消息预览 ──")
         print(message)
     else:
-        send_email(f"可转债每日精选 · {date_str}", message, cfg)
+        send_notification(f"可转债每日精选 · {date_str}", message, cfg)
 
     elapsed = (datetime.now() - start).total_seconds()
     print(f"\n总耗时: {elapsed:.0f}s")
