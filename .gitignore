@@ -1,0 +1,22 @@
+# Credentials & secrets — never commit
+backtest/signal_config.json
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+backtest/logs/
+
+# Large data files (kept locally, not in repo)
+backtest/【浙商固收】转债资产端特征数据库【周更新外发】.xlsx
+backtest/转债错误定价数据.xlsx

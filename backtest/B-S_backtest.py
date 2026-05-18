@@ -22,12 +22,17 @@ warnings.filterwarnings('ignore')
 # ==========================================
 # 1. 配置与数据读取
 # ==========================================
-# 请修改为您的实际文件路径
-BASE_DIR = r"D:\Python\浙商证券固收\转债错误定价"  
+# USE_PIPELINE=True  → 从 data_pipeline.py 生成的 CSV 读取（无需手动更新 Excel）
+# USE_PIPELINE=False → 从原始 Excel 文件读取（旧流程，向后兼容）
+USE_PIPELINE = True
+
+PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
+
+# 原始 Excel 路径（USE_PIPELINE=False 时使用）
+BASE_DIR = r"D:\Python\浙商证券固收\转债错误定价"
 EXCEL_PATH = os.path.join(BASE_DIR, "【浙商固收】转债资产端特征数据库【周更新外发】.xlsx")
 EXCEL_REDEMPTION_PATH = os.path.join(BASE_DIR, "转债错误定价数据.xlsx")
 
-# 定义 Sheet 名称
 SHEET_PRICE = "可转债价格"
 SHEET_CV = "转换价值"
 SHEET_FLOOR = "纯债价值"
@@ -36,77 +41,108 @@ SHEET_STOCK_MAP = "正股市值"
 SHEET_REDEMPTION = "到期赎回价"
 SHEET_RATING = "信用评级"
 
+
 def load_data(file_path, sheet_name):
-    # 读取并解析索引为日期
-    # 使用 openpyxl 引擎读取 Excel
     df = pd.read_excel(file_path, sheet_name=sheet_name, index_col=0, engine='openpyxl')
     df.index = pd.to_datetime(df.index, errors='coerce')
     df = df.dropna(how='all')
     return df.apply(pd.to_numeric, errors='coerce')
 
-print("1. 正在读取 Excel 静态数据...")
-df_price = load_data(EXCEL_PATH, SHEET_PRICE)
-df_cv = load_data(EXCEL_PATH, SHEET_CV)
-df_floor = load_data(EXCEL_PATH, SHEET_FLOOR)
-df_maturity = load_data(EXCEL_PATH, SHEET_MATURITY)
+
+def _load_csv(filename):
+    path = os.path.join(PIPELINE_DIR, filename)
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"Pipeline cache not found: {path}\n"
+            "请先运行 python backtest/data_pipeline.py 生成数据缓存。"
+        )
+    df = pd.read_csv(path, index_col=0, parse_dates=True)
+    df.index = pd.to_datetime(df.index, errors='coerce')
+    df = df[df.index.notna()].apply(pd.to_numeric, errors='coerce')
+    return df
+
+
+if USE_PIPELINE:
+    print("1. 正在从 Tushare Pipeline CSV 读取数据...")
+    df_price    = _load_csv('cb_price_cache.csv')
+    df_cv       = _load_csv('cb_convert_val_cache.csv')
+    df_floor    = _load_csv('cb_bond_floor_cache.csv')
+    df_maturity = _load_csv('cb_maturity_cache.csv')
+else:
+    print("1. 正在读取 Excel 静态数据...")
+    df_price    = load_data(EXCEL_PATH, SHEET_PRICE)
+    df_cv       = load_data(EXCEL_PATH, SHEET_CV)
+    df_floor    = load_data(EXCEL_PATH, SHEET_FLOOR)
+    df_maturity = load_data(EXCEL_PATH, SHEET_MATURITY)
 
 # 对齐日期索引（取交集）
 common_idx = df_price.index.intersection(df_cv.index).intersection(df_floor.index)
-df_price = df_price.loc[common_idx]
-df_cv = df_cv.loc[common_idx]
-df_floor = df_floor.loc[common_idx]
+df_price    = df_price.loc[common_idx]
+df_cv       = df_cv.loc[common_idx]
+df_floor    = df_floor.loc[common_idx]
 df_maturity = df_maturity.loc[common_idx]
 
 # ==========================================
 # 2. 建立 [转债代码 -> 正股代码] 映射
 # ==========================================
 print("2. 正在解析正股代码映射...")
-# 注意：正股市值 sheet 的结构比较特殊，前几行是元数据
-# 我们读取前几行，假设第2行(Index 1)是正股代码，第4行(Index 3)是转债代码
-try:
-    df_meta = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_STOCK_MAP, header=None, nrows=10, engine='openpyxl')
-    stock_row = df_meta.iloc[1, 1:].values  # 正股代码行
-    bond_row = df_meta.iloc[3, 1:].values   # 转债代码行
-    
-    # 建立字典: {转债代码: 正股代码}
-    bond_to_stock = {}
-    for b, s in zip(bond_row, stock_row):
-        if pd.notna(b) and pd.notna(s):
-            bond_to_stock[str(b).strip()] = str(s).strip()
-    
-    print(f"   成功建立 {len(bond_to_stock)} 对转债-正股映射关系")
-except Exception as e:
-    print(f"   映射解析失败: {e}")
-    bond_to_stock = {}
+if USE_PIPELINE:
+    try:
+        df_basic_info = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
+        bond_to_stock = (
+            df_basic_info.dropna(subset=['ts_code', 'stk_cd'])
+            .set_index('ts_code')['stk_cd']
+            .to_dict()
+        )
+        print(f"   成功建立 {len(bond_to_stock)} 对转债-正股映射关系（来源：cb_basic_info.csv）")
+    except Exception as e:
+        print(f"   映射读取失败: {e}")
+        bond_to_stock = {}
+else:
+    try:
+        df_meta = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_STOCK_MAP, header=None, nrows=10, engine='openpyxl')
+        stock_row = df_meta.iloc[1, 1:].values
+        bond_row  = df_meta.iloc[3, 1:].values
+        bond_to_stock = {}
+        for b, s in zip(bond_row, stock_row):
+            if pd.notna(b) and pd.notna(s):
+                bond_to_stock[str(b).strip()] = str(s).strip()
+        print(f"   成功建立 {len(bond_to_stock)} 对转债-正股映射关系")
+    except Exception as e:
+        print(f"   映射解析失败: {e}")
+        bond_to_stock = {}
 
 # ==========================================
 # 2.5 获取到期赎回价并构建 K 值矩阵
 # ==========================================
 print("2.5 正在读取并构建到期赎回价矩阵 (K)...")
-try:
-    # 读取静态数据
-    df_redemption_static = pd.read_excel(EXCEL_REDEMPTION_PATH, sheet_name=SHEET_REDEMPTION, engine='openpyxl')
-    
-    # 尝试识别列名 (包含 "代码" 和 "赎回价")
-    col_code = next((c for c in df_redemption_static.columns if "代码" in str(c)), None)
-    col_price = next((c for c in df_redemption_static.columns if "赎回价" in str(c)), None)
-    
-    if col_code and col_price:
-        # 建立映射 {code: price}
-        # 确保 code 格式一致 (转字符串, strip)
-        df_redemption_static[col_code] = df_redemption_static[col_code].astype(str).str.strip()
-        
-        # 转换为字典
-        redemption_map = df_redemption_static.set_index(col_code)[col_price].to_dict()
-        
-        print(f"   成功读取 {len(redemption_map)} 条赎回价数据")
-    else:
-        print("   未找到 '代码' 或 '赎回价' 相关列，使用默认值 100")
+if USE_PIPELINE:
+    try:
+        df_basic_info = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
+        redemption_map = (
+            df_basic_info.dropna(subset=['ts_code', 'maturity_price'])
+            .set_index('ts_code')['maturity_price']
+            .to_dict()
+        )
+        print(f"   成功读取 {len(redemption_map)} 条赎回价数据（来源：cb_basic_info.csv）")
+    except Exception as e:
+        print(f"   赎回价读取失败: {e}，使用默认值 100")
         redemption_map = {}
-        
-except Exception as e:
-    print(f"   读取赎回价 Sheet 失败 ({e})，使用默认值 100")
-    redemption_map = {}
+else:
+    try:
+        df_redemption_static = pd.read_excel(EXCEL_REDEMPTION_PATH, sheet_name=SHEET_REDEMPTION, engine='openpyxl')
+        col_code  = next((c for c in df_redemption_static.columns if "代码"  in str(c)), None)
+        col_price = next((c for c in df_redemption_static.columns if "赎回价" in str(c)), None)
+        if col_code and col_price:
+            df_redemption_static[col_code] = df_redemption_static[col_code].astype(str).str.strip()
+            redemption_map = df_redemption_static.set_index(col_code)[col_price].to_dict()
+            print(f"   成功读取 {len(redemption_map)} 条赎回价数据")
+        else:
+            print("   未找到 '代码' 或 '赎回价' 相关列，使用默认值 100")
+            redemption_map = {}
+    except Exception as e:
+        print(f"   读取赎回价 Sheet 失败 ({e})，使用默认值 100")
+        redemption_map = {}
 
 # 构建 df_k_strike (Broadcasting)
 # 初始化为 100
@@ -146,7 +182,7 @@ except Exception as e:
     print(f"Warning: Tushare 初始化失败，请检查 Token 设置。错误: {e}")
     pro = None
 
-VOL_CACHE_FILE = "bs_volatility_cache.csv"
+VOL_CACHE_FILE = os.path.join(PIPELINE_DIR, "bs_volatility_cache.csv")
 
 # 尝试读取缓存
 if os.path.exists(VOL_CACHE_FILE):
@@ -366,10 +402,10 @@ df_diff_pct = df_diff / df_price
 # 6. 结果输出
 # ==========================================
 # 保存结果
-df_theoretical.to_csv("BS_Model_Prices.csv")
-df_price.to_csv("Market_Prices.csv")
-df_diff.to_csv("BS_Model_Deviation_Abs.csv")
-df_diff_pct.to_csv("BS_Model_Deviation_Pct.csv")
+df_theoretical.to_csv(os.path.join(PIPELINE_DIR, "BS_Model_Prices.csv"))
+df_price.to_csv(os.path.join(PIPELINE_DIR, "Market_Prices.csv"))
+df_diff.to_csv(os.path.join(PIPELINE_DIR, "BS_Model_Deviation_Abs.csv"))
+df_diff_pct.to_csv(os.path.join(PIPELINE_DIR, "BS_Model_Deviation_Pct.csv"))
 
 print("计算完成！")
 print("结果已保存:")
@@ -379,7 +415,7 @@ print("3. 绝对偏差 (Model - Market): 'BS_Model_Deviation_Abs.csv'")
 print("4. 相对偏差 (Model - Market)/Market: 'BS_Model_Deviation_Pct.csv'")
 
 # 保存汇总 Excel
-with pd.ExcelWriter("BS_Model_Summary.xlsx") as writer:
+with pd.ExcelWriter(os.path.join(PIPELINE_DIR, "BS_Model_Summary.xlsx")) as writer:
     df_theoretical.to_excel(writer, sheet_name="理论价格")
     df_price.to_excel(writer, sheet_name="市场价格")
     df_diff.to_excel(writer, sheet_name="绝对偏差")
@@ -445,7 +481,7 @@ labels.append('定价错误')
 ax1.legend(lines, labels, loc='upper center')
 
 plt.title('图1 BS模型定价结果与市场价格对比')
-plt.savefig("Fig1_BS_Price_Time_Series.png", dpi=300)
+plt.savefig(os.path.join(PIPELINE_DIR, "Fig1_BS_Price_Time_Series.png"), dpi=300)
 plt.close()
 
 # 图2: 定价结果与在值程度的关系 (Moneyness)
@@ -483,7 +519,7 @@ plt.ylabel('平均价格 (元)')
 plt.legend()
 plt.title('图2 BS模型定价结果与在值程度的关系')
 plt.grid(True, linestyle='--', alpha=0.3)
-plt.savefig("Fig2_BS_Moneyness.png", dpi=300)
+plt.savefig(os.path.join(PIPELINE_DIR, "Fig2_BS_Moneyness.png"), dpi=300)
 plt.close()
 
 # 图3: 定价结果与剩余期限的关系
@@ -519,7 +555,7 @@ plt.ylabel('平均价格 (元)')
 plt.legend()
 plt.title('图3 BS模型定价结果与剩余期限的关系')
 plt.grid(True, linestyle='--', alpha=0.3)
-plt.savefig("Fig3_BS_Maturity.png", dpi=300)
+plt.savefig(os.path.join(PIPELINE_DIR, "Fig3_BS_Maturity.png"), dpi=300)
 plt.close()
 
 print("绘图完成！")
@@ -652,7 +688,7 @@ try:
         plt.axhline(0, color='k', linewidth=0.8)
         plt.grid(axis='y', linestyle='--', alpha=0.3)
         
-        plt.savefig("Fig4_BS_Rating.png", dpi=300)
+        plt.savefig(os.path.join(PIPELINE_DIR, "Fig4_BS_Rating.png"), dpi=300)
         plt.close()
         print("4. Fig4_BS_Rating")
         

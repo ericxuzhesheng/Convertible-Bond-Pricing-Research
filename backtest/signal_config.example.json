@@ -1,0 +1,11 @@
+{
+  "provider": "smtp",
+  "smtp_server": "smtp.163.com",
+  "smtp_port": 465,
+  "use_ssl": true,
+  "sender_email": "your_address@163.com",
+  "sender_password": "YOUR_SMTP_AUTH_CODE",
+  "recipient_emails": [
+    "your_address@163.com"
+  ]
+}
