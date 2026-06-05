@@ -71,7 +71,7 @@ RF_CACHE      = os.path.join(OUT_DIR, 'rf_yield_cache.csv')
 # ==========================================
 def init_tushare():
     ts.set_token(TUSHARE_TOKEN)
-    pro = ts.pro_api()
+    pro = ts.pro_api(timeout=120)
     print("Tushare Pro 初始化成功")
     return pro
 
@@ -569,7 +569,13 @@ def run_pipeline(start: str = DEFAULT_START, end: str = DEFAULT_END) -> None:
     pro = init_tushare()
 
     # --- 基础信息 ---
-    cb_basic = fetch_cb_basic(pro)
+    try:
+        cb_basic = fetch_cb_basic(pro)
+    except Exception as ex:
+        if not os.path.exists(OUT_BASIC):
+            raise
+        print(f"   警告: cb_basic 拉取失败，复用本地基础信息继续: {ex}")
+        cb_basic = pd.read_csv(OUT_BASIC)
     # 合并已有 cb_basic_info（保留 maturity_price 等引导数据）
     if os.path.exists(OUT_BASIC):
         existing_basic = pd.read_csv(OUT_BASIC)   # 不用 index_col，ts_code 是普通列
