@@ -7,7 +7,6 @@ from tqdm import tqdm
 import warnings
 import time
 import os
-import matplotlib.pyplot as pd_plt
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import seaborn as sns
@@ -163,7 +162,7 @@ for col in df_k_strike.columns:
             if not np.isnan(val):
                 df_k_strike[col] = val
                 count_filled += 1
-        except:
+        except (TypeError, ValueError):
             pass
 
 print(f"   已将 {count_filled} 只转债的赎回价填充到 K 值矩阵")
@@ -173,10 +172,11 @@ print(f"   已将 {count_filled} 只转债的赎回价填充到 K 值矩阵")
 # ==========================================
 print("3. 开始通过 Tushare 获取正股历史波动率...")
 
-# 初始化 Tushare (请替换为您自己的 Token)
-ts.set_token('REMOVED_TUSHARE_TOKEN') 
+# 初始化 Tushare（token 从环境变量 TUSHARE_TOKEN 或 backtest/tushare_token.txt 读取）
+from token_loader import load_tushare_token
 
 try:
+    ts.set_token(load_tushare_token())
     pro = ts.pro_api()
 except Exception as e:
     print(f"Warning: Tushare 初始化失败，请检查 Token 设置。错误: {e}")
@@ -184,12 +184,32 @@ except Exception as e:
 
 VOL_CACHE_FILE = os.path.join(PIPELINE_DIR, "bs_volatility_cache.csv")
 
+
+def _fetch_bond_volatility(bond_code):
+    """拉取单只转债正股的 250 日滚动年化波动率，返回对齐 df_price.index 的 Series 或 None。"""
+    stock_code_full = bond_to_stock.get(bond_code)
+    if not stock_code_full or pro is None:
+        return None
+    start_dt = df_price.index.min().strftime("%Y%m%d")
+    end_dt = df_price.index.max().strftime("%Y%m%d")
+    # 使用 ts.pro_bar 获取前复权行情（受积分/频率限制）
+    df_stock = ts.pro_bar(ts_code=stock_code_full, adj='qfq', start_date=start_dt, end_date=end_dt)
+    if df_stock is None or df_stock.empty:
+        return None
+    df_stock['trade_date'] = pd.to_datetime(df_stock['trade_date'])
+    df_stock = df_stock.sort_values('trade_date').set_index('trade_date')
+    log_ret = np.log(df_stock['close'] / df_stock['close'].shift(1))
+    # 250 日滚动年化波动率；不足 250 天时有多少算多少 (min_periods=2)
+    vol = log_ret.rolling(window=250, min_periods=2).std() * np.sqrt(250)
+    return vol.reindex(df_price.index)
+
+
 # 尝试读取缓存
 if os.path.exists(VOL_CACHE_FILE):
     print("   发现波动率缓存，正在读取...")
     try:
         df_volatility = pd.read_csv(VOL_CACHE_FILE, index_col=0, parse_dates=True)
-        # 确保索引和列与当前数据匹配
+        # 确保索引和列与当前数据匹配（新增日期/新债此时为 NaN，下面增量补算）
         df_volatility = df_volatility.reindex(index=df_price.index, columns=df_price.columns)
         print("   缓存读取成功。")
     except Exception as e:
@@ -199,69 +219,33 @@ else:
     df_volatility = None
 
 if df_volatility is None:
-    # 初始化波动率 DataFrame (结构同转债价格表)
     df_volatility = pd.DataFrame(index=df_price.index, columns=df_price.columns)
 
-    # 遍历每一个转债代码
-    for bond_code in tqdm(df_price.columns, desc="Fetching Stock Volatility"):
-        stock_code_full = bond_to_stock.get(bond_code)
-        
-        if not stock_code_full:
-            print(f"   跳过 {bond_code}: 未找到正股代码")
-            continue
-            
-        # 处理代码格式：无需特殊转换，确保 stock_code_full 格式正确
-        
+# 增量补算: 有市场价但波动率缺失的债券（新债，或缓存生成后新增的交易日）
+# 修复历史 bug: 旧逻辑缓存存在时直接 fillna(0.40)，导致所有新交易日永远用 40% 兜底波动率
+pending_vol = (df_price.notna() & df_volatility.isna()).any()
+pending_bonds = pending_vol[pending_vol].index.tolist()
+if pending_bonds:
+    print(f"   {len(pending_bonds)} 只转债的波动率存在缺口，开始增量补算 ...")
+    updated_count = 0
+    for bond_code in tqdm(pending_bonds, desc="Fetching Stock Volatility"):
         try:
-            if pro is None:
-                raise ValueError("Tushare API 未初始化")
-
-            # 获取正股日线数据 (复权: qfq)
-            start_dt = df_price.index.min().strftime("%Y%m%d")
-            end_dt = df_price.index.max().strftime("%Y%m%d")
-            
-            # 使用 ts.pro_bar 获取复权行情
-            # 注意: pro_bar 需要 internet 连接且受积分限制，速度可能受限
-            df_stock = ts.pro_bar(ts_code=stock_code_full, adj='qfq', start_date=start_dt, end_date=end_dt)
-            
-            if df_stock is None or df_stock.empty:
-                # 尝试不复权数据作为 fallback (虽然不推荐)
-                # df_k = pro.daily(ts_code=stock_code_full, start_date=start_dt, end_date=end_dt)
-                print(f"   获取 {stock_code_full} 数据为空")
-                continue
-
-            # Tushare 返回的数据通常是按日期降序排列的，需要转为升序
-            df_stock['trade_date'] = pd.to_datetime(df_stock['trade_date'])
-            df_stock = df_stock.sort_values('trade_date')
-            df_stock.set_index('trade_date', inplace=True)
-            
-            # 计算对数收益率
-            df_stock['log_ret'] = np.log(df_stock['close'] / df_stock['close'].shift(1))
-            
-            # 计算 250 日滚动波动率 (年化)
-            # 核心公式: stdev * sqrt(250)
-            # 修改：不足250天时，有多少数据算多少 (min_periods=2)
-            df_stock['volatility'] = df_stock['log_ret'].rolling(window=250, min_periods=2).std() * np.sqrt(250)
-            
-            # 将计算好的波动率填入总表 (按日期对齐)
-            # reindex 确保日期匹配，缺失值填为 NaN (后续处理)
-            vol_series = df_stock['volatility'].reindex(df_price.index)
-            df_volatility[bond_code] = vol_series
-            
-            # 避免请求过快
-            time.sleep(0.05) 
-            
+            vol_series = _fetch_bond_volatility(bond_code)
+            if vol_series is not None:
+                df_volatility[bond_code] = vol_series
+                updated_count += 1
+            time.sleep(0.05)  # 避免请求过快
         except Exception as e:
-            print(f"   获取 {stock_code_full} 失败: {e}")
-            
-    # 保存缓存
-    try:
-        df_volatility.to_csv(VOL_CACHE_FILE)
-        print(f"   波动率已缓存至: {VOL_CACHE_FILE}")
-    except Exception as e:
-        print(f"   缓存保存失败: {e}")
+            print(f"   获取 {bond_code} 波动率失败: {e}")
+    if updated_count:
+        try:
+            df_volatility.to_csv(VOL_CACHE_FILE)
+            print(f"   波动率已缓存至: {VOL_CACHE_FILE} (更新 {updated_count} 只)")
+        except Exception as e:
+            print(f"   缓存保存失败: {e}")
 
 # 填充缺失波动率 (对于刚上市不足2天无法计算std的，或获取失败的，用 40% 填充)
+# 注意: 兜底填充只在内存中进行，不写回缓存，下次运行仍会尝试补算
 df_volatility = df_volatility.fillna(0.40)
 print("   波动率数据准备完成。")
 
@@ -287,7 +271,7 @@ try:
     yield_table = target_curve[available_cols] / 100.0
     
     # 对齐到回测的日期索引 (Forward Fill)
-    yield_table = yield_table.reindex(df_price.index).fillna(method='ffill').fillna(0.02)
+    yield_table = yield_table.reindex(df_price.index).ffill().fillna(0.02)
     
     # 初始化 rf_df
     rf_df = pd.DataFrame(index=df_price.index, columns=df_price.columns)
@@ -486,11 +470,7 @@ plt.close()
 
 # 图2: 定价结果与在值程度的关系 (Moneyness)
 # 在值程度 = log(S/X)
-# 我们需要对所有样本点进行 Moneyness 分组
-# 展开数据
-# 堆叠所有数据: price, model, moneyness
-S_all = df_cv.values * df_price.values / 100.0 # CV = 100/X * S. 所以 S/X = CV/100.
-# 在值程度 measure: ln(S/X) = ln(CV/100)
+# 在值程度 measure: ln(S/X) = ln(CV/100)  (CV = 100/X * S, 所以 S/X = CV/100)
 moneyness = np.log(df_cv / 100.0)
 
 # 将 DataFrame 展平为 Series
@@ -567,60 +547,64 @@ print("3. Fig3_BS_Maturity.png")
 # 图4: 错误定价与评级的关系
 # ==========================================
 try:
-    # 读取评级数据预览以确定Header
-    df_rating_preview = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=None, nrows=10, engine='openpyxl')
-    
-    header_idx = 0
-    for idx, row in df_rating_preview.iterrows():
-        matches = row.astype(str).str.contains(r'\d{6}\.(SH|SZ)').sum()
-        if matches > 5: 
-            header_idx = idx
-            break
-            
-    df_rating = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=header_idx, engine='openpyxl')
-    
-    # 识别日期列
-    date_col = None
-    for col in df_rating.columns[:5]:
-        sample = df_rating[col].dropna().iloc[:10]
-        if len(sample) == 0: continue
-        try:
-            # 尝试转换
-            dates = pd.to_datetime(sample, errors='coerce')
-            
-            # 检查有效日期比例
-            if dates.notnull().mean() < 0.5:
+    if USE_PIPELINE:
+        # pipeline 模式: 直接读取评级缓存（行=日期, 列=债券代码），不依赖外部 Excel
+        df_rating = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_rating_cache.csv'), index_col=0)
+        df_rating.index = pd.to_datetime(df_rating.index, errors='coerce')
+        df_rating = df_rating[df_rating.index.notnull()].sort_index()
+        date_col = 'cb_rating_cache.csv'
+        print(f"   评级数据来源: {date_col}")
+    else:
+        # 读取评级数据预览以确定Header
+        df_rating_preview = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=None, nrows=10, engine='openpyxl')
+
+        header_idx = 0
+        for idx, row in df_rating_preview.iterrows():
+            matches = row.astype(str).str.contains(r'\d{6}\.(SH|SZ)').sum()
+            if matches > 5:
+                header_idx = idx
+                break
+
+        df_rating = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=header_idx, engine='openpyxl')
+
+        # 识别日期列
+        date_col = None
+        for col in df_rating.columns[:5]:
+            sample = df_rating[col].dropna().iloc[:10]
+            if len(sample) == 0: continue
+            try:
+                dates = pd.to_datetime(sample, errors='coerce')
+                # 检查有效日期比例
+                if dates.notnull().mean() < 0.5:
+                    continue
+                # 检查日期范围是否合理，排除被误判为日期的数字 (如 0 -> 1970-01-01)
+                valid_dates = dates[dates.notnull()]
+                if valid_dates.min().year < 2000:
+                    continue
+                date_col = col
+                break
+            except Exception:
                 continue
-                
-            # 检查日期范围是否合理 (例如: 2000年以后)
-            # 排除被误判为日期的数字 (如 0 -> 1970-01-01)
-            valid_dates = dates[dates.notnull()]
-            if valid_dates.min().year < 2000:
-                continue
-                
-            date_col = col
-            break
-        except:
-            continue
-            
-    if date_col is None and len(df_rating.columns) > 2:
-        # 尝试检查第3列 (索引2)，即使前面的逻辑没过
-        col_candidate = df_rating.columns[2]
-        sample = df_rating[col_candidate].dropna().iloc[:10]
-        try:
-             dates = pd.to_datetime(sample, errors='coerce')
-             if dates.notnull().any() and dates.max().year >= 2000:
-                 date_col = col_candidate
-        except:
-             pass
-            
+
+        if date_col is None and len(df_rating.columns) > 2:
+            # 尝试检查第3列 (索引2)，即使前面的逻辑没过
+            col_candidate = df_rating.columns[2]
+            sample = df_rating[col_candidate].dropna().iloc[:10]
+            try:
+                dates = pd.to_datetime(sample, errors='coerce')
+                if dates.notnull().any() and dates.max().year >= 2000:
+                    date_col = col_candidate
+            except Exception:
+                pass
+
+        if date_col:
+            print(f"   使用评级日期列: {date_col}")
+            df_rating[date_col] = pd.to_datetime(df_rating[date_col], errors='coerce')
+            df_rating = df_rating.dropna(subset=[date_col])
+            df_rating = df_rating.set_index(date_col)
+            df_rating = df_rating.sort_index()
+
     if date_col:
-        print(f"   使用评级日期列: {date_col}")
-        df_rating[date_col] = pd.to_datetime(df_rating[date_col], errors='coerce')
-        df_rating = df_rating.dropna(subset=[date_col])
-        df_rating = df_rating.set_index(date_col)
-        df_rating = df_rating.sort_index()
-        
         # 1. 筛选 2019 年以后的数据
         start_date = '2019-01-01'
         print(f"   正在筛选 {start_date} 以来的数据进行回测统计...")

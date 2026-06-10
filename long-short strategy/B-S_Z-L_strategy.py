@@ -9,15 +9,38 @@ import matplotlib.ticker as ticker
 # 设置绘图风格
 try:
     plt.style.use('seaborn-v0_8')
-except:
+except Exception:
     plt.style.use('seaborn')
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 解决中文显示问题
 plt.rcParams['axes.unicode_minus'] = False
 
+# ── 路径解析: 输入文件优先在仓库内查找，兼容旧外部目录 ──
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+BACKTEST_DIR = os.path.join(REPO_ROOT, "backtest")
+LEGACY_DIR = r"d:\Python\浙商证券固收\转债错误定价"
+
+
+def _resolve(filename, *dirs):
+    """按候选目录顺序查找文件；找不到时返回首候选（让报错信息带出期望路径）。"""
+    for d in dirs:
+        p = os.path.join(d, filename)
+        if os.path.exists(p):
+            return p
+    return os.path.join(dirs[0], filename)
+
+
 class CBStrategy:
-    def __init__(self, data_dir):
-        self.data_dir = data_dir
-        self.features_file = os.path.join(data_dir, "【浙商固收】转债资产端特征数据库【周更新外发】.xlsx")
+    def __init__(self, data_dir=None):
+        # data_dir 显式给定时沿用旧行为；默认在仓库内解析（模型/特征在 backtest/，基准在本目录）
+        if data_dir:
+            self.model_dir = data_dir
+            self.features_file = os.path.join(data_dir, "【浙商固收】转债资产端特征数据库【周更新外发】.xlsx")
+            self.bench_file = os.path.join(data_dir, "000832_CSI_close_price.xlsx")
+        else:
+            self.model_dir = BACKTEST_DIR
+            self.features_file = _resolve("【浙商固收】转债资产端特征数据库【周更新外发】.xlsx", BACKTEST_DIR, LEGACY_DIR)
+            self.bench_file = _resolve("000832_CSI_close_price.xlsx", SCRIPT_DIR, LEGACY_DIR)
         self.select_ratio = 0.2  # 筛选比例：Top 20% 做多，Bottom 20% 做空
         
         # 数据存储
@@ -51,7 +74,7 @@ class CBStrategy:
 
     def load_data(self, model_file_name="ZL_Model_Summary.xlsx"):
         print(f"开始加载数据 (模型文件: {model_file_name})... ")
-        model_path = os.path.join(self.data_dir, model_file_name)
+        model_path = os.path.join(self.model_dir, model_file_name)
         
         # 1. 加载相对偏差数据
         print(f"加载相对偏差数据: {model_file_name}")
@@ -116,7 +139,7 @@ class CBStrategy:
         # 3. 从本地文件加载 000832.CSI 中证转债指数
         print("从本地 Excel 加载中证转债指数 (000832_CSI_close_price.xlsx)...")
         try:
-            bench_file = os.path.join(self.data_dir, "000832_CSI_close_price.xlsx")
+            bench_file = self.bench_file
             if not os.path.exists(bench_file):
                 raise FileNotFoundError(f"未找到基准文件: {bench_file}")
             
@@ -451,7 +474,7 @@ class CBStrategy:
             for ticker in op['short']:
                 ops_df.append({'日期': date, '方向': '做空', '标的': ticker})
         
-        pd.DataFrame(ops_df).to_csv('strategy_operations.csv', index=False, encoding='utf_8_sig')
+        pd.DataFrame(ops_df).to_csv(os.path.join(SCRIPT_DIR, 'strategy_operations.csv'), index=False, encoding='utf_8_sig')
         print("调仓记录已保存为 strategy_operations.csv")
         
         # 计算累计超额收益
@@ -469,7 +492,7 @@ class CBStrategy:
             plt.ylabel('累计收益率')
             plt.legend()
             plt.grid(True)
-            plt.savefig('strategy_performance.png')
+            plt.savefig(os.path.join(SCRIPT_DIR, 'strategy_performance.png'))
             print("\n收益率曲线已保存为 strategy_performance.png")
             # plt.show()
         
@@ -485,14 +508,13 @@ class CBStrategy:
         }
 
 if __name__ == "__main__":
-    data_path = r"d:\Python\浙商证券固收\转债错误定价"
     models = ["BS_Model_Summary.xlsx", "ZL_Model_Summary.xlsx"]
     all_metrics = {}
     all_data = {}
-    
+
     for model in models:
         print(f"\n\n{'#'*20} 正在运行模型: {model} {'#'*20}")
-        strategy = CBStrategy(data_path)
+        strategy = CBStrategy()
         strategy.load_data(model_file_name=model)
         strategy.run_backtest()
         results = strategy.analyze_results(plot=False)
@@ -625,6 +647,6 @@ if __name__ == "__main__":
         plt.title(f'{label_prefix} 模型策略效果：总净值、多空与基准超额', fontsize=17, fontweight="bold", pad=25)
         plt.tight_layout()
         
-        save_name = f'{label_prefix}_model_performance.png'
+        save_name = os.path.join(SCRIPT_DIR, f'{label_prefix}_model_performance.png')
         plt.savefig(save_name, dpi=300, bbox_inches="tight")
         print(f"{label_prefix} 模型对比图已保存为 {save_name}")

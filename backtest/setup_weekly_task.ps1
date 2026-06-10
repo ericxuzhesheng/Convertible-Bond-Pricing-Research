@@ -31,18 +31,17 @@ if (-not (Test-Path $batchFile)) {
 $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At "18:00"
 
 # ── 操作：以 cmd.exe 运行 batch ──────────────────────────────────────────────
-$schedulerLog = Join-Path $logDir "scheduler.log"
 $action = New-ScheduledTaskAction `
     -Execute "cmd.exe" `
     -Argument "/c `"$batchFile`""
 
 # ── 设置项 ───────────────────────────────────────────────────────────────────
+# 注: -WakeToRun 是 switch 参数，默认即为关闭；写成 "-WakeToRun $false" 会导致参数绑定错误
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -RunOnlyIfNetworkAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Hours 4) `
-    -MultipleInstances IgnoreNew `
-    -WakeToRun $false
+    -MultipleInstances IgnoreNew
 
 # ── 注册任务（以当前登录用户身份运行，需要时输入密码） ───────────────────────
 $principal = New-ScheduledTaskPrincipal `

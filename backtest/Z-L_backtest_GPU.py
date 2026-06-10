@@ -255,9 +255,11 @@ redemption_map = get_redemption_prices_from_excel(DATA_FILE)
 # 3. Tushare 获取正股波动率
 # ==========================================
 print("3. 开始通过 Tushare 获取正股历史波动率...")
-# 设置 Tushare 的 API Token
-ts.set_token('REMOVED_TUSHARE_TOKEN')
+# Tushare token 从环境变量 TUSHARE_TOKEN 或 backtest/tushare_token.txt 读取
+from token_loader import load_tushare_token
+
 try:
+    ts.set_token(load_tushare_token())
     # 初始化 Tushare 的 pro_api 接口
     pro = ts.pro_api()
 except Exception as e:

@@ -66,17 +66,47 @@ MIN_MV_WAN     = 500_000      # 万元 (= 50亿)
 VALID_RATINGS  = {"AAA", "AA+", "AA", "AA-"}
 
 
+# ── 运行期警告收集（最终会写入推送消息，避免静默失败）──────────
+RUNTIME_WARNINGS: list = []
+
+
+def _warn(msg: str) -> None:
+    print(f"  [WARN] {msg}")
+    RUNTIME_WARNINGS.append(msg)
+
+
+def _pipeline_start_date() -> str:
+    """增量起点 = 价格缓存最后日期的次日；缺缓存时回退到今天。
+
+    修复历史 bug: 旧逻辑只拉「今天」一天，脚本哪天没跑那天的数据就永久缺失
+    （例如 2026-05-16 ~ 05-26 的空洞）。
+    """
+    cache_path = os.path.join(DIR, "cb_price_cache.csv")
+    today = datetime.today().strftime("%Y%m%d")
+    try:
+        idx = pd.read_csv(cache_path, index_col=0, usecols=[0]).index
+        last = pd.to_datetime(idx, errors="coerce").max()
+        if pd.notna(last):
+            start = (last + pd.Timedelta(days=1)).strftime("%Y%m%d")
+            return min(start, today)
+    except Exception as e:
+        _warn(f"读取价格缓存末日期失败，回退为只拉今天: {e}")
+    return today
+
+
 # ── 步骤 1: 增量更新数据 ──────────────────────────────────────
 def run_pipeline() -> None:
+    start = _pipeline_start_date()
     today = datetime.today().strftime("%Y%m%d")
-    print(f"[1/3] 增量更新数据到 {today} …")
+    print(f"[1/3] 增量更新数据 {start} → {today} …")
     result = subprocess.run(
         [sys.executable, os.path.join(DIR, "data_pipeline.py"),
-         "--start", today, "--end", today],
+         "--start", start, "--end", today],
         cwd=DIR, capture_output=True, text=True
     )
     if result.returncode != 0:
-        print("  data_pipeline 警告:", result.stderr[-500:] if result.stderr else "")
+        tail = result.stderr[-500:] if result.stderr else "(无 stderr)"
+        _warn(f"data_pipeline 失败，信号可能基于陈旧数据: {tail}")
     else:
         print("  数据更新完成。")
 
@@ -90,7 +120,8 @@ def run_models() -> None:
             cwd=DIR, capture_output=True, text=True
         )
         if result.returncode != 0:
-            print(f"  {name} 模型错误:", result.stderr[-300:] if result.stderr else "")
+            tail = result.stderr[-300:] if result.stderr else "(无 stderr)"
+            _warn(f"{name} 模型运行失败，该模型偏差可能缺失或过期: {tail}")
         else:
             print(f"  {name} 完成。")
 
@@ -122,6 +153,11 @@ def compute_signals() -> pd.DataFrame:
     latest = bs_dev.index[bs_dev.notna().any(axis=1)][-1]
     print(f"  最新有效日期: {latest.date()}")
 
+    # 数据新鲜度检查: 信号日期距今超过 7 个自然日视为陈旧
+    staleness = (datetime.today() - latest.to_pydatetime()).days
+    if staleness > 7:
+        _warn(f"信号数据已陈旧: 最新有效日期 {latest.date()}，距今 {staleness} 天")
+
     # ── 当日截面 ──
     def latest_row(df: pd.DataFrame) -> pd.Series:
         idx = df.index[df.notna().any(axis=1)]
@@ -131,6 +167,9 @@ def compute_signals() -> pd.DataFrame:
 
     s_bs   = bs_dev.loc[latest].dropna()      # BS (model-mkt)/mkt
     s_zl   = latest_row(zl_dev)               # ZL 可能滞后一天
+    zl_valid_idx = zl_dev.index[zl_dev.notna().any(axis=1)]
+    if len(zl_valid_idx) > 0 and zl_valid_idx[-1] != latest:
+        _warn(f"Z-L 信号日期 ({zl_valid_idx[-1].date()}) 与 B-S ({latest.date()}) 不一致，综合评分混用两日数据")
     s_mkt  = mkt.loc[latest]
     s_cv   = cv.loc[latest]
     s_mat  = mat.loc[latest]
@@ -194,8 +233,9 @@ def compute_signals() -> pd.DataFrame:
     # ── 排名 ──
     top5 = df_filtered.sort_values("score", ascending=False).head(5)
 
-    # 拼接债券名称
-    name_map = basic.set_index("ts_code")["name"].to_dict() if "name" in basic.columns else {}
+    # 拼接债券名称（cb_basic_info.csv 中列名为 bond_short_name）
+    name_col = next((c for c in ("bond_short_name", "name") if c in basic.columns), None)
+    name_map = basic.set_index("ts_code")[name_col].to_dict() if name_col else {}
     top5["name"] = top5["ts_code"].map(name_map).fillna("")
 
     top5.insert(0, "date", latest.strftime("%Y-%m-%d"))
@@ -211,6 +251,10 @@ def format_message(top5: pd.DataFrame, date_str: str) -> str:
         f"> 过滤条件: 剩余期限>{MIN_MATURITY}年 | 溢价率<{int(MAX_PREMIUM*100)}% | 市值>50亿 | 评级≥AA-",
         "",
     ]
+    if RUNTIME_WARNINGS:
+        lines.append("⚠️ **运行警告（结果可能不可靠）:**")
+        lines += [f"- {w}" for w in RUNTIME_WARNINGS]
+        lines.append("")
     for i, row in top5.iterrows():
         rat_icon = RATING_EMOJI.get(row["rating"], "")
         bs_pct   = f"{row['bs_dev']*100:+.1f}%" if pd.notna(row["bs_dev"]) else "N/A"

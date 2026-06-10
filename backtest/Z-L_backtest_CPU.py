@@ -7,6 +7,7 @@ from tqdm import tqdm
 import warnings
 import time
 import os
+import zlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
@@ -219,16 +220,31 @@ def get_redemption_prices_from_excel(file_path):
         return {}
 
 # 获取赎回价字典
-redemption_map = get_redemption_prices_from_excel(DATA_FILE)
+if USE_PIPELINE:
+    # pipeline 模式: 从 cb_basic_info.csv 的 maturity_price 列读取（与 B-S 模型一致）
+    try:
+        _basic = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
+        redemption_map = (
+            _basic.dropna(subset=['ts_code', 'maturity_price'])
+            .set_index('ts_code')['maturity_price'].to_dict()
+        )
+        print(f"   成功读取 {len(redemption_map)} 条赎回价数据（来源：cb_basic_info.csv）")
+    except Exception as e:
+        print(f"   赎回价读取失败: {e}，回退到 Excel")
+        redemption_map = get_redemption_prices_from_excel(DATA_FILE)
+else:
+    redemption_map = get_redemption_prices_from_excel(DATA_FILE)
 
 
 # ==========================================
 # 3. Tushare 获取正股波动率
 # ==========================================
 print("3. 开始通过 Tushare 获取正股历史波动率...")
-# 设置 Tushare 的 API Token
-ts.set_token('REMOVED_TUSHARE_TOKEN')
+# Tushare token 从环境变量 TUSHARE_TOKEN 或 backtest/tushare_token.txt 读取
+from token_loader import load_tushare_token
+
 try:
+    ts.set_token(load_tushare_token())
     # 初始化 Tushare 的 pro_api 接口
     pro = ts.pro_api()
 except Exception as e:
@@ -240,60 +256,61 @@ except Exception as e:
 VOL_CACHE_FILE = os.path.join(PIPELINE_DIR, "zl_stock_volatility_cache.csv")
 PRICE_CACHE_FILE = os.path.join(PIPELINE_DIR, "zl_stock_price_cache.csv")
 
-if os.path.exists(VOL_CACHE_FILE) and os.path.exists(PRICE_CACHE_FILE):
-    print(" 发现缓存，正在读取...")
-    df_volatility = pd.read_csv(VOL_CACHE_FILE, index_col=0, parse_dates=True)
-    df_volatility = df_volatility.reindex(index=df_price.index, columns=df_price.columns)
 
-    df_stock_price = pd.read_csv(PRICE_CACHE_FILE, index_col=0, parse_dates=True)
-    df_stock_price = df_stock_price.reindex(index=df_price.index, columns=df_price.columns)
-else:
-    df_volatility = pd.DataFrame(index=df_price.index, columns=df_price.columns)
-    df_stock_price = pd.DataFrame(index=df_price.index, columns=df_price.columns)
-    
-    # 遍历每一个转债代码
-    for bond_code in tqdm(df_price.columns, desc="Fetching Stock Data"):
-        stock_code_full = bond_to_stock.get(bond_code)
-        
-        if not stock_code_full:
-            continue
-            
+def _fetch_bond_stock_data(bond_code):
+    """拉取单只转债正股的收盘价与 250 日滚动年化波动率（对齐 df_price.index），失败返回 None。"""
+    stock_code_full = bond_to_stock.get(bond_code)
+    if not stock_code_full or pro is None:
+        return None
+    start_dt = df_price.index.min().strftime("%Y%m%d")
+    end_dt = df_price.index.max().strftime("%Y%m%d")
+    df_k = ts.pro_bar(ts_code=stock_code_full, adj='qfq', start_date=start_dt, end_date=end_dt)
+    if df_k is None or df_k.empty:
+        return None
+    df_k['trade_date'] = pd.to_datetime(df_k['trade_date'])
+    df_k = df_k.sort_values('trade_date').set_index('trade_date')
+    log_ret = np.log(df_k['close'] / df_k['close'].shift(1))
+    vol = log_ret.rolling(window=250, min_periods=2).std() * np.sqrt(250)
+    return df_k['close'].reindex(df_price.index), vol.reindex(df_price.index)
+
+
+def _load_cache_or_empty(path):
+    if os.path.exists(path):
+        df = pd.read_csv(path, index_col=0, parse_dates=True)
+        return df.reindex(index=df_price.index, columns=df_price.columns)
+    return pd.DataFrame(index=df_price.index, columns=df_price.columns)
+
+
+df_volatility = _load_cache_or_empty(VOL_CACHE_FILE)
+df_stock_price = _load_cache_or_empty(PRICE_CACHE_FILE)
+
+# 增量补算: 有市场价但波动率/正股价缺失的债券（新债，或缓存生成后新增的交易日）
+# 修复历史 bug: 旧逻辑缓存存在时直接用 NaN→0.40 兜底，新交易日永远拿不到真实波动率
+# 注意: 旧版波动率缓存曾把 0.40 兜底值写进文件，无法与真实值区分，建议删除两个 zl_*_cache.csv 重建
+pending = (df_price.notna() & (df_volatility.isna() | df_stock_price.isna())).any()
+pending_bonds = pending[pending].index.tolist()
+if pending_bonds:
+    print(f"   {len(pending_bonds)} 只转债的正股数据存在缺口，开始增量补算 ...")
+    updated_count = 0
+    for bond_code in tqdm(pending_bonds, desc="Fetching Stock Data"):
         try:
-            if pro is None: break
-
-            start_dt = df_price.index.min().strftime("%Y%m%d")
-            end_dt = df_price.index.max().strftime("%Y%m%d")
-            
-            df_k = ts.pro_bar(ts_code=stock_code_full, adj='qfq', start_date=start_dt, end_date=end_dt)
-            
-            if df_k is None or df_k.empty:
-                continue
-
-            df_k['trade_date'] = pd.to_datetime(df_k['trade_date'])
-            df_k = df_k.sort_values('trade_date').set_index('trade_date')
-            
-            # 保存价格
-            price_series = df_k['close'].reindex(df_price.index)
-            df_stock_price[bond_code] = price_series
-            
-            # 计算波动率
-            df_k['log_ret'] = np.log(df_k['close'] / df_k['close'].shift(1))
-            df_k['volatility'] = df_k['log_ret'].rolling(window=250, min_periods=2).std() * np.sqrt(250)
-            
-            vol_series = df_k['volatility'].reindex(df_price.index)
-            df_volatility[bond_code] = vol_series
-            
-            time.sleep(0.02) 
-            
+            fetched = _fetch_bond_stock_data(bond_code)
+            if fetched is not None:
+                price_series, vol_series = fetched
+                df_stock_price[bond_code] = price_series
+                df_volatility[bond_code] = vol_series
+                updated_count += 1
+            time.sleep(0.02)
         except Exception as e:
-            print(f"   获取 {stock_code_full} 失败: {e}")
+            print(f"   获取 {bond_code} 正股数据失败: {e}")
+    if updated_count:
+        df_volatility.to_csv(VOL_CACHE_FILE)
+        df_stock_price.to_csv(PRICE_CACHE_FILE)
+        print(f"   缓存已更新 ({updated_count} 只)。")
 
-    df_volatility = df_volatility.fillna(0.40)
-    df_stock_price = df_stock_price.ffill() # 简单填充
-    
-    # 保存缓存
-    df_volatility.to_csv(VOL_CACHE_FILE)
-    df_stock_price.to_csv(PRICE_CACHE_FILE)
+# 兜底填充只在内存中进行，不写回缓存，下次运行仍会尝试补算
+df_volatility = df_volatility.fillna(0.40)
+df_stock_price = df_stock_price.ffill()
 
 print("   股票数据准备完成。")
 
@@ -301,59 +318,55 @@ print("   股票数据准备完成。")
 # 4. 获取无风险利率 (Akshare)
 # ==========================================
 print("4. 获取国债收益率...")
+# 注意: rf_yield_cache.csv 是期限格式（列 = 1/2/3/5/7/10 年），由 data_pipeline.py 维护。
+# 绝不可 reindex 到债券列（会全变 NaN 被 0.02 静默吞掉），必须按期限插值。
 RF_CACHE_FILE = os.path.join(PIPELINE_DIR, "rf_yield_cache.csv")
 
-if os.path.exists(RF_CACHE_FILE):
-    print("   发现利率缓存，正在读取...")
-    rf_df = pd.read_csv(RF_CACHE_FILE, index_col=0, parse_dates=True)
-    rf_df = rf_df.reindex(index=df_price.index, columns=df_price.columns).fillna(0.02)
-else:
+
+def _load_tenor_yield_table():
+    """返回期限格式利率表（行=日期，列=float 期限，单调递增），失败返回 None。"""
+    if os.path.exists(RF_CACHE_FILE):
+        print("   发现利率缓存（期限格式），正在读取...")
+        tbl = pd.read_csv(RF_CACHE_FILE, index_col=0, parse_dates=True)
+        import re as _re
+        tbl.columns = [float(_re.match(r'^(\d+(?:\.\d+)?)', str(c)).group(1)) for c in tbl.columns]
+        tbl = tbl.T.groupby(level=0).first().T.sort_index(axis=1)
+        return tbl
     try:
-        df_yield = ak.bond_china_yield(start_date="20200101", end_date="20261231")
-        target_curve = df_yield[df_yield['曲线名称']=='中债国债收益率曲线']
+        end_dt = df_price.index.max().strftime("%Y%m%d")
+        df_yield = ak.bond_china_yield(start_date="20190101", end_date=end_dt)
+        target_curve = df_yield[df_yield['曲线名称'] == '中债国债收益率曲线'].copy()
         target_curve['日期'] = pd.to_datetime(target_curve['日期'])
         target_curve.set_index('日期', inplace=True)
-        
-        tenor_cols = ['1年', '2年', '3年', '5年', '7年', '10年']
-        available_cols = [c for c in tenor_cols if c in target_curve.columns]
-        yield_table = target_curve[available_cols] / 100.0
-        yield_table = yield_table.reindex(df_price.index).ffill().fillna(0.02)
-        
-        rf_df = pd.DataFrame(index=df_price.index, columns=df_price.columns)
-        
-        # 线性插值替代分段赋值
         tenor_map = {'1年': 1.0, '2年': 2.0, '3年': 3.0, '5年': 5.0, '7年': 7.0, '10年': 10.0}
-        available_tenors_str = [c for c in tenor_cols if c in yield_table.columns]
-        available_tenors_val = np.array([tenor_map[c] for c in available_tenors_str])
-
-        print(f"   正在进行利率期限结构线性插值 (期限点: {available_tenors_val})...")
-
-        # 逐日插值
-        for date in tqdm(df_maturity.index, desc="Interpolating Yield Curve"):
-            if date not in yield_table.index:
-                continue
-
-            # 获取当天的收益率曲线 Y 值
-            daily_yields = yield_table.loc[date, available_tenors_str].values.astype(float)
-
-            # 获取当天的剩余期限 X 值 (处理 NaN 为 0，避免插值错误)
-            daily_maturities = df_maturity.loc[date].fillna(0).values.astype(float)
-
-            # 执行线性插值
-            # np.interp 对于超出 [min, max] 范围的 x，默认取端点值 (left, right)
-            interp_rates = np.interp(daily_maturities, available_tenors_val, daily_yields)
-
-            rf_df.loc[date] = interp_rates
-            
-        rf_df = rf_df.fillna(0.02)
-        
-        # 保存缓存
-        rf_df.to_csv(RF_CACHE_FILE)
-        print("   利率数据已缓存。")
-
+        available_cols = [c for c in tenor_map if c in target_curve.columns]
+        tbl = target_curve[available_cols] / 100.0
+        tbl.columns = [tenor_map[c] for c in available_cols]
+        return tbl.sort_index(axis=1).sort_index()
     except Exception as e:
-        print(f"   获取利率失败，使用默认值 2%: {e}")
-        rf_df = pd.DataFrame(0.02, index=df_price.index, columns=df_price.columns)
+        print(f"   获取利率失败: {e}")
+        return None
+
+
+yield_table = _load_tenor_yield_table()
+
+if yield_table is None or yield_table.empty:
+    print("   无可用利率数据，使用默认值 2%")
+    rf_df = pd.DataFrame(0.02, index=df_price.index, columns=df_price.columns)
+else:
+    tenors = yield_table.columns.astype(float).values
+    # 对齐到回测日期（节假日 ffill），早于缓存起点的日期用 0.02 兜底
+    yield_aligned = yield_table.reindex(df_price.index, method='ffill')
+    print(f"   正在进行利率期限结构线性插值 (期限点: {tenors})...")
+    yield_vals = yield_aligned.values.astype(float)
+    maturity_vals = df_maturity.fillna(0).values.astype(float)
+    rf_matrix = np.full_like(maturity_vals, np.nan, dtype=float)
+    for i in range(len(rf_matrix)):
+        if np.isnan(yield_vals[i]).all():
+            continue
+        rf_matrix[i, :] = np.interp(maturity_vals[i, :], tenors, yield_vals[i, :])
+    rf_df = pd.DataFrame(rf_matrix, index=df_price.index, columns=df_price.columns).fillna(0.02)
+    print("   无风险利率期限结构匹配完成。")
 
 # ==========================================
 # 5. Z-L 模型 (Monte Carlo)
@@ -389,80 +402,17 @@ def get_credit_spread_by_maturity(maturity_years):
 
 def get_credit_spread_matrix(df_maturity):
     """
-    根据剩余期限矩阵计算信用利差矩阵
+    根据剩余期限矩阵计算信用利差矩阵（向量化，applymap 已被 pandas 弃用）
     """
     print("   正在根据剩余期限构建信用利差矩阵...")
-    
-    # 对每个元素应用插值函数
-    df_spread = df_maturity.applymap(
-        lambda x: get_credit_spread_by_maturity(x)
-        if pd.notna(x) and x > 0 else 0.0072
-    )
-    
-    return df_spread
+
+    vals = df_maturity.values.astype(float)
+    interp = get_credit_spread_by_maturity(vals)
+    spread = np.where(np.isnan(vals) | (vals <= 0), 0.0072, interp)
+    return pd.DataFrame(spread, index=df_maturity.index, columns=df_maturity.columns)
 
 # 计算利差矩阵 (基于剩余期限插值)
 df_spread = get_credit_spread_matrix(df_maturity)
-
-# ==========================================
-# 5.1 获取到期赎回价 (从 Excel 读取)
-# ==========================================
-DEFAULT_REDEMPTION_PRICE = 110.0
-
-def get_redemption_prices_from_excel(file_path):
-    """
-    从 Excel 的 '到期赎回价' Sheet 读取赎回价
-    """
-    print("   正在从 Excel 读取到期赎回价...")
-    try:
-        # 根据截图:
-        # 第一行 (Header=0) 是中文列名：代码，名称，到期赎回价
-        # 第二行是英文列名：Code, Name, callprice (需要剔除)
-        # 数据从第三行开始
-        
-        # 读取 Header=0 (中文)
-        df = pd.read_excel(file_path, sheet_name='到期赎回价', header=0, engine='openpyxl')
-        
-        # 剔除第二行 (英文名)
-        df = df.iloc[1:]
-        
-        # 清洗列名 (去除空格)
-        df.columns = [c.strip() for c in df.columns]
-        
-        # 提取需要的列：'代码' 和 '到期赎回价'
-        # 截图显示列名可能是 "代码 " 或 "到期赎回价 " (带空格?) 
-        # 我们尝试模糊匹配
-        code_col = None
-        price_col = None
-        
-        for col in df.columns:
-            if "代码" in col: code_col = col
-            if "到期赎回价" in col: price_col = col
-            
-        if not code_col or not price_col:
-            print(f"   未找到对应的列名，当前列：{df.columns}")
-            return {}
-            
-        # 清洗数据
-        # 代码列：118065.SH -> 118065 (如果需要去后缀)
-        # 但我们之前保留了后缀，所以直接用
-        
-        # 价格列：转为 numeric
-        df[price_col] = pd.to_numeric(df[price_col], errors='coerce')
-        
-        # 转换为字典 {code: price}
-        redemption_map = df.set_index(code_col)[price_col].dropna().to_dict()
-        
-        print(f"   成功读取 {len(redemption_map)} 条赎回价数据")
-        return redemption_map
-        
-    except Exception as e:
-        print(f"   Excel 读取失败：{e}")
-        return {}
-
-# 获取赎回价字典
-redemption_map = get_redemption_prices_from_excel(DATA_FILE)
-
 
 @njit
 def zl_mc_core(S0, X0, r, credit_spread, sigma, T, BPS,
@@ -563,19 +513,22 @@ def zl_mc_core(S0, X0, r, credit_spread, sigma, T, BPS,
 
 def zl_mc_pricing(S0, X0, r, credit_spread, sigma, T, BPS,
                   redemption_price=100.0, put_price=100.0, put_barrier=0.7, put_start_year=2.0,
-                  N=10000, steps=2000):
+                  N=10000, steps=2000, seed=42):
     """
     Z-L 模型蒙特卡洛定价 (Numba JIT 优化版本)
     使用 JIT 编译加速计算，速度提升 10-100 倍
+
+    seed: 随机种子。调用方应按 (债券, 日期) 派生独立种子——
+    若所有定价共享同一组随机路径，蒙特卡洛误差会变成横截面系统性偏差。
     """
     # 计算回售开始的时间步
     put_start_time = max(0.0, T - put_start_year)
     dt = T / steps
     put_start_idx = int(put_start_time / dt)
 
-    # 预生成随机数矩阵
-    np.random.seed(42)
-    random_matrix = np.random.normal(0, 1, (N, steps))
+    # 预生成随机数矩阵（独立 RNG，不污染全局随机状态）
+    rng = np.random.default_rng(seed)
+    random_matrix = rng.standard_normal((N, steps))
     
     # 调用 JIT 编译的核心函数
     return zl_mc_core(
@@ -706,14 +659,18 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest"):
             # 为了保证回售条款判断的准确性 (30交易日)，必须使用日频模拟
             sim_steps = max(50, int(T * 240))
             
+            # 按 (债券, 日期) 派生确定性种子: 可复现，且各定价随机路径互相独立
+            mc_seed = zlib.crc32(f"{bond_code}|{date}".encode()) & 0x7FFFFFFF
+
             model_price = zl_mc_pricing(
                 S0=S0_sim, X0=X0_sim, r=r, credit_spread=cs, sigma=sigma, T=T, BPS=BPS_sim,
-                redemption_price=redeem_price, 
+                redemption_price=redeem_price,
                 put_price=100.0,    # 假设回售价为 100 + 利息 (这里简化为100)
                 put_barrier=0.7,    # 回售触发比例
                 put_start_year=2.0, # 回售期通常为最后2年
-                N=10000, 
-                steps=sim_steps
+                N=10000,
+                steps=sim_steps,
+                seed=mc_seed
             )
             
             df_zl_model.loc[date, bond_code] = model_price
@@ -733,7 +690,8 @@ safe_price = df_price.replace(0, np.nan)
 df_diff_pct = df_diff / safe_price
 
 df_zl_model.to_csv(os.path.join(PIPELINE_DIR, "ZL_Model_Prices.csv"))
-df_price.to_csv(os.path.join(PIPELINE_DIR, "Market_Prices.csv"))
+# 注意: 不可写 Market_Prices.csv —— 那是 B-S 脚本的输出，两边 df_price 列集不同会互相覆盖
+df_price.to_csv(os.path.join(PIPELINE_DIR, "ZL_Market_Prices.csv"))
 df_diff.to_csv(os.path.join(PIPELINE_DIR, "ZL_Model_Deviation_Abs.csv"))
 df_diff_pct.to_csv(os.path.join(PIPELINE_DIR, "ZL_Model_Deviation_Pct.csv"))
 
@@ -957,60 +915,64 @@ print("3. Fig3_ZL_Maturity.png")
 # ==========================================
 try:
     print("   正在绘制图 4: 错误定价与评级的关系...")
-    # 读取评级数据预览以确定 Header
-    df_rating_preview = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=None, nrows=10, engine='openpyxl')
-    
-    header_idx = 0
-    for idx, row in df_rating_preview.iterrows():
-        matches = row.astype(str).str.contains(r'\d{6}\.(SH|SZ)').sum()
-        if matches > 5: 
-            header_idx = idx
-            break
-            
-    df_rating = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=header_idx, engine='openpyxl')
-    
-    # 识别日期列
-    date_col = None
-    for col in df_rating.columns[:5]:
-        sample = df_rating[col].dropna().iloc[:10]
-        if len(sample) == 0: continue
-        try:
-            # 尝试转换
-            dates = pd.to_datetime(sample, errors='coerce')
-            
-            # 检查有效日期比例
-            if dates.notnull().mean() < 0.5:
+    if USE_PIPELINE:
+        # pipeline 模式: 直接读取评级缓存（行=日期, 列=债券代码），不依赖外部 Excel
+        df_rating = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_rating_cache.csv'), index_col=0)
+        df_rating.index = pd.to_datetime(df_rating.index, errors='coerce')
+        df_rating = df_rating[df_rating.index.notnull()].sort_index()
+        date_col = 'cb_rating_cache.csv'
+        print(f"   评级数据来源: {date_col}")
+    else:
+        # 读取评级数据预览以确定 Header
+        df_rating_preview = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=None, nrows=10, engine='openpyxl')
+
+        header_idx = 0
+        for idx, row in df_rating_preview.iterrows():
+            matches = row.astype(str).str.contains(r'\d{6}\.(SH|SZ)').sum()
+            if matches > 5:
+                header_idx = idx
+                break
+
+        df_rating = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=header_idx, engine='openpyxl')
+
+        # 识别日期列
+        date_col = None
+        for col in df_rating.columns[:5]:
+            sample = df_rating[col].dropna().iloc[:10]
+            if len(sample) == 0: continue
+            try:
+                dates = pd.to_datetime(sample, errors='coerce')
+                # 检查有效日期比例
+                if dates.notnull().mean() < 0.5:
+                    continue
+                # 检查日期范围是否合理，排除被误判为日期的数字 (如 0 -> 1970-01-01)
+                valid_dates = dates[dates.notnull()]
+                if valid_dates.min().year < 2000:
+                    continue
+                date_col = col
+                break
+            except Exception:
                 continue
-                
-            # 检查日期范围是否合理 (例如：2000 年以后)
-            # 排除被误判为日期的数字 (如 0 -> 1970-01-01)
-            valid_dates = dates[dates.notnull()]
-            if valid_dates.min().year < 2000:
-                continue
-                
-            date_col = col
-            break
-        except:
-            continue
-            
-    if date_col is None and len(df_rating.columns) > 2:
-        # 尝试检查第 3 列 (索引 2)，即使前面的逻辑没过
-        col_candidate = df_rating.columns[2]
-        sample = df_rating[col_candidate].dropna().iloc[:10]
-        try:
-             dates = pd.to_datetime(sample, errors='coerce')
-             if dates.notnull().any() and dates.max().year >= 2000:
-                 date_col = col_candidate
-        except:
-             pass
-            
+
+        if date_col is None and len(df_rating.columns) > 2:
+            # 尝试检查第 3 列 (索引 2)，即使前面的逻辑没过
+            col_candidate = df_rating.columns[2]
+            sample = df_rating[col_candidate].dropna().iloc[:10]
+            try:
+                dates = pd.to_datetime(sample, errors='coerce')
+                if dates.notnull().any() and dates.max().year >= 2000:
+                    date_col = col_candidate
+            except Exception:
+                pass
+
+        if date_col:
+            print(f"   使用评级日期列：{date_col}")
+            df_rating[date_col] = pd.to_datetime(df_rating[date_col], errors='coerce')
+            df_rating = df_rating.dropna(subset=[date_col])
+            df_rating = df_rating.set_index(date_col)
+            df_rating = df_rating.sort_index()
+
     if date_col:
-        print(f"   使用评级日期列：{date_col}")
-        df_rating[date_col] = pd.to_datetime(df_rating[date_col], errors='coerce')
-        df_rating = df_rating.dropna(subset=[date_col])
-        df_rating = df_rating.set_index(date_col)
-        df_rating = df_rating.sort_index()
-        
         # 1. 筛选 2019 年以后的数据
         start_date = '2019-01-01'
         print(f"   正在筛选 {start_date} 以来的数据进行回测统计...")

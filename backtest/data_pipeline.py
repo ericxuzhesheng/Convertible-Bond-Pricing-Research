@@ -33,6 +33,7 @@ Verified Tushare field names (as of 2026):
 
 import argparse
 import os
+import re
 import time
 import warnings
 from datetime import datetime
@@ -43,12 +44,13 @@ import pandas as pd
 import tushare as ts
 from tqdm import tqdm
 
+from token_loader import load_tushare_token
+
 warnings.filterwarnings('ignore')
 
 # ==========================================
 # 1. 配置
 # ==========================================
-TUSHARE_TOKEN = 'REMOVED_TUSHARE_TOKEN'
 DEFAULT_START = '20190101'
 DEFAULT_END   = datetime.today().strftime('%Y%m%d')
 OUT_DIR       = os.path.dirname(os.path.abspath(__file__))
@@ -70,7 +72,7 @@ RF_CACHE      = os.path.join(OUT_DIR, 'rf_yield_cache.csv')
 # 2. 初始化 Tushare
 # ==========================================
 def init_tushare():
-    ts.set_token(TUSHARE_TOKEN)
+    ts.set_token(load_tushare_token())
     pro = ts.pro_api(timeout=120)
     print("Tushare Pro 初始化成功")
     return pro
@@ -295,10 +297,25 @@ def build_maturity_matrix(df_price: pd.DataFrame, cb_basic: pd.DataFrame) -> pd.
 # ==========================================
 # 8. 无风险利率曲线
 # ==========================================
+def _normalize_yield_table(df: pd.DataFrame) -> pd.DataFrame:
+    """统一利率表列为 float 期限并去重排序。
+
+    CSV 读回的列名是字符串（'1.0'），新拉取的是 float（1.0），若不统一，
+    combine_first 会把同一期限拼成两列（历史上曾把缓存写坏成 10 列）。
+    """
+    df = df.copy()
+    # 兼容 pandas 对重复列的改名（'1.0.1' → 1.0）
+    df.columns = [float(re.match(r'^(\d+(?:\.\d+)?)', str(c)).group(1)) for c in df.columns]
+    # 同期限重复列合并（优先保留靠前列的非空值）
+    df = df.T.groupby(level=0).first().T
+    return df.sort_index(axis=1)
+
+
 def fetch_yield_curve(start: str, end: str) -> pd.DataFrame:
     print("\n[Step 5] 拉取国债收益率曲线 ...")
     if os.path.exists(RF_CACHE):
         existing = pd.read_csv(RF_CACHE, index_col=0, parse_dates=True)
+        existing = _normalize_yield_table(existing)
         last_date = existing.index.max()
         end_ts    = pd.Timestamp(end)
         if last_date >= end_ts:
@@ -326,6 +343,7 @@ def fetch_yield_curve(start: str, end: str) -> pd.DataFrame:
 
         if existing is not None:
             yield_tbl = _merge_wide(existing, yield_tbl)
+        yield_tbl = _normalize_yield_table(yield_tbl)
 
         yield_tbl.to_csv(RF_CACHE)
         print(f"   利率曲线已更新: {yield_tbl.shape}")
@@ -354,6 +372,8 @@ def calc_bond_floor_dcf(
         tenors    = np.array([1.0, 3.0, 5.0, 7.0, 10.0])
         yield_arr = np.full((len(dates), len(tenors)), 0.02)
     else:
+        # np.interp 要求 xp 单调递增，必须先规范化期限列
+        yield_tbl = _normalize_yield_table(yield_tbl)
         tenors    = yield_tbl.columns.astype(float).values
         yield_arr = yield_tbl.reindex(dates, method='ffill').fillna(0.02).values
 
