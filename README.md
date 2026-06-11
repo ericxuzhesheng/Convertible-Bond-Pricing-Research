@@ -1,11 +1,17 @@
-﻿<div align="center">
+﻿# 中国市场可转债定价模型研究 | Convertible Bond Pricing Research (China Market)
 
-## 中国市场可转债定价模型研究 | Convertible Bond Pricing Research (China Market)
+<p align="center">
+  <a href="#简体中文"><img src="https://img.shields.io/badge/语言-中文-E84D3D?style=for-the-badge&labelColor=3B3F47" alt="中文"></a>
+  &nbsp;
+  <a href="#english-version"><img src="https://img.shields.io/badge/Language-English-2F73C9?style=for-the-badge&labelColor=3B3F47" alt="English"></a>
+</p>
 
-[![LANGUAGE 中文](https://img.shields.io/badge/LANGUAGE-%E4%B8%AD%E6%96%87-e74c3c?style=for-the-badge)](#简体中文)
-[![LANGUAGE ENGLISH](https://img.shields.io/badge/LANGUAGE-ENGLISH-2f7de1?style=for-the-badge)](#english-version)
-
-</div>
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.9+">
+  <img src="https://img.shields.io/badge/定价模型-BS · ZL 双锚-F2C94C?style=for-the-badge" alt="BS + ZL">
+  <img src="https://img.shields.io/badge/数据区间-2017--2026 · A股可转债-4CAF50?style=for-the-badge" alt="2017-2026">
+  <img src="https://img.shields.io/badge/BS多空-Sharpe 1.17 · MaxDD --12.78%25-9B51E0?style=for-the-badge" alt="Sharpe 1.17">
+</p>
 
 ---
 
