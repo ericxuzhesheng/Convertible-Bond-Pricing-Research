@@ -261,8 +261,8 @@ $$
 
 | Strategy | Annual Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
-| BS Long  | ~19.3%        | 1.35   | -22.26%      |
-| ZL Long  | ~15.3%        | 1.44   | -13.74%      |
+| BS Long  | 15.34%        | 1.06   | -24.74%      |
+| ZL Long  | 5.46%         | 0.55   | -20.20%      |
 
 结论摘要：ZL 在相对误差指标上更优，BS 在方向性捕捉与进攻弹性上更强。
 
@@ -583,8 +583,8 @@ The strategy is constructed based on **mispricing (RD)** defined above.
 
 | Strategy | Annual Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
-| BS Long  | ~19.3%        | 1.35   | -22.26%      |
-| ZL Long  | ~15.3%        | 1.44   | -13.74%      |
+| BS Long  | 15.34%        | 1.06   | -24.74%      |
+| ZL Long  | 5.46%         | 0.55   | -20.20%      |
 
 Summary: ZL performs better on relative pricing-error control, while BS is stronger in directional capture and offensive upside.
 
