@@ -747,88 +747,32 @@ with pd.ExcelWriter(SUMMARY_FILE) as writer:
     df_diff_pct.to_excel(writer, sheet_name="相对偏差")
 print(f"5. 汇总 Excel: '{SUMMARY_FILE}'")
 
-# 简单的误差展示
-# 1. 平均误差 (Mean Error / Bias)
-mean_error = df_diff.mean().mean()
-# 2. 平均绝对误差 (MAE)
-mae = df_diff.abs().mean().mean()
-# 3. 均方根误差 (RMSE)
-rmse = np.sqrt((df_diff**2).mean().mean())
-# 4. 平均相对误差 (MAPE) - 注意 df_diff_pct 是带符号的相对误差，这里取绝对值
-mape = df_diff_pct.abs().mean().mean() * 100
-# 5. 对称平均绝对百分比误差 (SMAPE)
-# SMAPE = mean( |model - market| / ((|model| + |market|) / 2) ) * 100
-
-# 定义 calc_price (用于后续计算和对齐)
-if 'df_price_loaded' in locals():
-    # 尝试使用文件中的市场价格
-    calc_price = df_price_loaded.copy()
+# 误差指标 —— 在全部有效 (交易日 × 转债) 单元上汇总 (pooled)，
+# 与真正写盘的 summary 完全一致。
+# 修复历史 bug: 旧逻辑用 df.mean().mean()（先按债券列求均值再平均=按债等权），
+# 且 SMAPE 对齐到只含历史 checkpoint 的 df_price_loaded（部分日期），
+# 导致打印的统计量与实际写盘文件不符、有误导性。现统一用 df_zl_model 与
+# df_price（即写盘的 理论价格/市场价格）逐单元 pooled 计算。
+_m = df_zl_model.apply(pd.to_numeric, errors='coerce')
+_p = df_price.apply(pd.to_numeric, errors='coerce')
+_m = _m.reindex(index=_p.index, columns=_p.columns)
+_mask = (_m.notna() & _p.notna() & (_p != 0)).values
+_n = int(_mask.sum())
+if _n == 0:
+    mean_error = mae = rmse = mape = smape = float('nan')
 else:
-    calc_price = df_price.copy()
-
-# 数据清洗函数
-def clean_dataframe(df):
-    # 1. 转换索引为日期，强制 Coerce
-    df.index = pd.to_datetime(df.index, errors='coerce')
-    # 2. 去除无效索引 (NaT)
-    df = df[df.index.notnull()]
-    # 3. 强制转换数据为数值
-    df = df.apply(pd.to_numeric, errors='coerce')
-    return df
-
-df_zl_model_clean = clean_dataframe(df_zl_model.copy())
-calc_price_clean = clean_dataframe(calc_price.copy())
-
-# 确保列名一致
-df_zl_model_clean.columns = df_zl_model_clean.columns.astype(str)
-calc_price_clean.columns = calc_price_clean.columns.astype(str)
-
-# 对齐数据
-model_aligned, market_aligned = df_zl_model_clean.align(calc_price_clean, join='inner', axis=None)
-
-# 计算 SMAPE
-numerator = (model_aligned - market_aligned).abs()
-denominator = (model_aligned.abs() + market_aligned.abs()) / 2.0
-
-# 避免分母为 0
-smape_matrix = numerator / denominator.replace(0, np.nan)
-
-# 使用 stack() 展平并自动忽略 NaN，然后求均值
-smape = smape_matrix.stack().mean() * 100
-
-if np.isnan(smape):
-    print("Warning: SMAPE calculation resulted in NaN (possibly empty overlap or invalid data).")
-    # 尝试 fallback: 使用 df_diff 和 calc_price 反推 model
-    try:
-        print("   Attempting fallback calculation using df_diff and calc_price...")
-        # 清洗 df_diff
-        df_diff_clean = clean_dataframe(df_diff.copy())
-        
-        # 对齐 df_diff 和 calc_price
-        diff_aligned, market_aligned_fb = df_diff_clean.align(calc_price_clean, join='inner', axis=None)
-        
-        # 反推 model
-        model_recovered = market_aligned_fb + diff_aligned
-        
-        # 计算 SMAPE
-        numerator_fb = diff_aligned.abs() # |model - market| = |df_diff|
-        denominator_fb = (model_recovered.abs() + market_aligned_fb.abs()) / 2.0
-        
-        smape_matrix_fb = numerator_fb / denominator_fb.replace(0, np.nan)
-        smape = smape_matrix_fb.stack().mean() * 100
-        print(f"   Fallback SMAPE: {smape:.4f} %")
-        
-        # 修复 df_zl_model 用于后续绘图 (如果原始数据无效)
-        print("   Repairing df_zl_model for plotting using recovered data...")
-        # 重构 df_zl_model = market + diff
-        df_zl_model = calc_price_clean.add(df_diff_clean, fill_value=0)
-        
-    except Exception as e:
-        print(f"   Fallback failed: {e}")
-        pass
+    _d = (_m - _p).values[_mask]
+    _mk = _m.values[_mask]
+    _pk = _p.values[_mask]
+    mean_error = _d.mean()                                    # 平均误差 (Bias)
+    mae = np.abs(_d).mean()                                   # 平均绝对误差
+    rmse = np.sqrt((_d ** 2).mean())                          # 均方根误差
+    mape = np.mean(np.abs(_d) / np.abs(_pk)) * 100            # 平均绝对百分比误差
+    smape = np.mean(np.abs(_d) / ((np.abs(_mk) + np.abs(_pk)) / 2)) * 100  # 对称 MAPE
 
 print("-" * 30)
 print("模型整体误差指标:")
+print(f"有效单元 (date×bond): {_n}")
 print(f"Mean Error (Bias): {mean_error:.4f} 元")
 print(f"MAE (平均绝对误差): {mae:.4f} 元")
 print(f"RMSE (均方根误差): {rmse:.4f} 元")
