@@ -7,11 +7,14 @@ from tqdm import tqdm
 import warnings
 import time
 import os
+import sys
 import zlib
+import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
-from numba import njit
+from numba import njit, cuda
+from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_normal_float64
 
 # 设置中文显示
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
@@ -414,128 +417,124 @@ def get_credit_spread_matrix(df_maturity):
 # 计算利差矩阵 (基于剩余期限插值)
 df_spread = get_credit_spread_matrix(df_maturity)
 
-@njit
-def zl_mc_core(S0, X0, r, credit_spread, sigma, T, BPS,
-               redemption_price, put_price, put_barrier, put_start_idx,
-               N, steps, random_matrix):
-    """
-    Z-L 模型蒙特卡洛核心算法 (Rational Game 优化版)
-    """
+# ==========================================
+# Z-L 蒙特卡洛核心 —— GPU (CUDA) 批处理版
+# ==========================================
+# 注意: 本 kernel 的博弈逻辑与 Z-L_backtest_CPU.py 的 zl_mc_core 严格一致
+#   - 下修: new_X = max(S, BPS) (简单下修, 非 BS 二分)
+#   - 强赎收益: 纯转股 S*(100/X) (不与赎回价取 max)
+#   - 时间步: steps = max(50, int(T*240)), dt = T/steps
+#   - 回售执行: put_count>=30 且 t > put_start_idx (严格大于)
+# 仅把执行设备从 CPU(njit) 换成 GPU(cuda.jit), 模型设定不变。
+PUT_START_YEAR = 2.0  # 回售期通常为最后 2 年
+
+
+@cuda.jit
+def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
+                       redem_arr, put_price_arr, put_barrier_arr,
+                       N, rng_states, out_pv):
+    """每个线程模拟一只债券的一条路径; tid = bond_idx * N + path_idx。"""
+    tid = cuda.grid(1)
+    bond_idx = tid // N
+
+    if bond_idx >= S0_arr.shape[0]:
+        return
+
+    S0 = S0_arr[bond_idx]
+    X0 = X0_arr[bond_idx]
+    r = r_arr[bond_idx]
+    credit_spread = cs_arr[bond_idx]
+    sigma = sigma_arr[bond_idx]
+    T = T_arr[bond_idx]
+    BPS = BPS_arr[bond_idx]
+    redemption_price = redem_arr[bond_idx]
+    put_price = put_price_arr[bond_idx]
+    put_barrier = put_barrier_arr[bond_idx]
+
+    # 时间步 / dt / 回售起始步 —— 与 CPU 版完全一致
+    steps = max(50, int(T * 240.0))
     dt = T / steps
-    
-    # 初始化路径
-    S_path = np.zeros((N, steps + 1))
-    S_path[:, 0] = S0
-    
-    X_path = np.zeros((N, steps + 1))
-    X_path[:, 0] = X0
-    
-    # 路径状态管理
-    is_alive = np.ones(N, dtype=np.bool_)     # 路径是否存活
-    path_end_times = np.full(N, T)            # 结束时间 (默认到期)
-    path_end_values = np.zeros(N)             # 结束价值
-    put_counts = np.zeros(N, dtype=np.int32)  # 回售计数器
-    
-    # 模拟路径
-    for t in range(1, steps + 1):
-        # 1. 股价演变 (GBM) - 向量化更新所有路径股价
-        drift = (r - 0.5 * sigma**2) * dt
-        diffusion = sigma * np.sqrt(dt) * random_matrix[:, t-1]
-        S_path[:, t] = S_path[:, t-1] * np.exp(drift + diffusion)
-        
-        # 继承上一时刻转股价
-        X_path[:, t] = X_path[:, t-1]
-        
-        # 2. 逐条路径处理博弈逻辑
-        for i in range(N):
-            if not is_alive[i]:
-                continue
-                
-            S_t = S_path[i, t]
-            X_t = X_path[i, t]
-            
-            # --- (1) 判断回售条件 (Put Trigger) ---
-            if S_t < put_barrier * X_t:
-                put_counts[i] += 1
-            else:
-                put_counts[i] = 0
-            
-            # --- (2) 发行人博弈 (Rational Down-fix) ---
-            # 压力临近 (count > 20)，尝试下修
-            if put_counts[i] > 20:
-                # 尝试下修到市价，但受限于 BPS (归一化后的 BPS)
-                # 假设面值约束在 BPS 约束内或被忽略 (通常 SOE 关注 BPS)
-                new_X = max(S_t, BPS) 
-                
-                # 只有当新转股价低于当前转股价时才执行
-                if new_X < X_t:
-                    X_path[i, t] = new_X
-                    # 下修后检查压力是否缓解
-                    if S_t >= put_barrier * new_X:
-                        put_counts[i] = 0
-            
-            # 更新 X_t 以供后续判断
-            X_t = X_path[i, t]
-
-            # --- (3) 投资者博弈 (Execute Put) ---
-            # 满足回售计数且在回售期内
-            if put_counts[i] >= 30 and t > put_start_idx:
-                path_end_values[i] = put_price
-                path_end_times[i] = t * dt
-                is_alive[i] = False
-                continue
-                
-            # --- (4) 强赎检查 (Call Trigger) ---
-            # 价格显著高于转股价
-            if S_t > 1.3 * X_t:
-                # 触发强赎，投资者转股
-                path_end_values[i] = S_t * (100.0 / X_t)
-                path_end_times[i] = t * dt
-                is_alive[i] = False
-                continue
-    
-    # 处理未提前结束的路径 (持有到期)
-    for i in range(N):
-        if is_alive[i]:
-            S_T = S_path[i, -1]
-            X_T = X_path[i, -1]
-            conv_val_T = 100.0 / X_T * S_T
-            # 到期价值 = max(赎回价, 转股价值)
-            path_end_values[i] = max(redemption_price, conv_val_T)
-    
-    # 折现
-    present_values = path_end_values * np.exp(
-        -(r + credit_spread) * path_end_times
-    )
-    
-    return np.mean(present_values)
-
-
-def zl_mc_pricing(S0, X0, r, credit_spread, sigma, T, BPS,
-                  redemption_price=100.0, put_price=100.0, put_barrier=0.7, put_start_year=2.0,
-                  N=10000, steps=2000, seed=42):
-    """
-    Z-L 模型蒙特卡洛定价 (Numba JIT 优化版本)
-    使用 JIT 编译加速计算，速度提升 10-100 倍
-
-    seed: 随机种子。调用方应按 (债券, 日期) 派生独立种子——
-    若所有定价共享同一组随机路径，蒙特卡洛误差会变成横截面系统性偏差。
-    """
-    # 计算回售开始的时间步
-    put_start_time = max(0.0, T - put_start_year)
-    dt = T / steps
+    put_start_time = T - PUT_START_YEAR
+    if put_start_time < 0.0:
+        put_start_time = 0.0
     put_start_idx = int(put_start_time / dt)
 
-    # 预生成随机数矩阵（独立 RNG，不污染全局随机状态）
-    rng = np.random.default_rng(seed)
-    random_matrix = rng.standard_normal((N, steps))
-    
-    # 调用 JIT 编译的核心函数
-    return zl_mc_core(
-        S0, X0, r, credit_spread, sigma, T, BPS,
-        redemption_price, put_price, put_barrier, put_start_idx,
-        N, steps, random_matrix
+    drift = (r - 0.5 * sigma * sigma) * dt
+    vol_sqrt_dt = sigma * math.sqrt(dt)
+
+    S_curr = S0
+    X_curr = X0
+    put_count = 0
+    path_end_time = T
+    path_end_val = 0.0
+    is_active = True
+
+    for t in range(1, steps + 1):
+        z = xoroshiro128p_normal_float64(rng_states, tid)
+        S_curr = S_curr * math.exp(drift + vol_sqrt_dt * z)
+
+        # (1) 回售触发计数
+        if S_curr < put_barrier * X_curr:
+            put_count += 1
+        else:
+            put_count = 0
+
+        # (2) 发行人博弈: 简单下修到 max(S, BPS)
+        if put_count > 20:
+            new_X = S_curr if S_curr > BPS else BPS
+            if new_X < X_curr:
+                X_curr = new_X
+                if S_curr >= put_barrier * X_curr:
+                    put_count = 0
+
+        # (3) 投资者博弈: 执行回售
+        if put_count >= 30 and t > put_start_idx:
+            path_end_time = t * dt
+            path_end_val = put_price
+            is_active = False
+            break
+
+        # (4) 强赎: 纯转股价值
+        if S_curr > 1.3 * X_curr:
+            path_end_time = t * dt
+            path_end_val = S_curr * (100.0 / X_curr)
+            is_active = False
+            break
+
+    # 持有到期: max(赎回价, 转股价值)
+    if is_active:
+        conv_val = 100.0 / X_curr * S_curr
+        path_end_val = conv_val if conv_val > redemption_price else redemption_price
+
+    out_pv[tid] = path_end_val * math.exp(-(r + credit_spread) * path_end_time)
+
+
+def zl_mc_pricing_batch(params, N=10000, seed=42, threads_per_block=256):
+    """
+    GPU 批量定价: 一次 kernel 启动算完当日所有待定价债券。
+
+    params: dict of np.float64 一维数组, 键为
+        S0, X0, r, cs, sigma, T, BPS, redem, put_price, put_barrier
+        (长度均 = 当日待算债券数 num_bonds)
+    返回: np.ndarray, shape=(num_bonds,), 各债券模型价(路径均值)。
+    """
+    num_bonds = len(params["S0"])
+    total_threads = num_bonds * N
+
+    out_pv_device = cuda.device_array(total_threads, dtype=np.float64)
+    rng_states = create_xoroshiro128p_states(total_threads, seed=seed)
+
+    blocks_per_grid = (total_threads + threads_per_block - 1) // threads_per_block
+    zl_mc_kernel_batch[blocks_per_grid, threads_per_block](
+        cuda.to_device(params["S0"]), cuda.to_device(params["X0"]),
+        cuda.to_device(params["r"]), cuda.to_device(params["cs"]),
+        cuda.to_device(params["sigma"]), cuda.to_device(params["T"]),
+        cuda.to_device(params["BPS"]), cuda.to_device(params["redem"]),
+        cuda.to_device(params["put_price"]), cuda.to_device(params["put_barrier"]),
+        N, rng_states, out_pv_device,
     )
+    out_pv = out_pv_device.copy_to_host()
+    return out_pv.reshape(num_bonds, N).mean(axis=1)
 
 # 结果存储
 results = []
@@ -592,10 +591,38 @@ print(f"增量待计算交易日：{len(calc_dates_to_run)}")
 _dates_since_checkpoint = 0
 _CHECKPOINT_EVERY = 10  # 每处理 10 个交易日保存一次中间结果
 
-# 遍历每一天 (使用 tqdm 显示进度)
+# GPU 可用性检查 (本脚本仅支持 GPU; 无 CUDA 请改用 Z-L_backtest_CPU.py)
+if not cuda.is_available():
+    raise SystemExit(
+        "未检测到可用 CUDA 设备。本脚本是 GPU 版, 请在配好 numba CUDA 的环境运行,\n"
+        "或改用 CPU 版: python Z-L_backtest_CPU.py"
+    )
+print(f"   GPU: {cuda.get_current_device().name.decode() if isinstance(cuda.get_current_device().name, bytes) else cuda.get_current_device().name}")
+
+MC_N_PATHS = 10000   # 每只债券蒙特卡洛路径数 (与 CPU 版一致)
+PUT_PRICE = 100.0    # 回售价 (简化为 100)
+PUT_BARRIER = 0.7    # 回售触发比例
+
+
+def _resolve_redeem_price(bond_code):
+    """与 CPU 版一致的赎回价解析: map 命中 → 后缀匹配 → 默认 106 / 异常低强制默认。"""
+    redeem_price = 106.0
+    if bond_code in redemption_map:
+        redeem_price = redemption_map[bond_code]
+    else:
+        for suffix in ['.SH', '.SZ']:
+            code_suffix = f"{bond_code}{suffix}"
+            if code_suffix in redemption_map:
+                redeem_price = redemption_map[code_suffix]
+                break
+    if redeem_price < 100.0:
+        redeem_price = DEFAULT_REDEMPTION_PRICE
+    return redeem_price
+
+
+# 遍历每一天 (使用 tqdm 显示进度); 每个交易日组装参数后一次性 GPU 批处理
 date_error_count = 0
-for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest"):
-    # 获取当天所有转债的数据
+for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
     try:
         row_price = df_price.loc[date]
         row_cv = df_cv.loc[date]
@@ -605,13 +632,17 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest"):
         row_mat = df_maturity.loc[date]
         row_stock_price = df_stock_price.loc[date]
         row_spread = df_spread.loc[date]
-        
-        # 遍历当天有交易的转债
+
+        # 组装当日待定价债券参数 (数据清洗与归一化逻辑与 CPU 版逐字对应)
+        batch_codes = []
+        p_S0, p_X0, p_r, p_cs, p_sigma, p_T, p_BPS, p_redem, p_put, p_barrier = (
+            [], [], [], [], [], [], [], [], [], []
+        )
+        batch_market = []
         for bond_code in df_price.columns:
-            # 跳过已计算的
             if pd.notna(df_zl_model.loc[date, bond_code]):
                 continue
-                
+
             market_price = row_price[bond_code]
             cv = row_cv[bond_code]
             bps = row_bps[bond_code]
@@ -620,66 +651,53 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest"):
             T = row_mat[bond_code]
             s_real = row_stock_price[bond_code]
             cs = row_spread[bond_code]
-            
-            # 数据清洗与有效性检查
+
             if pd.isna(market_price) or pd.isna(cv) or pd.isna(T) or T <= 0:
                 continue
-            
+
             if pd.isna(sigma): sigma = 0.4
             if pd.isna(r): r = 0.02
-            if pd.isna(bps): bps = 0 
-            if pd.isna(cs): cs = 0.015 # Default spread if NaN
-            
-            # 归一化模型参数
+            if pd.isna(bps): bps = 0
+            if pd.isna(cs): cs = 0.015
+
             S0_sim = cv
             X0_sim = 100.0
-            
-            # 计算归一化的 BPS
-            # BPS_norm = BPS_real * CV / S_real
             if pd.notna(s_real) and s_real > 0:
                 BPS_sim = bps * cv / s_real
             else:
-                BPS_sim = 0.0 # 无法计算时忽略底价
-            
-            # 获取赎回价
-            redeem_price = 106.0 # Default fallback
-            
-            # 优先从 map 中获取
-            if bond_code in redemption_map:
-                redeem_price = redemption_map[bond_code]
-            else:
-                # 尝试加后缀匹配
-                for suffix in ['.SH', '.SZ']:
-                    code_suffix = f"{bond_code}{suffix}"
-                    if code_suffix in redemption_map:
-                        redeem_price = redemption_map[code_suffix]
-                        break
-            
-            # 额外校验: 如果价格异常低 (< 100)，强制使用默认值
-            if redeem_price < 100.0:
-                redeem_price = DEFAULT_REDEMPTION_PRICE
+                BPS_sim = 0.0
 
-            # 运行蒙特卡洛
-            # 为了保证回售条款判断的准确性 (30交易日)，必须使用日频模拟
-            sim_steps = max(50, int(T * 240))
-            
-            # 按 (债券, 日期) 派生确定性种子: 可复现，且各定价随机路径互相独立
-            mc_seed = zlib.crc32(f"{bond_code}|{date}".encode()) & 0x7FFFFFFF
+            redeem_price = _resolve_redeem_price(bond_code)
 
-            model_price = zl_mc_pricing(
-                S0=S0_sim, X0=X0_sim, r=r, credit_spread=cs, sigma=sigma, T=T, BPS=BPS_sim,
-                redemption_price=redeem_price,
-                put_price=100.0,    # 假设回售价为 100 + 利息 (这里简化为100)
-                put_barrier=0.7,    # 回售触发比例
-                put_start_year=2.0, # 回售期通常为最后2年
-                N=10000,
-                steps=sim_steps,
-                seed=mc_seed
-            )
-            
+            batch_codes.append(bond_code)
+            batch_market.append(market_price)
+            p_S0.append(S0_sim); p_X0.append(X0_sim); p_r.append(r); p_cs.append(cs)
+            p_sigma.append(sigma); p_T.append(T); p_BPS.append(BPS_sim)
+            p_redem.append(redeem_price); p_put.append(PUT_PRICE); p_barrier.append(PUT_BARRIER)
+
+        if not batch_codes:
+            continue
+
+        params = {
+            "S0": np.asarray(p_S0, dtype=np.float64),
+            "X0": np.asarray(p_X0, dtype=np.float64),
+            "r": np.asarray(p_r, dtype=np.float64),
+            "cs": np.asarray(p_cs, dtype=np.float64),
+            "sigma": np.asarray(p_sigma, dtype=np.float64),
+            "T": np.asarray(p_T, dtype=np.float64),
+            "BPS": np.asarray(p_BPS, dtype=np.float64),
+            "redem": np.asarray(p_redem, dtype=np.float64),
+            "put_price": np.asarray(p_put, dtype=np.float64),
+            "put_barrier": np.asarray(p_barrier, dtype=np.float64),
+        }
+        # 按交易日派生确定性种子: 可复现, 且各债券/路径随机流互相独立 (tid 偏移)
+        day_seed = zlib.crc32(str(date).encode()) & 0x7FFFFFFF
+        model_prices = zl_mc_pricing_batch(params, N=MC_N_PATHS, seed=day_seed)
+
+        for bond_code, model_price, market_price in zip(batch_codes, model_prices, batch_market):
             df_zl_model.loc[date, bond_code] = model_price
             df_zl_error.loc[date, bond_code] = model_price - market_price
-            
+
     except Exception as e:
         date_error_count += 1
         if date_error_count <= 5:

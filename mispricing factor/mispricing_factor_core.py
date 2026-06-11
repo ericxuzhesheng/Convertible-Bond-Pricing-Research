@@ -133,18 +133,20 @@ class MultiFactorBacktest:
         print(f"  加载 {self.model}模型数据...")
         bs_file = self.resolve(f"{self.model}_Model_Summary.xlsx")
 
-        # 相对偏差
-        bs_dev = pd.read_excel(bs_file, sheet_name="相对偏差")
-        bs_dev = bs_dev.rename(columns={"返回目录": "date"})
-        bs_dev["date"] = pd.to_datetime(bs_dev["date"])
-        bs_dev = bs_dev.set_index("date").iloc[1:]  # 跳过第一行（可能是标题）
+        # 相对偏差（兼容两种 summary 格式：旧 Wind 导出[首列"返回目录"+标题行]
+        # 与管线生成的干净格式[首列即日期索引、无标题行]。统一按首列为日期索引读取，
+        # 用 to_datetime+notna 自动丢弃非日期行——避免硬编码 .iloc[1:] 误删首条真实日期。）
+        bs_dev = pd.read_excel(bs_file, sheet_name="相对偏差", index_col=0)
+        bs_dev.index = pd.to_datetime(bs_dev.index, errors="coerce")
+        bs_dev = bs_dev[bs_dev.index.notna()]
+        bs_dev.index.name = "date"
         self.factors[self.dev_key] = bs_dev
 
         # 市场价格
-        prices = pd.read_excel(bs_file, sheet_name="市场价格")
-        prices = prices.rename(columns={"返回目录": "date"})
-        prices["date"] = pd.to_datetime(prices["date"])
-        prices = prices.set_index("date").iloc[1:]  # 跳过第一行
+        prices = pd.read_excel(bs_file, sheet_name="市场价格", index_col=0)
+        prices.index = pd.to_datetime(prices.index, errors="coerce")
+        prices = prices[prices.index.notna()]
+        prices.index.name = "date"
         self.prices = prices
 
         # 加载基准指数数据 (000832.CSI)

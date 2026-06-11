@@ -164,15 +164,17 @@ $$
 
 ### 模型误差对比
 
-| Error Metric           | BS    | ZL    |
-| ---------------------- | ----- | ----- |
-| Mean Error (Bias, CNY) | 2.13  | -4.73 |
-| MAE (CNY)              | 13.74 | 11.66 |
-| RMSE (CNY)             | 29.73 | 30.19 |
-| MAPE                   | 9.79% | 7.88% |
-| SMAPE                  | 9.66% | 8.14% |
+| Error Metric           | BS     | ZL     |
+| ---------------------- | ------ | ------ |
+| Mean Error (Bias, CNY) | 0.43   | 1.95   |
+| MAE (CNY)              | 14.66  | 12.52  |
+| RMSE (CNY)             | 36.04  | 19.64  |
+| MAPE                   | 10.29% | 10.01% |
+| SMAPE                  | 10.10% | 9.57%  |
 
 MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
+
+> **口径与时点**：指标在全部有效「交易日 × 转债」单元上汇总（BS n=151,550；ZL n=58,457）。数据更新至 **2026-06-05**。ZL 理论价由 GPU 版 `backtest/Z-L_backtest_GPU_prod.py`（CUDA 批处理）重算，博弈逻辑与 CPU 版 `Z-L_backtest_CPU.py` 严格一致，仅执行设备不同。相较早期样本，ZL 偏差由略低于市场（−4.73）收敛至接近中性（+1.95，约 60% 单元高于、40% 低于市场），RMSE 由 30.19 降至 19.64。
 
 ---
 
@@ -485,15 +487,17 @@ Key characteristics
 
 ### Model Error Comparison
 
-| Error Metric           | BS    | ZL    |
-| ---------------------- | ----- | ----- |
-| Mean Error (Bias, CNY) | 2.13  | -4.73 |
-| MAE (CNY)              | 13.74 | 11.66 |
-| RMSE (CNY)             | 29.73 | 30.19 |
-| MAPE                   | 9.79% | 7.88% |
-| SMAPE                  | 9.66% | 8.14% |
+| Error Metric           | BS     | ZL     |
+| ---------------------- | ------ | ------ |
+| Mean Error (Bias, CNY) | 0.43   | 1.95   |
+| MAE (CNY)              | 14.66  | 12.52  |
+| RMSE (CNY)             | 36.04  | 19.64  |
+| MAPE                   | 10.29% | 10.01% |
+| SMAPE                  | 10.10% | 9.57%  |
 
 Lower MAE/MAPE/SMAPE indicates better pricing fit.
+
+> **Scope & vintage**: metrics are pooled over all valid (trading-day × bond) cells (BS n=151,550; ZL n=58,457). Data refreshed through **2026-06-05**. ZL theoretical prices were recomputed with the GPU build `backtest/Z-L_backtest_GPU_prod.py` (batched CUDA); its game logic is identical to the CPU build `Z-L_backtest_CPU.py`, only the execution device differs. Versus the earlier sample, ZL bias converged from slightly below market (−4.73) to roughly neutral (+1.95; ~60% of cells above, 40% below market), and RMSE fell from 30.19 to 19.64.
 
 ---
 

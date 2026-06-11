@@ -39,7 +39,9 @@ Convertible-Bond-Pricing-Research/
 │   ├── BS_Model_*.csv / .xlsx         ← BS model outputs
 │   └── ZL_Model_*.csv / .xlsx         ← ZL model outputs
 ├── long-short strategy/
-│   └── B-S_Z-L_strategy.py            ← monthly rebalancing backtest
+│   ├── B-S_Z-L_strategy.py            ← monthly rebalancing backtest
+│   ├── update_benchmark.py            ← 增量更新 000832.CSI 基准 xlsx（Tushare，幂等）
+│   └── 000832_CSI_close_price.xlsx    ← 中证转债指数基准收盘价（Wind 格式，skiprows=5 读取）
 ├── mispricing factor/
 │   ├── B-S_mispricing_factor.py       ← 6-factor BS composite
 │   └── Z-L_mispricing_factor.py       ← 6-factor ZL composite
@@ -102,8 +104,9 @@ Get-Content backtest\logs\weekly_update_*.log -Tail 30
 
 The `weekly_update.bat` pipeline:
 1. `daily_signal.py` — pulls new data, runs BS + ZL models, sends Top-5 notification
-2. `regenerate_plots.py` — regenerates all README plots from updated XLSX
-3. `git add -u && git commit && git push origin main` — commits only if changes exist
+2. `long-short strategy/update_benchmark.py` — appends new 000832.CSI (中证转债指数) closes to the benchmark XLSX (idempotent, Tushare `index_daily`)
+3. `regenerate_plots.py` — regenerates all README plots from updated XLSX
+4. `git add -u && git commit && git push origin main` — commits only if changes exist
 
 ### Incremental update (most common)
 
@@ -239,6 +242,9 @@ Higher score = more undervalued by models = ranked higher.
   │
   ├─ daily_signal.py          ← 数据拉取 + BS/ZL 模型增量计算 + Top-5 推送
   │     (subprocess calls data_pipeline.py, B-S_backtest.py, Z-L_backtest_CPU.py)
+  │
+  ├─ update_benchmark.py      ← 增量补 000832.CSI（中证转债指数）收盘价到基准 xlsx
+  │     (Tushare index_daily; 幂等只追加; 保留 Wind 格式供 skiprows=5 读取)
   │
   ├─ regenerate_plots.py      ← 从 XLSX 快速重生成 README 全部 6 张图
   │     (reads 理论价格/市场价格/相对偏差 sheets; no model recomputation)

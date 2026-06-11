@@ -1,7 +1,7 @@
 @echo off
 :: ============================================================
 :: 可转债周更新 — 每周最后一个交易日（通常周五）18:00 运行
-:: 流程：数据拉取 → 模型定价 → 信号推送 → 重生成图表 → Git 提交推送
+:: 流程：数据拉取 → 模型定价 → 信号推送 → 基准更新 → 重生成图表 → Git 提交推送
 :: 在任务计划程序中通过 setup_weekly_task.ps1 一键注册
 :: ============================================================
 
@@ -31,7 +31,7 @@ echo ==============================================================
 ) >> "%LOG_FILE%"
 
 :: ── Step 1: 全量更新（数据 + 模型 + 信号推送） ──────────────────────────────
-echo [1/3] 运行 daily_signal.py ... >> "%LOG_FILE%"
+echo [1/4] 运行 daily_signal.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%daily_signal.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo [警告] daily_signal.py 报告错误，继续执行后续步骤 >> "%LOG_FILE%"
@@ -39,8 +39,17 @@ if errorlevel 1 (
     echo [完成] daily_signal.py 执行成功 >> "%LOG_FILE%"
 )
 
-:: ── Step 2: 重生成 README 全部图表 ───────────────────────────────────────────
-echo [2/3] 运行 regenerate_plots.py ... >> "%LOG_FILE%"
+:: ── Step 2: 更新中证转债指数基准（000832.CSI → xlsx） ────────────────────────
+echo [2/4] 运行 update_benchmark.py ... >> "%LOG_FILE%"
+"%PYTHON%" "%REPO_DIR%\long-short strategy\update_benchmark.py" >> "%LOG_FILE%" 2>&1
+if errorlevel 1 (
+    echo [警告] update_benchmark.py 报告错误，继续执行后续步骤 >> "%LOG_FILE%"
+) else (
+    echo [完成] update_benchmark.py 执行成功 >> "%LOG_FILE%"
+)
+
+:: ── Step 3: 重生成 README 全部图表 ───────────────────────────────────────────
+echo [3/4] 运行 regenerate_plots.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%regenerate_plots.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo [警告] regenerate_plots.py 报告错误，继续执行后续步骤 >> "%LOG_FILE%"
@@ -48,8 +57,8 @@ if errorlevel 1 (
     echo [完成] regenerate_plots.py 执行成功 >> "%LOG_FILE%"
 )
 
-:: ── Step 3: Git 提交并推送 ────────────────────────────────────────────────────
-echo [3/3] 提交更新到 GitHub ... >> "%LOG_FILE%"
+:: ── Step 4: Git 提交并推送 ────────────────────────────────────────────────────
+echo [4/4] 提交更新到 GitHub ... >> "%LOG_FILE%"
 cd /d "%REPO_DIR%"
 
 :: 暂存所有已追踪的变更文件
@@ -60,6 +69,8 @@ git add "backtest\regenerate_plots.py" >> "%LOG_FILE%" 2>&1
 git add "backtest\weekly_update.bat" >> "%LOG_FILE%" 2>&1
 git add "backtest\setup_weekly_task.ps1" >> "%LOG_FILE%" 2>&1
 git add "backtest\top5_*.csv" >> "%LOG_FILE%" 2>&1
+git add "long-short strategy\update_benchmark.py" >> "%LOG_FILE%" 2>&1
+git add "long-short strategy\000832_CSI_close_price.xlsx" >> "%LOG_FILE%" 2>&1
 
 :: 检查是否有实际变更
 git diff --cached --quiet
