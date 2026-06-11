@@ -1,9 +1,5 @@
 ﻿<div align="center">
 
-# Convertible Bond Pricing Research (China Market)
-
----
-
 ## 中国市场可转债定价模型研究 | Convertible Bond Pricing Research (China Market)
 
 [![LANGUAGE 中文](https://img.shields.io/badge/LANGUAGE-%E4%B8%AD%E6%96%87-e74c3c?style=for-the-badge)](#简体中文)
