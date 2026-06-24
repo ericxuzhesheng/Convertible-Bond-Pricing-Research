@@ -168,15 +168,15 @@ $$
 
 | Error Metric           | BS     | ZL     |
 | ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 0.43   | 1.95   |
-| MAE (CNY)              | 14.66  | 12.52  |
-| RMSE (CNY)             | 36.04  | 19.64  |
-| MAPE                   | 10.29% | 10.01% |
-| SMAPE                  | 10.10% | 9.57%  |
+| Mean Error (Bias, CNY) | 1.51   | 1.74   |
+| MAE (CNY)              | 15.35  | 12.59  |
+| RMSE (CNY)             | 30.86  | 19.84  |
+| MAPE                   | N/A*   | 10.01% |
+| SMAPE                  | 10.59% | 9.58%  |
 
 MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 
-> **口径与时点**：指标在全部有效「交易日 × 转债」单元上汇总（BS n=151,550；ZL n=58,457）。数据更新至 **2026-06-05**。ZL 理论价由 GPU 版 `backtest/Z-L_backtest_GPU_prod.py`（CUDA 批处理）重算，博弈逻辑与 CPU 版 `Z-L_backtest_CPU.py` 严格一致，仅执行设备不同。相较早期样本，ZL 偏差由略低于市场（−4.73）收敛至接近中性（+1.95，约 60% 单元高于、40% 低于市场），RMSE 由 30.19 降至 19.64。
+> **口径与时点**：指标在全部有效「交易日 × 转债」单元上汇总（BS n=152,208；ZL n=59,113），数据更新至 **2026-06-23**。ZL 理论价由 GPU 版 `backtest/Z-L_backtest_GPU_prod.py`（CUDA 批处理）增量计算，博弈逻辑与 CPU 版 `Z-L_backtest_CPU.py` 一致，仅执行设备不同。*BS MAPE 因历史样本含市场价格为零的观测而为无穷值，因此不作为有效汇总指标。
 
 ---
 
@@ -491,15 +491,15 @@ Key characteristics
 
 | Error Metric           | BS     | ZL     |
 | ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 0.43   | 1.95   |
-| MAE (CNY)              | 14.66  | 12.52  |
-| RMSE (CNY)             | 36.04  | 19.64  |
-| MAPE                   | 10.29% | 10.01% |
-| SMAPE                  | 10.10% | 9.57%  |
+| Mean Error (Bias, CNY) | 1.51   | 1.74   |
+| MAE (CNY)              | 15.35  | 12.59  |
+| RMSE (CNY)             | 30.86  | 19.84  |
+| MAPE                   | N/A*   | 10.01% |
+| SMAPE                  | 10.59% | 9.58%  |
 
 Lower MAE/MAPE/SMAPE indicates better pricing fit.
 
-> **Scope & vintage**: metrics are pooled over all valid (trading-day × bond) cells (BS n=151,550; ZL n=58,457). Data refreshed through **2026-06-05**. ZL theoretical prices were recomputed with the GPU build `backtest/Z-L_backtest_GPU_prod.py` (batched CUDA); its game logic is identical to the CPU build `Z-L_backtest_CPU.py`, only the execution device differs. Versus the earlier sample, ZL bias converged from slightly below market (−4.73) to roughly neutral (+1.95; ~60% of cells above, 40% below market), and RMSE fell from 30.19 to 19.64.
+> **Scope & vintage**: metrics are pooled over all valid (trading-day × bond) cells (BS n=152,208; ZL n=59,113), with data refreshed through **2026-06-23**. ZL theoretical prices were incrementally computed with `backtest/Z-L_backtest_GPU_prod.py` using batched CUDA; its game logic matches the CPU build and differs only in execution device. *BS MAPE is infinite because historical observations include zero market prices, so it is not reported as a valid aggregate metric.
 
 ---
 

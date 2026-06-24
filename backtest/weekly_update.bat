@@ -11,7 +11,12 @@ setlocal EnableDelayedExpansion
 set "BACKTEST_DIR=%~dp0"
 set "REPO_DIR=%BACKTEST_DIR%.."
 set "LOG_DIR=%BACKTEST_DIR%logs"
-set "PYTHON=python"
+set "TORCH_PYTHON=C:\Users\12510\.conda\envs\torch\python.exe"
+if exist "%TORCH_PYTHON%" (
+    set "PYTHON=%TORCH_PYTHON%"
+) else (
+    set "PYTHON=python"
+)
 
 :: 激活 conda 环境（如需要，取消注释并修改环境名）
 :: call conda activate base

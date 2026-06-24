@@ -77,6 +77,12 @@ def _align_series(*series: pd.Series) -> tuple[pd.Series, ...]:
     return tuple(combined.iloc[:, i] for i in range(len(series)))
 
 
+def _weekly_last_observation(data: pd.Series | pd.DataFrame) -> pd.Series | pd.DataFrame:
+    """每周仅保留最后一个实际有数据的交易日，并保留该交易日索引。"""
+    data = data.sort_index()
+    return data.groupby(data.index.to_period("W-FRI"), group_keys=False).tail(1)
+
+
 def _save(path: str) -> None:
     plt.savefig(path, dpi=300, bbox_inches="tight")
     plt.close()
@@ -98,15 +104,23 @@ def plot_bs_timeseries() -> None:
     raw_market = df_market.mean(axis=1)
     raw_err = df_reldev.mean(axis=1) * 100
     daily_model_avg, daily_market_avg, daily_err_pct = _align_series(raw_model, raw_market, raw_err)
+    weekly = _weekly_last_observation(
+        pd.concat([daily_model_avg, daily_market_avg, daily_err_pct], axis=1)
+    )
+    weekly_model_avg, weekly_market_avg, weekly_err_pct = (
+        weekly.iloc[:, 0],
+        weekly.iloc[:, 1],
+        weekly.iloc[:, 2],
+    )
 
     fig, ax1 = plt.subplots(figsize=(12, 6))
-    l1, = ax1.plot(daily_model_avg.index, daily_model_avg, "k-", label="BS模型", linewidth=1.5)
-    l2, = ax1.plot(daily_market_avg.index, daily_market_avg, "k--", label="市场价格", linewidth=1.5)
+    l1, = ax1.plot(weekly_model_avg.index, weekly_model_avg, "k-", label="BS模型", linewidth=1.5)
+    l2, = ax1.plot(weekly_market_avg.index, weekly_market_avg, "k--", label="市场价格", linewidth=1.5)
     ax1.set_ylabel("转债平均价格 (元)")
     ax1.set_xlabel("年份")
 
     ax2 = ax1.twinx()
-    ax2.fill_between(daily_err_pct.index, daily_err_pct, 0, color="gray", alpha=0.5, label="定价错误")
+    ax2.fill_between(weekly_err_pct.index, weekly_err_pct, 0, color="gray", alpha=0.5, label="定价错误")
     ax2.set_ylabel("平均定价错误 (%)")
     ax2.set_ylim(-30, 80)
 
@@ -131,15 +145,23 @@ def plot_zl_timeseries() -> None:
     raw_market = df_market.mean(axis=1)
     raw_err = df_reldev.mean(axis=1) * 100
     daily_model_avg, daily_market_avg, daily_err_pct = _align_series(raw_model, raw_market, raw_err)
+    weekly = _weekly_last_observation(
+        pd.concat([daily_model_avg, daily_market_avg, daily_err_pct], axis=1)
+    )
+    weekly_model_avg, weekly_market_avg, weekly_err_pct = (
+        weekly.iloc[:, 0],
+        weekly.iloc[:, 1],
+        weekly.iloc[:, 2],
+    )
 
     fig, ax1 = plt.subplots(figsize=(12, 6))
-    l1, = ax1.plot(daily_model_avg.index, daily_model_avg, "k-", label="ZL模型", linewidth=1.5)
-    l2, = ax1.plot(daily_market_avg.index, daily_market_avg, "k--", label="市场价格", linewidth=1.5)
+    l1, = ax1.plot(weekly_model_avg.index, weekly_model_avg, "k-", label="ZL模型", linewidth=1.5)
+    l2, = ax1.plot(weekly_market_avg.index, weekly_market_avg, "k--", label="市场价格", linewidth=1.5)
     ax1.set_ylabel("转债平均价格 (元)")
     ax1.set_xlabel("年份")
 
     ax2 = ax1.twinx()
-    ax2.fill_between(daily_err_pct.index, daily_err_pct, 0, color="gray", alpha=0.5, label="定价错误")
+    ax2.fill_between(weekly_err_pct.index, weekly_err_pct, 0, color="gray", alpha=0.5, label="定价错误")
     ax2.set_ylabel("平均定价错误 (%)")
     ax2.set_ylim(-30, 80)
 
@@ -160,6 +182,7 @@ def _plot_one_strategy(csv_path: str, label_prefix: str, dev_col: str, out_path:
     df = pd.read_csv(csv_path)
     df["date"] = pd.to_datetime(df["date"])
     df = df.set_index("date").sort_index()
+    df = _weekly_last_observation(df)
 
     required = {"benchmark_nav", "long_nav"}
     missing = required - set(df.columns)

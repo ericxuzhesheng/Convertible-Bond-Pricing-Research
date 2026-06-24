@@ -113,7 +113,15 @@ def run_pipeline() -> None:
 
 # ── 步骤 2: 增量跑模型 ────────────────────────────────────────
 def run_models() -> None:
-    for name, script in [("B-S", "B-S_backtest.py"), ("Z-L", "Z-L_backtest_CPU.py")]:
+    zl_script = "Z-L_backtest_CPU.py"
+    try:
+        from numba import cuda
+        if cuda.is_available():
+            zl_script = "Z-L_backtest_GPU_prod.py"
+    except Exception:
+        pass
+
+    for name, script in [("B-S", "B-S_backtest.py"), ("Z-L", zl_script)]:
         print(f"[2/3] 运行 {name} 模型 …")
         result = subprocess.run(
             [sys.executable, os.path.join(DIR, script)],
