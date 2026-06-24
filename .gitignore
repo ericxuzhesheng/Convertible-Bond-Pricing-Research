@@ -17,6 +17,7 @@ Thumbs.db
 
 # Logs
 backtest/logs/
+backtest/*.log
 
 # Large data files (kept locally, not in repo)
 backtest/【浙商固收】转债资产端特征数据库【周更新外发】.xlsx

@@ -168,15 +168,15 @@ $$
 
 | Error Metric           | BS     | ZL     |
 | ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 1.51   | 1.74   |
-| MAE (CNY)              | 15.35  | 12.59  |
-| RMSE (CNY)             | 30.86  | 19.84  |
-| MAPE                   | N/A*   | 10.01% |
-| SMAPE                  | 10.59% | 9.58%  |
+| Mean Error (Bias, CNY) | 0.34   | 1.74   |
+| MAE (CNY)              | 14.69  | 12.59  |
+| RMSE (CNY)             | 36.02  | 19.84  |
+| MAPE                   | 10.30% | 10.01% |
+| SMAPE                  | 10.12% | 9.58%  |
 
 MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 
-> **口径与时点**：指标在全部有效「交易日 × 转债」单元上汇总（BS n=152,208；ZL n=59,113），数据更新至 **2026-06-23**。ZL 理论价由 GPU 版 `backtest/Z-L_backtest_GPU_prod.py`（CUDA 批处理）增量计算，博弈逻辑与 CPU 版 `Z-L_backtest_CPU.py` 一致，仅执行设备不同。*BS MAPE 因历史样本含市场价格为零的观测而为无穷值，因此不作为有效汇总指标。
+> **口径与时点**：理论价与市场价先按相同「交易日 × 转债」单元严格对齐，再汇总有效样本（BS n=152,208；ZL n=59,113）；MAPE 排除市场价格为零的单元。数据更新至 **2026-06-23**。ZL 理论价由 GPU 版 `backtest/Z-L_backtest_GPU_prod.py`（CUDA 批处理）增量计算，博弈逻辑与 CPU 版 `Z-L_backtest_CPU.py` 一致，仅执行设备不同。
 
 ---
 
@@ -491,15 +491,15 @@ Key characteristics
 
 | Error Metric           | BS     | ZL     |
 | ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 1.51   | 1.74   |
-| MAE (CNY)              | 15.35  | 12.59  |
-| RMSE (CNY)             | 30.86  | 19.84  |
-| MAPE                   | N/A*   | 10.01% |
-| SMAPE                  | 10.59% | 9.58%  |
+| Mean Error (Bias, CNY) | 0.34   | 1.74   |
+| MAE (CNY)              | 14.69  | 12.59  |
+| RMSE (CNY)             | 36.02  | 19.84  |
+| MAPE                   | 10.30% | 10.01% |
+| SMAPE                  | 10.12% | 9.58%  |
 
 Lower MAE/MAPE/SMAPE indicates better pricing fit.
 
-> **Scope & vintage**: metrics are pooled over all valid (trading-day × bond) cells (BS n=152,208; ZL n=59,113), with data refreshed through **2026-06-23**. ZL theoretical prices were incrementally computed with `backtest/Z-L_backtest_GPU_prod.py` using batched CUDA; its game logic matches the CPU build and differs only in execution device. *BS MAPE is infinite because historical observations include zero market prices, so it is not reported as a valid aggregate metric.
+> **Scope & vintage**: theoretical and market prices are strictly aligned on identical (trading-day × bond) cells before aggregation (BS n=152,208; ZL n=59,113); zero-market-price cells are excluded from MAPE. Data are refreshed through **2026-06-23**. ZL theoretical prices were incrementally computed with `backtest/Z-L_backtest_GPU_prod.py` using batched CUDA; its game logic matches the CPU build and differs only in execution device.
 
 ---
 
