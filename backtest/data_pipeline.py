@@ -47,6 +47,7 @@ from tqdm import tqdm
 from market_data_contracts import (
     DataContractError,
     build_conversion_price_matrix,
+    build_implied_credit_spread_matrix,
     build_point_in_time_balance_matrix,
     build_point_in_time_rating_matrix,
     extract_clause_terms,
@@ -79,6 +80,7 @@ OUT_CONV_PRICE = os.path.join(OUT_DIR, 'cb_conversion_price_cache.csv')
 OUT_CONV_EVENTS = os.path.join(OUT_DIR, 'cb_conversion_price_events.csv')
 OUT_SHARE_EVENTS = os.path.join(OUT_DIR, 'cb_share_events.csv')
 OUT_CLAUSES = os.path.join(OUT_DIR, 'cb_clause_terms.csv')
+OUT_CREDIT_SPREAD = os.path.join(OUT_DIR, 'cb_credit_spread_cache.csv')
 
 
 # ==========================================
@@ -985,6 +987,27 @@ def run_pipeline(
     )
     df_floor.to_csv(OUT_FLOOR)
 
+    # --- 由 Tushare 纯债价值 + 契约现金流 + AkShare 国债曲线反解信用利差 ---
+    credit_spread_new = build_implied_credit_spread_matrix(
+        observed_bond_value=df_floor_new,
+        maturity=df_mat_new,
+        cb_basic=cb_basic,
+        government_curve=yield_tbl,
+    )
+    credit_spread = (
+        credit_spread_new
+        if rebuild_all
+        else _merge_wide(
+            _load_existing(OUT_CREDIT_SPREAD),
+            credit_spread_new,
+        )
+    )
+    credit_spread.to_csv(OUT_CREDIT_SPREAD)
+    print(
+        f"   隐含信用利差非空率: "
+        f"{credit_spread_new.notna().mean().mean():.1%}"
+    )
+
     # --- 正股市值 ---
     df_mv_new  = fetch_stock_mv(pro, cb_basic, df_price_new, start, end)
     df_stk_mv = (
@@ -1035,6 +1058,7 @@ def run_pipeline(
         ('可转债价格',   df_price),
         ('转换价值',     df_cv),
         ('纯债价值',     df_floor),
+        ('隐含信用利差', credit_spread),
         ('剩余期限',     df_maturity),
         ('正股市值',     df_stk_mv),
         ('转债余额',     balance),
