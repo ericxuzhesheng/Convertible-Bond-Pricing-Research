@@ -23,6 +23,7 @@ from market_data_contracts import (  # noqa: E402
     build_contractual_par_matrix,
     build_observed_volatility,
     build_risk_free_rate_matrix,
+    build_clause_history_state,
     calculate_accrued_interest,
     extract_clause_terms,
     implied_credit_spread,
@@ -383,3 +384,44 @@ def test_implied_spread_matrix_uses_contractual_cashflows() -> None:
     assert spread.loc[date, "123001.SZ"] == pytest.approx(
         -np.log(0.95) / actual_365_time - 0.02
     )
+
+
+def test_clause_history_state_inherits_observed_prevaluation_days() -> None:
+    dates = pd.bdate_range("2024-01-01", periods=35)
+    conversion_value = pd.Series(
+        [60.0] * 30 + [140.0] * 5,
+        index=dates,
+    )
+
+    state = build_clause_history_state(
+        conversion_value=conversion_value,
+        valuation_date=dates[-1],
+        par_value=100.0,
+        put_trigger_ratio=0.70,
+        put_eligible_start=dates[0],
+        redeem_trigger_ratio=1.30,
+        redeem_window_days=30,
+    )
+
+    assert state.put_consecutive_days == 0
+    assert state.redeem_count == 5
+    assert state.redeem_flags.sum() == 5
+    assert len(state.redeem_flags) == 64
+
+
+def test_clause_history_state_does_not_carry_put_days_before_eligibility() -> None:
+    dates = pd.bdate_range("2024-01-01", periods=35)
+    conversion_value = pd.Series(60.0, index=dates)
+    eligible_start = dates[-3]
+
+    state = build_clause_history_state(
+        conversion_value=conversion_value,
+        valuation_date=dates[-1],
+        par_value=100.0,
+        put_trigger_ratio=0.70,
+        put_eligible_start=eligible_start,
+        redeem_trigger_ratio=1.30,
+        redeem_window_days=30,
+    )
+
+    assert state.put_consecutive_days == 3
