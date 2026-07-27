@@ -249,3 +249,36 @@ def test_clause_cache_uses_akshare_contract_text(
     assert row["redeem_trigger_ratio"] == pytest.approx(1.30)
     assert row["redeem_required_days"] == 15
     assert row["maturity_redemption_price"] == pytest.approx(108.0)
+
+
+def test_yield_curve_download_is_split_into_subannual_requests(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    calls: list[tuple[str, str]] = []
+
+    def fake_yield(*, start_date: str, end_date: str):
+        calls.append((start_date, end_date))
+        return pd.DataFrame(
+            {
+                "曲线名称": ["中债国债收益率曲线"],
+                "日期": [pd.Timestamp(start_date)],
+                "1年": [2.0],
+                "3年": [2.5],
+            }
+        )
+
+    monkeypatch.setattr(data_pipeline.ak, "bond_china_yield", fake_yield)
+    monkeypatch.setattr(
+        data_pipeline,
+        "RF_CACHE",
+        str(tmp_path / "rf_yield_cache.csv"),
+    )
+
+    result = data_pipeline.fetch_yield_curve("20170101", "20181231")
+
+    assert calls == [
+        ("20170101", "20171231"),
+        ("20180101", "20181231"),
+    ]
+    assert list(result.columns) == [1.0, 3.0]
