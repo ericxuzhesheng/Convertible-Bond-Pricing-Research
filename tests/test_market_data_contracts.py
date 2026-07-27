@@ -19,6 +19,9 @@ from market_data_contracts import (  # noqa: E402
     build_conversion_price_matrix,
     build_point_in_time_balance_matrix,
     build_point_in_time_rating_matrix,
+    build_contractual_par_matrix,
+    build_observed_volatility,
+    build_risk_free_rate_matrix,
     calculate_accrued_interest,
     extract_clause_terms,
     implied_credit_spread,
@@ -283,3 +286,54 @@ def test_implied_credit_spread_rejects_inconsistent_bond_value() -> None:
             cashflow_amounts=np.array([100.0]),
             risk_free_rates=np.array([0.02]),
         )
+
+
+def test_contractual_par_matrix_has_no_one_hundred_fallback() -> None:
+    dates = pd.to_datetime(["2024-01-02"])
+    basic = pd.DataFrame(
+        {"ts_code": ["123001.SZ"], "par_value": [100.0]}
+    )
+
+    result = build_contractual_par_matrix(
+        dates=dates,
+        bonds=["123001.SZ"],
+        cb_basic=basic,
+    )
+    assert result.iloc[0, 0] == pytest.approx(100.0)
+
+    with pytest.raises(DataContractError, match="par value"):
+        build_contractual_par_matrix(
+            dates=dates,
+            bonds=["123002.SZ"],
+            cb_basic=basic,
+        )
+
+
+def test_observed_volatility_stays_missing_until_minimum_history() -> None:
+    source_dates = pd.bdate_range("2024-01-01", periods=65)
+    close = pd.Series(
+        100.0 * np.exp(np.linspace(0.0, 0.1, len(source_dates))),
+        index=source_dates,
+    )
+
+    volatility = build_observed_volatility(
+        adjusted_close=close,
+        target_dates=source_dates,
+        window=60,
+        min_observations=60,
+    )
+
+    assert volatility.iloc[:59].isna().all()
+    assert np.isfinite(volatility.iloc[59])
+
+
+def test_risk_free_matrix_rejects_dates_before_actual_curve() -> None:
+    dates = pd.to_datetime(["2024-01-01", "2024-01-02"])
+    maturity = pd.DataFrame({"123001.SZ": [2.0, 2.0]}, index=dates)
+    curve = pd.DataFrame(
+        {1.0: [0.018], 3.0: [0.022]},
+        index=pd.to_datetime(["2024-01-02"]),
+    )
+
+    with pytest.raises(DataContractError, match="yield curve"):
+        build_risk_free_rate_matrix(curve=curve, maturity=maturity)
