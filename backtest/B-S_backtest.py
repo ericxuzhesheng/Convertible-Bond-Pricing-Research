@@ -11,6 +11,14 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import seaborn as sns
 
+from market_data_contracts import (
+    DataContractError,
+    build_active_market_mask,
+    build_contractual_par_matrix,
+    build_observed_volatility,
+    build_risk_free_rate_matrix,
+)
+
 # 设置中文显示
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
 plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
@@ -67,44 +75,16 @@ except Exception as e:
     bond_to_stock = {}
 
 # ==========================================
-# 2.5 获取到期赎回价并构建 K 值矩阵
+# 2.5 读取契约面值并构建标准化期权行权价
 # ==========================================
-print("2.5 正在读取并构建到期赎回价矩阵 (K)...")
-try:
-    df_basic_info = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
-    redemption_map = (
-        df_basic_info.dropna(subset=['ts_code', 'maturity_price'])
-        .set_index('ts_code')['maturity_price']
-        .to_dict()
-    )
-    print(f"   成功读取 {len(redemption_map)} 条赎回价数据（来源：cb_basic_info.csv）")
-except Exception as e:
-    print(f"   赎回价读取失败: {e}，使用默认值 100")
-    redemption_map = {}
-
-# 构建 df_k_strike (Broadcasting)
-# 初始化为 100
-df_k_strike = pd.DataFrame(100.0, index=df_price.index, columns=df_price.columns)
-
-# 填充实际值
-count_filled = 0
-for col in df_k_strike.columns:
-    # 尝试直接匹配
-    val = redemption_map.get(col)
-    # 尝试去后缀匹配 (e.g. 113050.SH -> 113050)
-    if val is None:
-            val = redemption_map.get(col.split('.')[0])
-            
-    if val is not None:
-        try:
-            val = float(val)
-            if not np.isnan(val):
-                df_k_strike[col] = val
-                count_filled += 1
-        except (TypeError, ValueError):
-            pass
-
-print(f"   已将 {count_filled} 只转债的赎回价填充到 K 值矩阵")
+print("2.5 正在读取契约面值并构建 K 矩阵...")
+df_basic_info = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
+df_k_strike = build_contractual_par_matrix(
+    dates=df_price.index,
+    bonds=list(df_price.columns),
+    cb_basic=df_basic_info,
+)
+print(f"   已加载 {len(df_k_strike.columns)} 只转债的真实契约面值")
 
 # ==========================================
 # 3. Tushare 获取正股价格并计算波动率
@@ -129,7 +109,9 @@ def _fetch_bond_volatility(bond_code):
     stock_code_full = bond_to_stock.get(bond_code)
     if not stock_code_full or pro is None:
         return None
-    start_dt = df_price.index.min().strftime("%Y%m%d")
+    start_dt = (
+        df_price.index.min() - pd.Timedelta(days=500)
+    ).strftime("%Y%m%d")
     end_dt = df_price.index.max().strftime("%Y%m%d")
     # 使用 ts.pro_bar 获取前复权行情（受积分/频率限制）
     df_stock = ts.pro_bar(ts_code=stock_code_full, adj='qfq', start_date=start_dt, end_date=end_dt)
@@ -137,10 +119,12 @@ def _fetch_bond_volatility(bond_code):
         return None
     df_stock['trade_date'] = pd.to_datetime(df_stock['trade_date'])
     df_stock = df_stock.sort_values('trade_date').set_index('trade_date')
-    log_ret = np.log(df_stock['close'] / df_stock['close'].shift(1))
-    # 250 日滚动年化波动率；不足 250 天时有多少算多少 (min_periods=2)
-    vol = log_ret.rolling(window=250, min_periods=2).std() * np.sqrt(250)
-    return vol.reindex(df_price.index)
+    return build_observed_volatility(
+        adjusted_close=df_stock['close'],
+        target_dates=df_price.index,
+        window=250,
+        min_observations=60,
+    )
 
 
 # 尝试读取缓存
@@ -183,79 +167,31 @@ if pending_bonds:
         except Exception as e:
             print(f"   缓存保存失败: {e}")
 
-# 填充缺失波动率 (对于刚上市不足2天无法计算std的，或获取失败的，用 40% 填充)
-# 注意: 兜底填充只在内存中进行，不写回缓存，下次运行仍会尝试补算
-df_volatility = df_volatility.fillna(0.40)
-print("   波动率数据准备完成。")
+# 不再用 40% 覆盖缺失历史；不足 60 个观测的单元会被有效样本掩码排除。
+print(f"   波动率数据准备完成，非空率 {df_volatility.notna().mean().mean():.1%}。")
 
 # ==========================================
 # 4. 获取无风险利率 (Akshare)
 # ==========================================
-print("4. 获取国债收益率...")
-try:
-    # 拉取更长的时间范围以覆盖回测
-    df_yield = ak.bond_china_yield(start_date="20200101", end_date="20261231")
-    target_curve = df_yield[df_yield['曲线名称']=='中债国债收益率曲线']
-    
-    target_curve['日期'] = pd.to_datetime(target_curve['日期'])
-    target_curve.set_index('日期', inplace=True)
-    
-    # 定义需要的期限和对应的列名
-    # 键: Akshare列名, 值: 期限(年)
-    tenor_cols = ['1年', '2年', '3年', '5年', '7年', '10年']
-    # 确保列存在
-    available_cols = [c for c in tenor_cols if c in target_curve.columns]
-    
-    # 提取收益率数据 (Time x Tenors), 转换为小数
-    yield_table = target_curve[available_cols] / 100.0
-    
-    # 对齐到回测的日期索引 (Forward Fill)
-    yield_table = yield_table.reindex(df_price.index).ffill().fillna(0.02)
-    
-    # 初始化 rf_df
-    rf_df = pd.DataFrame(index=df_price.index, columns=df_price.columns)
-    
-    # -------------------------------------------------------
-    # 修改：使用线性插值 (Linear Interpolation) 匹配利率
-    # -------------------------------------------------------
-    # 1. 准备插值所需的 X 轴 (期限数值)
-    tenor_map = {'1年': 1.0, '2年': 2.0, '3年': 3.0, '5年': 5.0, '7年': 7.0, '10年': 10.0}
-    # available_cols 是 yield_table 的列名，确保 xp 是单调递增的
-    xp = [tenor_map[c] for c in available_cols]
-    
-    # 2. 准备数据矩阵
-    # yield_table: [Dates x Tenors]
-    # df_maturity: [Dates x Bonds]
-    yield_vals = yield_table.values
-    maturity_vals = df_maturity.values
-    
-    # 3. 逐日插值
-    # 结果矩阵初始化
-    rf_matrix = np.zeros_like(maturity_vals)
-    
-    print(f"   正在对 {len(rf_matrix)} 个交易日进行收益率曲线线性插值...")
-    for i in range(len(rf_matrix)):
-        # 当天的 Yield Curve Y轴数据
-        fp_row = yield_vals[i, :]
-        # 当天各转债的剩余期限 X轴数据
-        x_row = maturity_vals[i, :]
-        
-        # 执行插值
-        # np.interp(x, xp, fp)
-        # 规则：若 x < xp[0]，取 fp[0]；若 x > xp[-1]，取 fp[-1] (Flat Extrapolation)
-        # 这里的 xp 和 fp_row 都是一维数组，对应当天的期限结构
-        rf_matrix[i, :] = np.interp(x_row, xp, fp_row)
-        
-    # 4. 赋值给 rf_df
-    rf_df = pd.DataFrame(rf_matrix, index=df_price.index, columns=df_price.columns)
-        
-    # 填充仍为空的
-    rf_df = rf_df.fillna(0.02)
-    print("   无风险利率期限结构匹配完成。")
-
-except Exception as e:
-    print(f"   获取利率失败，使用默认值 2%: {e}")
-    rf_df = pd.DataFrame(0.02, index=df_price.index, columns=df_price.columns)
+print("4. 从 AkShare 国债曲线缓存匹配无风险利率...")
+rf_cache_path = os.path.join(PIPELINE_DIR, 'rf_yield_cache.csv')
+if not os.path.exists(rf_cache_path):
+    raise DataContractError(
+        "rf_yield_cache.csv 不存在，请先运行 data_pipeline.py 拉取 AkShare 国债曲线"
+    )
+yield_table = pd.read_csv(rf_cache_path, index_col=0, parse_dates=True)
+yield_table.columns = [
+    float(str(column).split('.')[0])
+    if str(column).endswith('.0')
+    else float(column)
+    for column in yield_table.columns
+]
+yield_table = yield_table.T.groupby(level=0).first().T.sort_index(axis=1)
+rf_df = build_risk_free_rate_matrix(
+    curve=yield_table,
+    maturity=df_maturity,
+)
+print("   无风险利率期限结构匹配完成。")
 
 # ==========================================
 # 5. 运行 B-S 模型
@@ -313,7 +249,29 @@ option_values = bs_call_price(
 df_option = pd.DataFrame(option_values, index=df_price.index, columns=df_price.columns)
 
 # 转债理论价 = 纯债价值 + 期权价值
-df_theoretical = df_floor + df_option
+active_mask = build_active_market_mask(
+    price=df_price,
+    required_inputs=[
+        df_cv,
+        df_floor,
+        df_maturity,
+        rf_df,
+        df_volatility,
+        df_k_strike,
+    ],
+)
+active_mask &= (
+    (df_cv > 0)
+    & (df_floor > 0)
+    & (df_maturity > 0)
+    & (df_volatility > 0)
+    & (df_k_strike > 0)
+)
+df_theoretical = (df_floor + df_option).where(active_mask)
+print(
+    f"   有效配对样本: {int(active_mask.sum().sum()):,} / "
+    f"{int(df_price.notna().sum().sum()):,}"
+)
 
 # 计算偏差 (理论价 - 实际价)
 # > 0 表示理论价高于市场价 (市场低估)
