@@ -1,0 +1,161 @@
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import pytest
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+BACKTEST_DIR = REPO_ROOT / "backtest"
+sys.path.insert(0, str(BACKTEST_DIR))
+
+from market_data_contracts import (  # noqa: E402
+    DataContractError,
+    build_active_market_mask,
+    build_conversion_price_matrix,
+    calculate_accrued_interest,
+    extract_clause_terms,
+    interpolate_observed_yield_curve,
+    parse_coupon_schedule,
+    point_in_time_fundamental_matrix,
+)
+
+
+def test_conversion_price_matrix_uses_effective_historical_changes() -> None:
+    dates = pd.to_datetime(["2019-01-01", "2019-01-02", "2019-01-03", "2019-01-04"])
+    basic = pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ"],
+            "first_conv_price": [10.0],
+            # This is the current price and must not contaminate history.
+            "conv_price": [6.0],
+        }
+    )
+    changes = pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ", "123001.SZ"],
+            "change_date": ["20190101", "20190103"],
+            "convert_price_initial": [10.0, 10.0],
+            "convertprice_bef": [np.nan, 10.0],
+            "convertprice_aft": [np.nan, 8.0],
+        }
+    )
+
+    result = build_conversion_price_matrix(
+        dates=dates,
+        bonds=["123001.SZ"],
+        cb_basic=basic,
+        change_events=changes,
+    )
+
+    assert result["123001.SZ"].tolist() == [10.0, 10.0, 8.0, 8.0]
+
+
+def test_conversion_price_matrix_rejects_missing_initial_history() -> None:
+    dates = pd.to_datetime(["2019-01-01"])
+    basic = pd.DataFrame({"ts_code": ["123001.SZ"], "conv_price": [6.0]})
+
+    with pytest.raises(DataContractError, match="initial conversion price"):
+        build_conversion_price_matrix(
+            dates=dates,
+            bonds=["123001.SZ"],
+            cb_basic=basic,
+            change_events=pd.DataFrame(),
+        )
+
+
+def test_clause_parser_extracts_real_trigger_terms_and_maturity_redemption() -> None:
+    resale = (
+        "最后两个计息年度，如果公司股票在任意连续三十个交易日的收盘价格"
+        "低于当期转股价的70.00%，持有人有权按面值加当期应计利息回售。"
+    )
+    redeem = (
+        "期满后五个交易日内按票面面值上浮8%(含最后一期利息)赎回。"
+        "转股期内，任意连续三十个交易日中至少十五个交易日的收盘价格"
+        "不低于当期转股价格的130.00%，或未转股余额不足3,000.00万元。"
+    )
+
+    terms = extract_clause_terms(resale, redeem, par_value=100.0)
+
+    assert terms.put_trigger_ratio == pytest.approx(0.70)
+    assert terms.put_window_days == 30
+    assert terms.put_eligible_years == 2
+    assert terms.redeem_trigger_ratio == pytest.approx(1.30)
+    assert terms.redeem_window_days == 30
+    assert terms.redeem_required_days == 15
+    assert terms.redeem_balance_threshold_wan == pytest.approx(3000.0)
+    assert terms.maturity_redemption_price == pytest.approx(108.0)
+
+
+def test_coupon_schedule_and_accrual_use_contractual_rate_period() -> None:
+    schedule = parse_coupon_schedule(
+        "20200101-20201231,票面利率:0.30%;"
+        "20210101-20211231,票面利率:0.50%"
+    )
+
+    assert schedule.loc[pd.Timestamp("2020-06-30")] == pytest.approx(0.003)
+    assert schedule.loc[pd.Timestamp("2021-06-30")] == pytest.approx(0.005)
+    assert calculate_accrued_interest(
+        as_of=pd.Timestamp("2021-07-02"),
+        value_date=pd.Timestamp("2020-01-01"),
+        par_value=100.0,
+        coupon_schedule=schedule,
+    ) == pytest.approx(100.0 * 0.005 * 182 / 365)
+
+
+def test_yield_curve_has_no_silent_two_percent_fallback() -> None:
+    curve = pd.DataFrame(
+        {1.0: [0.018], 3.0: [0.021], 5.0: [0.024]},
+        index=pd.to_datetime(["2024-01-02"]),
+    )
+
+    assert interpolate_observed_yield_curve(
+        curve, pd.Timestamp("2024-01-02"), 2.0
+    ) == pytest.approx(0.0195)
+
+    with pytest.raises(DataContractError, match="yield curve"):
+        interpolate_observed_yield_curve(
+            curve, pd.Timestamp("2024-01-01"), 2.0
+        )
+
+
+def test_fundamentals_become_available_on_announcement_date_not_period_end() -> None:
+    dates = pd.to_datetime(["2024-03-31", "2024-04-29", "2024-04-30"])
+    events = pd.DataFrame(
+        {
+            "ts_code": ["000001.SZ"],
+            "end_date": ["20240331"],
+            "ann_date": ["20240430"],
+            "bps": [12.5],
+        }
+    )
+
+    matrix = point_in_time_fundamental_matrix(
+        events=events,
+        dates=dates,
+        securities=["000001.SZ"],
+        value_column="bps",
+    )
+
+    assert pd.isna(matrix.loc[pd.Timestamp("2024-03-31"), "000001.SZ"])
+    assert pd.isna(matrix.loc[pd.Timestamp("2024-04-29"), "000001.SZ"])
+    assert matrix.loc[pd.Timestamp("2024-04-30"), "000001.SZ"] == pytest.approx(12.5)
+
+
+def test_active_market_mask_requires_actual_market_and_model_inputs() -> None:
+    dates = pd.to_datetime(["2024-01-02", "2024-01-03"])
+    price = pd.DataFrame({"123001.SZ": [100.0, np.nan]}, index=dates)
+    conversion_value = pd.DataFrame({"123001.SZ": [90.0, 91.0]}, index=dates)
+    maturity = pd.DataFrame({"123001.SZ": [2.0, 2.0]}, index=dates)
+    volatility = pd.DataFrame({"123001.SZ": [0.25, 0.25]}, index=dates)
+    risk_free = pd.DataFrame({"123001.SZ": [0.02, 0.02]}, index=dates)
+
+    mask = build_active_market_mask(
+        price=price,
+        required_inputs=[conversion_value, maturity, volatility, risk_free],
+    )
+
+    assert mask["123001.SZ"].tolist() == [True, False]
