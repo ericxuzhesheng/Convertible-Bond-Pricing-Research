@@ -113,16 +113,24 @@ def run_pipeline() -> None:
 
 # ── 步骤 2: 增量跑模型 ────────────────────────────────────────
 def run_models() -> None:
-    zl_script = "Z-L_backtest_GPU_prod.py"
-    for name, script in [("B-S", "B-S_backtest.py"), ("Z-L", zl_script)]:
-        print(f"[2/3] 运行 {name} 模型 …")
+    for name, script in [("B-S", "B-S_backtest.py"), ("Z-L", "Z-L_backtest_GPU_prod.py")]:
+        print(f"[2/3] 运行 {name} 模型 ({script}) …")
         result = subprocess.run(
             [sys.executable, os.path.join(DIR, script)],
             cwd=DIR, capture_output=True, text=True
         )
         if result.returncode != 0:
-            tail = result.stderr[-300:] if result.stderr else "(无 stderr)"
-            _warn(f"{name} 模型运行失败，该模型偏差可能缺失或过期: {tail}")
+            if name == "Z-L":
+                print("  GPU 版本运行未检测到可用设备或报错，自动回退至 CPU 加速版 (Z-L_backtest_CPU.py) …")
+                result = subprocess.run(
+                    [sys.executable, os.path.join(DIR, "Z-L_backtest_CPU.py")],
+                    cwd=DIR, capture_output=True, text=True
+                )
+            if result.returncode != 0:
+                tail = result.stderr[-300:] if result.stderr else "(无 stderr)"
+                _warn(f"{name} 模型运行失败，该模型偏差可能缺失或过期: {tail}")
+            else:
+                print(f"  {name} 完成。")
         else:
             print(f"  {name} 完成。")
 

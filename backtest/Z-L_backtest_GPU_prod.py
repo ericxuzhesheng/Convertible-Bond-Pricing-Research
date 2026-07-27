@@ -463,6 +463,8 @@ if os.path.exists(SUMMARY_FILE):
         print(f"   历史结果读取失败，改为全量计算：{e}")
 
 pending_mask = df_price.notna() & df_zl_model.isna()
+# 仅对 2026-07-10 及之后的日期进行增量补算（因为早期历史数据仅在周五计算，无需对历史上的周一至周四进行海量无效补算）
+pending_mask.loc[:"2026-07-09"] = False
 pending_dates = pending_mask.any(axis=1)
 calc_dates_to_run = calc_dates[pending_dates]
 calc_dates_to_run = calc_dates_to_run[calc_dates_to_run.notnull()]
