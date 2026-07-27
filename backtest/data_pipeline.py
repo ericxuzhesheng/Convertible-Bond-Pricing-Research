@@ -553,6 +553,27 @@ def calc_bond_floor_dcf(
     return df_floor
 
 
+def build_observed_bond_floor(
+    *,
+    provider_bond_value: pd.DataFrame,
+    market_price: pd.DataFrame,
+) -> pd.DataFrame:
+    """Use Tushare's daily pure-bond value only on observed market cells."""
+
+    aligned = provider_bond_value.reindex(
+        index=market_price.index,
+        columns=market_price.columns,
+    ).apply(pd.to_numeric, errors='coerce')
+    observed_price = market_price.apply(pd.to_numeric, errors='coerce')
+    valid = (
+        observed_price.notna()
+        & (observed_price > 0)
+        & aligned.notna()
+        & (aligned > 0)
+    )
+    return aligned.where(valid)
+
+
 # ==========================================
 # 10. 正股市值
 # ==========================================
@@ -902,16 +923,16 @@ def run_pipeline(
     # --- 无风险利率 ---
     yield_tbl = fetch_yield_curve(start, end)
 
-    # --- 纯债价值（仅对新日期做 DCF）---
-    if not df_mat_new.empty and not yield_tbl.empty:
-        df_floor_new = calc_bond_floor_dcf(cb_basic, df_mat_new, yield_tbl)
-        df_floor = (
-            df_floor_new
-            if rebuild_all
-            else _merge_wide(_load_existing(OUT_FLOOR), df_floor_new)
-        )
-    else:
-        df_floor = _load_existing(OUT_FLOOR) or pd.DataFrame()
+    # --- Tushare 每日纯债价值；不再以固定票息/利差自建 DCF 代替 ---
+    df_floor_new = build_observed_bond_floor(
+        provider_bond_value=daily['provider_bond_value'],
+        market_price=df_price_new,
+    )
+    df_floor = (
+        df_floor_new
+        if rebuild_all
+        else _merge_wide(_load_existing(OUT_FLOOR), df_floor_new)
+    )
     df_floor.to_csv(OUT_FLOOR)
 
     # --- 正股市值 ---
