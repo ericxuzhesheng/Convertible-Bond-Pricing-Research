@@ -143,3 +143,5 @@ def test_factor_loader_has_no_external_legacy_data_fallback() -> None:
         encoding="utf-8"
     )
     assert "LEGACY_DIR" not in source
+    assert "rf = 0.02" not in source
+    assert "observed_average_risk_free_rate" in source

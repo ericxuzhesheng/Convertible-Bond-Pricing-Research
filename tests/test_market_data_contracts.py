@@ -28,6 +28,7 @@ from market_data_contracts import (  # noqa: E402
     extract_clause_terms,
     implied_credit_spread,
     load_rebuildable_matrix_cache,
+    observed_average_risk_free_rate,
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
     point_in_time_fundamental_matrix,
@@ -445,3 +446,24 @@ def test_full_rebuild_bypasses_persisted_model_input_cache(
     )
 
     assert loaded.isna().all().all()
+
+
+def test_average_risk_free_rate_uses_observed_curve_window() -> None:
+    curve = pd.DataFrame(
+        {
+            1.0: [0.018, 0.020, 0.022],
+            3.0: [0.025, 0.026, 0.027],
+        },
+        index=pd.to_datetime(
+            ["2024-01-02", "2024-01-03", "2024-02-01"]
+        ),
+    )
+
+    rate = observed_average_risk_free_rate(
+        curve=curve,
+        start=pd.Timestamp("2024-01-01"),
+        end=pd.Timestamp("2024-01-31"),
+        tenor_years=1.0,
+    )
+
+    assert rate == pytest.approx(0.019)
