@@ -16,6 +16,7 @@ from market_data_contracts import (  # noqa: E402
     DataContractError,
     build_active_market_mask,
     build_credit_spread_matrix,
+    build_implied_credit_spread_matrix,
     build_conversion_price_matrix,
     build_point_in_time_balance_matrix,
     build_point_in_time_rating_matrix,
@@ -337,3 +338,33 @@ def test_risk_free_matrix_rejects_dates_before_actual_curve() -> None:
 
     with pytest.raises(DataContractError, match="yield curve"):
         build_risk_free_rate_matrix(curve=curve, maturity=maturity)
+
+
+def test_implied_spread_matrix_uses_contractual_cashflows() -> None:
+    date = pd.Timestamp("2024-01-02")
+    maturity = pd.DataFrame({"123001.SZ": [1.0]}, index=[date])
+    observed_floor = pd.DataFrame({"123001.SZ": [95.0]}, index=[date])
+    basic = pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ"],
+            "par_value": [100.0],
+            "interest_freq": [1],
+            "value_date": ["20240102"],
+            "maturity_date": ["20250102"],
+            "rate_clause": [
+                "20240102-20250101,票面利率:0.00%"
+            ],
+        }
+    )
+    curve = pd.DataFrame({1.0: [0.02]}, index=[date])
+
+    spread = build_implied_credit_spread_matrix(
+        observed_bond_value=observed_floor,
+        maturity=maturity,
+        cb_basic=basic,
+        government_curve=curve,
+    )
+
+    assert spread.loc[date, "123001.SZ"] == pytest.approx(
+        -np.log(0.95) - 0.02
+    )
