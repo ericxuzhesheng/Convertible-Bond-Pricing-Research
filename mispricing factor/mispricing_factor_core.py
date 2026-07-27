@@ -684,9 +684,6 @@ class MultiFactorBacktest:
             # 这里的 reindex 会自动引入 NaN
             aligned = df.reindex(index=target_index, columns=target_columns)
 
-            # 2. 填充缺失值 (Forward Fill)
-            aligned = aligned.ffill()
-
             self.aligned_factors[name] = aligned
 
             # 3. 截面 Z-Score (Vectorized)
@@ -698,8 +695,8 @@ class MultiFactorBacktest:
             # 使用 sub 和 div 方法配合 axis=0 来对齐 index (Date)
             zscored = aligned.sub(mean, axis=0).div(std, axis=0)
 
-            # 处理 inf 和 NaN (std=0 或 数据缺失)
-            zscored = zscored.replace([np.inf, -np.inf], 0).fillna(0)
+            # 缺失观测保持缺失；不得把旧因子向未来延伸或用 0 冒充观测。
+            zscored = zscored.replace([np.inf, -np.inf], np.nan)
 
             self.normalized_factors[name] = zscored
 
