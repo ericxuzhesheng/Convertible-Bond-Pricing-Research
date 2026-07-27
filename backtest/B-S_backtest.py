@@ -7,6 +7,7 @@ from tqdm import tqdm
 import warnings
 import time
 import os
+import sys
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import seaborn as sns
@@ -17,6 +18,7 @@ from market_data_contracts import (
     build_contractual_par_matrix,
     build_observed_volatility,
     build_risk_free_rate_matrix,
+    load_rebuildable_matrix_cache,
 )
 
 # 设置中文显示
@@ -30,6 +32,7 @@ warnings.filterwarnings('ignore')
 # 1. 配置与数据读取 (基于 Tushare Pipeline CSV 缓存)
 # ==========================================
 PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
+REBUILD_ALL = '--rebuild-all' in sys.argv
 
 
 def _load_csv(filename):
@@ -127,22 +130,13 @@ def _fetch_bond_volatility(bond_code):
     )
 
 
-# 尝试读取缓存
-if os.path.exists(VOL_CACHE_FILE):
-    print("   发现波动率缓存，正在读取...")
-    try:
-        df_volatility = pd.read_csv(VOL_CACHE_FILE, index_col=0, parse_dates=True)
-        # 确保索引和列与当前数据匹配（新增日期/新债此时为 NaN，下面增量补算）
-        df_volatility = df_volatility.reindex(index=df_price.index, columns=df_price.columns)
-        print("   缓存读取成功。")
-    except Exception as e:
-        print(f"   缓存读取失败 ({e})，将重新计算。")
-        df_volatility = None
-else:
-    df_volatility = None
-
-if df_volatility is None:
-    df_volatility = pd.DataFrame(index=df_price.index, columns=df_price.columns)
+# 全量重建显式绕过历史缓存，避免旧版写入的 40% 常数无法识别。
+df_volatility = load_rebuildable_matrix_cache(
+    path=VOL_CACHE_FILE,
+    index=df_price.index,
+    columns=df_price.columns,
+    rebuild_all=REBUILD_ALL,
+)
 
 # 增量补算: 有市场价但波动率缺失的债券（新债，或缓存生成后新增的交易日）
 # 修复历史 bug: 旧逻辑缓存存在时直接 fillna(0.40)，导致所有新交易日永远用 40% 兜底波动率
