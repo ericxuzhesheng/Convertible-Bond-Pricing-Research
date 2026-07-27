@@ -16,6 +16,9 @@ CPU_SOURCE = (
 EXPERIMENTAL_GPU_SOURCE = (
     REPO_ROOT / "backtest" / "Z-L_backtest_GPU.py"
 ).read_text(encoding="utf-8")
+BS_SOURCE = (
+    REPO_ROOT / "backtest" / "B-S_backtest.py"
+).read_text(encoding="utf-8")
 
 
 def test_gpu_production_source_has_no_constant_market_data_fallbacks() -> None:
@@ -78,3 +81,9 @@ def test_legacy_experimental_gpu_cannot_emit_assumption_based_prices() -> None:
     assert "df_volatility.fillna(0.40)" not in EXPERIMENTAL_GPU_SOURCE
     assert "pd.DataFrame(0.02" not in EXPERIMENTAL_GPU_SOURCE
     assert "get_credit_spread_by_maturity" not in EXPERIMENTAL_GPU_SOURCE
+
+
+def test_bs_full_rebuild_bypasses_persisted_volatility_cache() -> None:
+    assert "REBUILD_ALL = '--rebuild-all' in sys.argv" in BS_SOURCE
+    assert "load_rebuildable_matrix_cache" in BS_SOURCE
+    assert "rebuild_all=REBUILD_ALL" in BS_SOURCE
