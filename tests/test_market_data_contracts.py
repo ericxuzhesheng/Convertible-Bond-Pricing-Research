@@ -98,6 +98,20 @@ def test_clause_parser_extracts_real_trigger_terms_and_maturity_redemption() -> 
     assert terms.maturity_redemption_price == pytest.approx(108.0)
 
 
+def test_clause_parser_handles_absolute_maturity_ratio_and_optional_you() -> None:
+    redeem = (
+        "公司将以本次发行可转债的票面面值108%(含最后一期年度利息)的价格赎回。"
+        "如果公司股票连续三十个交易日中至少有十五个交易日的收盘价格"
+        "不低于当期转股价格的130%。"
+    )
+
+    terms = extract_clause_terms("", redeem, par_value=100.0)
+
+    assert terms.redeem_window_days == 30
+    assert terms.redeem_required_days == 15
+    assert terms.maturity_redemption_price == pytest.approx(108.0)
+
+
 def test_coupon_schedule_and_accrual_use_contractual_rate_period() -> None:
     schedule = parse_coupon_schedule(
         "20200101-20201231,票面利率:0.30%;"
