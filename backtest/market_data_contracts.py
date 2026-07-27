@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from os import PathLike
 from typing import Iterable, Sequence
 
 import numpy as np
@@ -111,7 +112,10 @@ def build_clause_history_state(
         observed.tail(int(redeem_window_days)).to_numpy(dtype=float)
         >= float(redeem_trigger_ratio) * float(par_value)
     ).astype(np.int32)
-    redeem_flags[: len(redeem_history)] = redeem_history
+    history_start = int(redeem_window_days) - len(redeem_history)
+    redeem_flags[
+        history_start : int(redeem_window_days)
+    ] = redeem_history
 
     eligible = observed.loc[
         observed.index >= pd.Timestamp(put_eligible_start)
@@ -130,6 +134,29 @@ def build_clause_history_state(
         put_consecutive_days=put_consecutive_days,
         redeem_count=int(redeem_history.sum()),
         redeem_flags=redeem_flags,
+    )
+
+
+def load_rebuildable_matrix_cache(
+    *,
+    path: str | PathLike[str],
+    index: pd.Index,
+    columns: pd.Index,
+    rebuild_all: bool,
+) -> pd.DataFrame:
+    """Load an aligned cache unless a full rebuild explicitly bypasses it."""
+
+    if rebuild_all:
+        return pd.DataFrame(index=index, columns=columns, dtype=float)
+    try:
+        cached = pd.read_csv(path, index_col=0, parse_dates=True)
+    except FileNotFoundError:
+        return pd.DataFrame(index=index, columns=columns, dtype=float)
+    cached.index = pd.to_datetime(cached.index, errors="coerce")
+    cached = cached.loc[cached.index.notna()]
+    return cached.apply(pd.to_numeric, errors="coerce").reindex(
+        index=index,
+        columns=columns,
     )
 
 

@@ -10,6 +10,7 @@ import os
 import sys
 import zlib
 import math
+from collections import Counter
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
@@ -18,9 +19,11 @@ from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_normal_
 
 from market_data_contracts import (
     DataContractError,
+    build_clause_history_state,
     build_observed_volatility,
     build_risk_free_rate_matrix,
     calculate_accrued_interest,
+    load_rebuildable_matrix_cache,
     parse_coupon_schedule,
 )
 
@@ -168,15 +171,18 @@ def _fetch_bond_stock_data(bond_code):
     return df_k['close'].reindex(df_price.index), vol
 
 
-def _load_cache_or_empty(path):
-    if os.path.exists(path):
-        df = pd.read_csv(path, index_col=0, parse_dates=True)
-        return df.reindex(index=df_price.index, columns=df_price.columns)
-    return pd.DataFrame(index=df_price.index, columns=df_price.columns)
-
-
-df_volatility = _load_cache_or_empty(VOL_CACHE_FILE)
-df_stock_price = _load_cache_or_empty(PRICE_CACHE_FILE)
+df_volatility = load_rebuildable_matrix_cache(
+    path=VOL_CACHE_FILE,
+    index=df_price.index,
+    columns=df_price.columns,
+    rebuild_all=REBUILD_ALL,
+)
+df_stock_price = load_rebuildable_matrix_cache(
+    path=PRICE_CACHE_FILE,
+    index=df_price.index,
+    columns=df_price.columns,
+    rebuild_all=REBUILD_ALL,
+)
 
 # 增量补算: 有市场价但波动率/正股价缺失的债券（新债，或缓存生成后新增的交易日）
 # 修复历史 bug: 旧逻辑缓存存在时直接用 NaN→0.40 兜底，新交易日永远拿不到真实波动率
@@ -277,7 +283,8 @@ def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
                        maturity_redem_arr, call_price_arr,
                        put_price_arr, put_barrier_arr, put_window_arr,
                        put_years_arr, redeem_ratio_arr, redeem_window_arr,
-                       redeem_required_arr,
+                       redeem_required_arr, initial_put_count_arr,
+                       initial_redeem_count_arr, initial_redeem_flags_arr,
                        N, rng_states, out_pv):
     """每个线程模拟一只债券的一条路径; tid = bond_idx * N + path_idx。"""
     tid = cuda.grid(1)
@@ -316,11 +323,13 @@ def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
 
     S_curr = S0
     X_curr = X0
-    put_count = 0
-    redeem_count = 0
+    put_count = int(initial_put_count_arr[bond_idx])
+    redeem_count = int(initial_redeem_count_arr[bond_idx])
     redeem_flags = cuda.local.array(64, dtype=int8)
     for flag_idx in range(64):
-        redeem_flags[flag_idx] = 0
+        redeem_flags[flag_idx] = initial_redeem_flags_arr[
+            bond_idx, flag_idx
+        ]
     path_end_time = T
     path_end_val = 0.0
     is_active = True
@@ -330,7 +339,9 @@ def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
         S_curr = S_curr * math.exp(drift + vol_sqrt_dt * z)
 
         # (1) 回售触发计数
-        if S_curr < put_barrier * X_curr:
+        if t <= put_start_idx:
+            put_count = 0
+        elif S_curr < put_barrier * X_curr:
             put_count += 1
         else:
             put_count = 0
@@ -338,7 +349,7 @@ def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
         # 未获得逐债下修条款时不假设自动下修。
 
         # (2) 投资者博弈: 按真实连续天数执行回售
-        if put_count >= put_window and t > put_start_idx:
+        if put_count >= put_window:
             path_end_time = t * dt
             path_end_val = put_price
             is_active = False
@@ -350,7 +361,7 @@ def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
         flag = 1 if S_curr >= redeem_ratio * X_curr else 0
         redeem_flags[slot] = flag
         redeem_count += flag
-        if t >= redeem_window and redeem_count >= redeem_required:
+        if redeem_count >= redeem_required:
             path_end_time = t * dt
             conv_value = S_curr * (X0 / X_curr)
             path_end_val = conv_value if conv_value > call_price else call_price
@@ -373,6 +384,7 @@ def zl_mc_pricing_batch(params, N=10000, seed=42, threads_per_block=256):
         S0, X0, r, cs, sigma, T, BPS, maturity_redem, call_price,
         put_price, put_barrier, put_window, put_years, redeem_ratio,
         redeem_window, redeem_required
+        initial_put_count, initial_redeem_count, initial_redeem_flags
         (长度均 = 当日待算债券数 num_bonds)
     返回: np.ndarray, shape=(num_bonds,), 各债券模型价(路径均值)。
     """
@@ -392,6 +404,9 @@ def zl_mc_pricing_batch(params, N=10000, seed=42, threads_per_block=256):
         cuda.to_device(params["put_barrier"]), cuda.to_device(params["put_window"]),
         cuda.to_device(params["put_years"]), cuda.to_device(params["redeem_ratio"]),
         cuda.to_device(params["redeem_window"]), cuda.to_device(params["redeem_required"]),
+        cuda.to_device(params["initial_put_count"]),
+        cuda.to_device(params["initial_redeem_count"]),
+        cuda.to_device(params["initial_redeem_flags"]),
         N, rng_states, out_pv_device,
     )
     out_pv = out_pv_device.copy_to_host()
@@ -495,7 +510,15 @@ def _observed_clause_inputs(bond_code, date):
         return None
     par = pd.to_numeric(basic_row.get('par_value'), errors='coerce')
     value_date = pd.to_datetime(basic_row.get('value_date'), errors='coerce')
-    if pd.isna(par) or par <= 0 or pd.isna(value_date):
+    maturity_date = pd.to_datetime(
+        basic_row.get('maturity_date'), errors='coerce'
+    )
+    if (
+        pd.isna(par)
+        or par <= 0
+        or pd.isna(value_date)
+        or pd.isna(maturity_date)
+    ):
         return None
     try:
         coupon_schedule = parse_coupon_schedule(basic_row.get('rate_clause'))
@@ -516,6 +539,9 @@ def _observed_clause_inputs(bond_code, date):
         'put_barrier': float(values['put_trigger_ratio']),
         'put_window': put_window,
         'put_years': float(values['put_eligible_years']),
+        'put_eligible_start': maturity_date - pd.DateOffset(
+            years=int(values['put_eligible_years'])
+        ),
         'redeem_ratio': float(values['redeem_trigger_ratio']),
         'redeem_window': redeem_window,
         'redeem_required': int(values['redeem_required_days']),
@@ -524,6 +550,7 @@ def _observed_clause_inputs(bond_code, date):
 
 # 遍历每一天 (使用 tqdm 显示进度); 每个交易日组装参数后一次性 GPU 批处理
 date_error_count = 0
+skip_reasons = Counter()
 for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
     try:
         row_price = df_price.loc[date]
@@ -541,9 +568,11 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
             p_S0, p_X0, p_r, p_cs, p_sigma, p_T, p_BPS,
             p_maturity_redem, p_call, p_put, p_barrier, p_put_window,
             p_put_years, p_redeem_ratio, p_redeem_window,
-            p_redeem_required,
+            p_redeem_required, p_initial_put_count,
+            p_initial_redeem_count, p_initial_redeem_flags,
         ) = (
-            [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+            [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
+            [], [], []
         )
         batch_market = []
         for bond_code in df_price.columns:
@@ -560,21 +589,52 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
             cs = row_spread[bond_code]
 
             clause_inputs = _observed_clause_inputs(bond_code, date)
-            if (
-                pd.isna(market_price)
-                or pd.isna(cv)
-                or pd.isna(T)
-                or T <= 0
-                or pd.isna(sigma)
-                or sigma <= 0
-                or pd.isna(r)
-                or pd.isna(cs)
-                or cs < 0
-                or pd.isna(s_real)
-                or s_real <= 0
-                or pd.isna(bps)
-                or clause_inputs is None
-            ):
+            required_values = {
+                'market_price': market_price,
+                'conversion_value': cv,
+                'maturity': T,
+                'volatility': sigma,
+                'risk_free_rate': r,
+                'credit_spread': cs,
+                'stock_price': s_real,
+                'bps': bps,
+            }
+            missing_fields = [
+                name for name, value in required_values.items()
+                if pd.isna(value)
+            ]
+            if missing_fields:
+                skip_reasons[f"missing_{missing_fields[0]}"] += 1
+                continue
+            if T <= 0:
+                skip_reasons['nonpositive_maturity'] += 1
+                continue
+            if sigma <= 0:
+                skip_reasons['nonpositive_volatility'] += 1
+                continue
+            if cs < 0:
+                skip_reasons['negative_credit_spread'] += 1
+                continue
+            if s_real <= 0:
+                skip_reasons['nonpositive_stock_price'] += 1
+                continue
+            if clause_inputs is None:
+                skip_reasons['missing_clause_terms'] += 1
+                continue
+            try:
+                clause_history = build_clause_history_state(
+                    conversion_value=df_cv[bond_code],
+                    valuation_date=date,
+                    par_value=clause_inputs['par'],
+                    put_trigger_ratio=clause_inputs['put_barrier'],
+                    put_eligible_start=clause_inputs[
+                        'put_eligible_start'
+                    ],
+                    redeem_trigger_ratio=clause_inputs['redeem_ratio'],
+                    redeem_window_days=clause_inputs['redeem_window'],
+                )
+            except DataContractError:
+                skip_reasons['invalid_clause_history'] += 1
                 continue
 
             S0_sim = cv
@@ -594,6 +654,11 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
             p_redeem_ratio.append(clause_inputs['redeem_ratio'])
             p_redeem_window.append(clause_inputs['redeem_window'])
             p_redeem_required.append(clause_inputs['redeem_required'])
+            p_initial_put_count.append(
+                clause_history.put_consecutive_days
+            )
+            p_initial_redeem_count.append(clause_history.redeem_count)
+            p_initial_redeem_flags.append(clause_history.redeem_flags)
 
         if not batch_codes:
             continue
@@ -615,6 +680,15 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
             "redeem_ratio": np.asarray(p_redeem_ratio, dtype=np.float64),
             "redeem_window": np.asarray(p_redeem_window, dtype=np.float64),
             "redeem_required": np.asarray(p_redeem_required, dtype=np.float64),
+            "initial_put_count": np.asarray(
+                p_initial_put_count, dtype=np.int32
+            ),
+            "initial_redeem_count": np.asarray(
+                p_initial_redeem_count, dtype=np.int32
+            ),
+            "initial_redeem_flags": np.asarray(
+                p_initial_redeem_flags, dtype=np.int8
+            ),
         }
         # 按交易日派生确定性种子: 可复现, 且各债券/路径随机流互相独立 (tid 偏移)
         day_seed = zlib.crc32(str(date).encode()) & 0x7FFFFFFF
@@ -646,6 +720,30 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
         _dates_since_checkpoint = 0
 
 print(f"日期级异常数量：{date_error_count}")
+if skip_reasons:
+    print(f"Skipped pricing cells by reason: {dict(skip_reasons)}")
+
+if REBUILD_ALL:
+    expected_cells = int(df_price.notna().sum().sum())
+    priced_cells = int(
+        (df_price.notna() & df_zl_model.notna()).sum().sum()
+    )
+    rebuild_coverage = (
+        priced_cells / expected_cells if expected_cells else 0.0
+    )
+    min_rebuild_coverage = float(
+        os.environ.get("ZL_MIN_REBUILD_COVERAGE", "0.90")
+    )
+    print(
+        f"ZL rebuild coverage: {priced_cells}/{expected_cells} "
+        f"({rebuild_coverage:.2%})"
+    )
+    if rebuild_coverage < min_rebuild_coverage:
+        raise DataContractError(
+            "ZL rebuild coverage "
+            f"{rebuild_coverage:.2%} is below required "
+            f"{min_rebuild_coverage:.2%}; skips={dict(skip_reasons)}"
+        )
 
 # 计算偏差 (理论价 - 实际价)
 df_diff = df_zl_error
