@@ -23,8 +23,10 @@ Convertible-Bond-Pricing-Research/
 ├── backtest/                          ← PRIMARY working directory
 │   ├── data_pipeline.py               ← Tushare data ingestion (run first)
 │   ├── B-S_backtest.py                ← BS model pricing + output
-│   ├── Z-L_backtest_CPU.py            ← ZL model (CPU, production)
-│   ├── Z-L_backtest_GPU.py            ← ZL model (GPU/Numba, experimental)
+│   ├── Z-L_backtest_GPU_prod.py       ← ZL model (CUDA, production)
+│   ├── Z-L_backtest_CPU.py            ← disabled legacy entrypoint
+│   ├── Z-L_backtest_GPU.py            ← disabled legacy entrypoint
+│   ├── full_history_rebuild.py        ← fail-closed full-history rebuild
 │   ├── daily_signal.py                ← daily Top-5 signal + email push
 │   ├── regenerate_plots.py            ← 一键重生成 README 全部图表（无需重跑模型）
 │   ├── setup_notification.py          ← one-click email config wizard
@@ -55,14 +57,9 @@ Convertible-Bond-Pricing-Research/
 ### Full pipeline (from scratch)
 
 ```bash
-# 1. Pull data for a date range
-python backtest/data_pipeline.py --start 20190101 --end 20260515
-
-# 2. Run BS model
-python backtest/B-S_backtest.py
-
-# 3. Run ZL model (CPU)
-python backtest/Z-L_backtest_CPU.py
+# GPU preflight → rebuild observed Tushare/AkShare inputs → BS → GPU ZL
+# → benchmark → factors → strategies → plots
+python backtest/full_history_rebuild.py
 
 # 4. Check today's top-5 signal (dry-run, no email)
 python backtest/daily_signal.py --skip-pipeline --skip-models --dry-run
@@ -138,7 +135,7 @@ bond-column shape; instead interpolate by tenor at call time.
 
 ### ZL incremental logic
 
-`Z-L_backtest_CPU.py` loads `ZL_Model_Summary.xlsx` and computes a `pending_mask`
+`Z-L_backtest_GPU_prod.py` loads `ZL_Model_Summary.xlsx` and computes a `pending_mask`
 (date × bond pairs where price is non-NaN but ZL model price is NaN). Monte Carlo
 runs only for pending cells. When reindexing old cache DataFrames to match the
 current `df_price` shape, always use:
@@ -166,7 +163,7 @@ if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8"
 ## Environment Requirements
 
 - Python 3.9+
-- Key packages: `tushare`, `akshare`, `pandas`, `numpy`, `scipy`, `numba` (GPU only), `openpyxl`, `matplotlib`
+- Key packages: `tushare`, `akshare`, `pandas`, `numpy`, `scipy`, `numba`, `openpyxl`, `matplotlib`
 - Tushare Pro token: set in `data_pipeline.py` at line `ts.set_token(...)`
 - No extra packages needed for email (uses stdlib `smtplib`)
 
@@ -224,7 +221,7 @@ Higher score = more undervalued by models = ranked higher.
 
 ## Files NOT to Modify Without Care
 
-- `backtest/Z-L_backtest_GPU.py` — GPU variant kept for reference; not used in daily pipeline
+- `backtest/Z-L_backtest_CPU.py` and `backtest/Z-L_backtest_GPU.py` — disabled legacy entrypoints; do not use for research output
 - `【浙商固收】转债资产端特征数据库【周更新外发】.xlsx` — legacy Excel source, kept for historical comparison
 - `backtest/rf_yield_cache.csv` — tenor-format yield curve cache; format differs from other caches
 
@@ -238,10 +235,15 @@ Higher score = more undervalued by models = ranked higher.
 18:00 Friday
   │
   ├─ daily_signal.py          ← 数据拉取 + BS/ZL 模型增量计算 + Top-5 推送
-  │     (subprocess calls data_pipeline.py, B-S_backtest.py, Z-L_backtest_CPU.py)
+  │     (subprocess calls data_pipeline.py, B-S_backtest.py, Z-L_backtest_GPU_prod.py)
   │
-  ├─ regenerate_plots.py      ← 从 XLSX 快速重生成 README 全部 6 张图
-  │     (reads 理论价格/市场价格/相对偏差 sheets; no model recomputation)
+  ├─ update_benchmark.py      ← 更新 000832.CSI 基准
+  │
+  ├─ rebuild_research_outputs.py
+  │     ├─ build_observed_factors.py  ← 从 Tushare 日频缓存重建五个非定价因子
+  │     ├─ BS/ZL factor backtests
+  │     ├─ monthly long-short strategy
+  │     └─ regenerate_plots.py        ← 重生成 README 全部 6 张图
   │
   └─ git add -u               ← 暂存所有已追踪的变更文件
        git commit              ← 仅在有实际变更时提交（跳过空提交）

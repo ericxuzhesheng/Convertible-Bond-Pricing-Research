@@ -55,7 +55,8 @@ Convertible-Bond-Pricing-Research/
 ├─ backtest/                #  BS 与 ZL 定价回测主程序 + 数据管道 + 每日信号
 │   ├─ data_pipeline.py     #  Tushare 全量数据拉取（替代手动 Excel 更新）
 │   ├─ B-S_backtest.py      #  Black-Scholes 定价回测
-│   ├─ Z-L_backtest_CPU.py  #  郑-林 Monte Carlo 定价（CPU）
+│   ├─ Z-L_backtest_GPU_prod.py # 郑-林 Monte Carlo 定价（CUDA 生产版）
+│   ├─ full_history_rebuild.py  # GPU 门控的一键全历史重建
 │   ├─ daily_signal.py      #  每日 Top-5 低估转债信号 + 邮件推送
 │   └─ setup_notification.py#  一键配置邮件推送向导
 ├─ mispricing factor/       #  错误定价因子与相关性分析
@@ -176,7 +177,7 @@ $$
 
 MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 
-> **口径与时点**：理论价与市场价先按相同「交易日 × 转债」单元严格对齐，再汇总有效样本（BS n=152,208；ZL n=59,113）；MAPE 排除市场价格为零的单元。数据更新至 **2026-06-23**。ZL 理论价由 GPU 版 `backtest/Z-L_backtest_GPU_prod.py`（CUDA 批处理）增量计算，博弈逻辑与 CPU 版 `Z-L_backtest_CPU.py` 一致，仅执行设备不同。
+> **口径与时点**：理论价与市场价先按相同「交易日 × 转债」单元严格对齐，再汇总有效样本（BS n=152,208；ZL n=59,113）；MAPE 排除市场价格为零的单元。数据更新至 **2026-06-23**。ZL 理论价由 `backtest/Z-L_backtest_GPU_prod.py`（CUDA 批处理）计算；旧 CPU 和实验 GPU 入口因包含不可追溯的常数兜底而已禁用。完整重建使用 `python backtest/full_history_rebuild.py`，CUDA 或真实时点数据缺失时会停止而不会覆盖研究结果。
 
 ---
 
@@ -378,7 +379,8 @@ Convertible-Bond-Pricing-Research/
 ├─ backtest/                # BS and ZL pricing engines + data pipeline + daily signal
 │   ├─ data_pipeline.py     # Tushare-based data ingestion (replaces manual Excel)
 │   ├─ B-S_backtest.py      # Black-Scholes pricing backtest
-│   ├─ Z-L_backtest_CPU.py  # Zheng-Lin Monte Carlo pricing (CPU)
+│   ├─ Z-L_backtest_GPU_prod.py # Zheng-Lin Monte Carlo pricing (CUDA production)
+│   ├─ full_history_rebuild.py  # GPU-gated full-history rebuild
 │   ├─ daily_signal.py      # Daily Top-5 undervalued bond signal + email push
 │   └─ setup_notification.py# One-click email configuration wizard
 ├─ mispricing factor/       # Mispricing factor and correlation analysis
@@ -499,7 +501,7 @@ Key characteristics
 
 Lower MAE/MAPE/SMAPE indicates better pricing fit.
 
-> **Scope & vintage**: theoretical and market prices are strictly aligned on identical (trading-day × bond) cells before aggregation (BS n=152,208; ZL n=59,113); zero-market-price cells are excluded from MAPE. Data are refreshed through **2026-06-23**. ZL theoretical prices were incrementally computed with `backtest/Z-L_backtest_GPU_prod.py` using batched CUDA; its game logic matches the CPU build and differs only in execution device.
+> **Scope & vintage**: theoretical and market prices are strictly aligned on identical (trading-day × bond) cells before aggregation (BS n=152,208; ZL n=59,113); zero-market-price cells are excluded from MAPE. Data are refreshed through **2026-06-23**. ZL prices are produced by `backtest/Z-L_backtest_GPU_prod.py` with batched CUDA. The legacy CPU and experimental GPU entrypoints are disabled because they contained untraceable constant fallbacks. Run `python backtest/full_history_rebuild.py` for a fail-closed rebuild that stops before replacing outputs when CUDA or point-in-time source data are unavailable.
 
 ---
 
