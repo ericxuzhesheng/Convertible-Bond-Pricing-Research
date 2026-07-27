@@ -23,6 +23,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -83,6 +84,44 @@ def _weekly_last_observation(data: pd.Series | pd.DataFrame) -> pd.Series | pd.D
     return data.groupby(data.index.to_period("W-FRI"), group_keys=False).tail(1)
 
 
+def build_matched_plot_series(
+    *,
+    model: pd.DataFrame,
+    market: pd.DataFrame,
+    relative_deviation: pd.DataFrame,
+) -> pd.DataFrame:
+    """Aggregate identical finite date-bond cells for every plotted line."""
+
+    index = model.index.intersection(market.index).intersection(
+        relative_deviation.index
+    )
+    columns = model.columns.intersection(market.columns).intersection(
+        relative_deviation.columns
+    )
+    aligned_model = model.reindex(index=index, columns=columns)
+    aligned_market = market.reindex(index=index, columns=columns)
+    aligned_deviation = relative_deviation.reindex(
+        index=index, columns=columns
+    )
+    finite = (
+        np.isfinite(aligned_model)
+        & np.isfinite(aligned_market)
+        & np.isfinite(aligned_deviation)
+        & (aligned_market > 0)
+    )
+    return pd.DataFrame(
+        {
+            "model": aligned_model.where(finite).mean(axis=1),
+            "market": aligned_market.where(finite).mean(axis=1),
+            "relative_deviation_pct": (
+                aligned_deviation.where(finite).mean(axis=1) * 100.0
+            ),
+            "sample_count": finite.sum(axis=1),
+        },
+        index=index,
+    )
+
+
 def _save(path: str) -> None:
     plt.savefig(path, dpi=300, bbox_inches="tight")
     plt.close()
@@ -100,17 +139,23 @@ def plot_bs_timeseries() -> None:
         print("  [跳过] BS 时序图缺少必要 sheet")
         return
 
-    raw_model = df_model.mean(axis=1)
-    raw_market = df_market.mean(axis=1)
-    raw_err = df_reldev.mean(axis=1) * 100
-    daily_model_avg, daily_market_avg, daily_err_pct = _align_series(raw_model, raw_market, raw_err)
-    weekly = _weekly_last_observation(
-        pd.concat([daily_model_avg, daily_market_avg, daily_err_pct], axis=1)
+    daily = build_matched_plot_series(
+        model=df_model,
+        market=df_market,
+        relative_deviation=df_reldev,
+    )
+    weekly = _weekly_last_observation(daily).dropna(
+        subset=["model", "market", "relative_deviation_pct"]
     )
     weekly_model_avg, weekly_market_avg, weekly_err_pct = (
-        weekly.iloc[:, 0],
-        weekly.iloc[:, 1],
-        weekly.iloc[:, 2],
+        weekly["model"],
+        weekly["market"],
+        weekly["relative_deviation_pct"],
+    )
+    print(
+        "  matched weekly sample count: "
+        f"{int(weekly['sample_count'].min())}-"
+        f"{int(weekly['sample_count'].max())}"
     )
 
     fig, ax1 = plt.subplots(figsize=(12, 6))
@@ -141,17 +186,23 @@ def plot_zl_timeseries() -> None:
         print("  [跳过] ZL 时序图缺少必要 sheet")
         return
 
-    raw_model = df_model.mean(axis=1)
-    raw_market = df_market.mean(axis=1)
-    raw_err = df_reldev.mean(axis=1) * 100
-    daily_model_avg, daily_market_avg, daily_err_pct = _align_series(raw_model, raw_market, raw_err)
-    weekly = _weekly_last_observation(
-        pd.concat([daily_model_avg, daily_market_avg, daily_err_pct], axis=1)
+    daily = build_matched_plot_series(
+        model=df_model,
+        market=df_market,
+        relative_deviation=df_reldev,
+    )
+    weekly = _weekly_last_observation(daily).dropna(
+        subset=["model", "market", "relative_deviation_pct"]
     )
     weekly_model_avg, weekly_market_avg, weekly_err_pct = (
-        weekly.iloc[:, 0],
-        weekly.iloc[:, 1],
-        weekly.iloc[:, 2],
+        weekly["model"],
+        weekly["market"],
+        weekly["relative_deviation_pct"],
+    )
+    print(
+        "  matched weekly sample count: "
+        f"{int(weekly['sample_count'].min())}-"
+        f"{int(weekly['sample_count'].max())}"
     )
 
     fig, ax1 = plt.subplots(figsize=(12, 6))
