@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+import requests
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -282,3 +283,21 @@ def test_yield_curve_download_is_split_into_subannual_requests(
         ("20180101", "20181231"),
     ]
     assert list(result.columns) == [1.0, 3.0]
+
+
+def test_tushare_retry_recovers_from_transient_disconnect(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    attempts = 0
+
+    def flaky_call():
+        nonlocal attempts
+        attempts += 1
+        if attempts < 3:
+            raise requests.ConnectionError("remote disconnected")
+        return "ok"
+
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+
+    assert data_pipeline.call_tushare_with_retry(flaky_call) == "ok"
+    assert attempts == 3
