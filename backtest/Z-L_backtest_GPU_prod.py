@@ -13,8 +13,16 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
-from numba import njit, cuda
+from numba import njit, cuda, int8
 from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_normal_float64
+
+from market_data_contracts import (
+    DataContractError,
+    build_observed_volatility,
+    build_risk_free_rate_matrix,
+    calculate_accrued_interest,
+    parse_coupon_schedule,
+)
 
 # 设置中文显示
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
@@ -27,6 +35,7 @@ warnings.filterwarnings('ignore')
 # 1. 配置与数据读取 (基于 Tushare Pipeline CSV 缓存)
 # ==========================================
 PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
+REBUILD_ALL = '--rebuild-all' in sys.argv
 
 
 def _load_csv(filename):
@@ -92,8 +101,7 @@ try:
     df_bps = df_bps.reindex(df_price.index, method='ffill')
     print(f"   BPS 数据加载完成（来源：cb_bps_cache.csv）")
 except Exception as e:
-    print(f"   BPS 读取失败: {e}，将使用全零 BPS")
-    df_bps = pd.DataFrame(0.0, index=df_price.index, columns=df_price.columns)
+    raise DataContractError(f"BPS 读取失败: {e}") from e
 
 # 确保列与 df_price 一致 (取交集)
 valid_bonds = df_price.columns.intersection(df_bps.columns)
@@ -105,20 +113,15 @@ df_bps      = df_bps[valid_bonds]
 
 print(f"   BPS 数据处理完成，有效对齐转债数量: {len(valid_bonds)}")
 
-# 2.3 获取到期赎回价 (从 cb_basic_info.csv 读取)
+# 2.3 获取真实回售/赎回条款
 # ==========================================
-DEFAULT_REDEMPTION_PRICE = 110.0
-
-try:
-    _basic = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
-    redemption_map = (
-        _basic.dropna(subset=['ts_code', 'maturity_price'])
-        .set_index('ts_code')['maturity_price'].to_dict()
-    )
-    print(f"   成功读取 {len(redemption_map)} 条赎回价数据（来源：cb_basic_info.csv）")
-except Exception as e:
-    print(f"   赎回价读取失败: {e}，使用默认值 {DEFAULT_REDEMPTION_PRICE}")
-    redemption_map = {}
+_basic = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
+_basic = _basic.drop_duplicates('ts_code', keep='last').set_index('ts_code')
+_clauses = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_clause_terms.csv'))
+_clauses = _clauses.loc[
+    _clauses['source_ok'].astype(str).str.lower().eq('true')
+].drop_duplicates('ts_code', keep='last').set_index('ts_code')
+print(f"   已加载 {_clauses.shape[0]} 只转债的真实条款")
 
 
 # ==========================================
@@ -147,16 +150,22 @@ def _fetch_bond_stock_data(bond_code):
     stock_code_full = bond_to_stock.get(bond_code)
     if not stock_code_full or pro is None:
         return None
-    start_dt = df_price.index.min().strftime("%Y%m%d")
+    start_dt = (
+        df_price.index.min() - pd.Timedelta(days=500)
+    ).strftime("%Y%m%d")
     end_dt = df_price.index.max().strftime("%Y%m%d")
     df_k = ts.pro_bar(ts_code=stock_code_full, adj='qfq', start_date=start_dt, end_date=end_dt)
     if df_k is None or df_k.empty:
         return None
     df_k['trade_date'] = pd.to_datetime(df_k['trade_date'])
     df_k = df_k.sort_values('trade_date').set_index('trade_date')
-    log_ret = np.log(df_k['close'] / df_k['close'].shift(1))
-    vol = log_ret.rolling(window=250, min_periods=2).std() * np.sqrt(250)
-    return df_k['close'].reindex(df_price.index), vol.reindex(df_price.index)
+    vol = build_observed_volatility(
+        adjusted_close=df_k['close'],
+        target_dates=df_price.index,
+        window=250,
+        min_observations=60,
+    )
+    return df_k['close'].reindex(df_price.index), vol
 
 
 def _load_cache_or_empty(path):
@@ -193,9 +202,7 @@ if pending_bonds:
         df_stock_price.to_csv(PRICE_CACHE_FILE)
         print(f"   缓存已更新 ({updated_count} 只)。")
 
-# 兜底填充只在内存中进行，不写回缓存，下次运行仍会尝试补算
-df_volatility = df_volatility.fillna(0.40)
-df_stock_price = df_stock_price.ffill()
+# 缺失波动率/正股价格保持 NaN，由定价样本门禁排除。
 
 print("   股票数据准备完成。")
 
@@ -236,21 +243,12 @@ def _load_tenor_yield_table():
 yield_table = _load_tenor_yield_table()
 
 if yield_table is None or yield_table.empty:
-    print("   无可用利率数据，使用默认值 2%")
-    rf_df = pd.DataFrame(0.02, index=df_price.index, columns=df_price.columns)
+    raise DataContractError("无可用 AkShare 国债收益率曲线")
 else:
-    tenors = yield_table.columns.astype(float).values
-    # 对齐到回测日期（节假日 ffill），早于缓存起点的日期用 0.02 兜底
-    yield_aligned = yield_table.reindex(df_price.index, method='ffill')
-    print(f"   正在进行利率期限结构线性插值 (期限点: {tenors})...")
-    yield_vals = yield_aligned.values.astype(float)
-    maturity_vals = df_maturity.fillna(0).values.astype(float)
-    rf_matrix = np.full_like(maturity_vals, np.nan, dtype=float)
-    for i in range(len(rf_matrix)):
-        if np.isnan(yield_vals[i]).all():
-            continue
-        rf_matrix[i, :] = np.interp(maturity_vals[i, :], tenors, yield_vals[i, :])
-    rf_df = pd.DataFrame(rf_matrix, index=df_price.index, columns=df_price.columns).fillna(0.02)
+    rf_df = build_risk_free_rate_matrix(
+        curve=yield_table,
+        maturity=df_maturity,
+    )
     print("   无风险利率期限结构匹配完成。")
 
 # ==========================================
@@ -258,46 +256,12 @@ else:
 # ==========================================
 print("5. 启动 Z-L 模型蒙特卡洛模拟...")
 
-# 根据郑振龙和林海(2003)的方法确定信用利差
-# 将1个月、1年、3年和5年的信用风险溢价划分别设为 0.65%、0.72%、0.90% 和 0.98%
-# 然后根据转债的剩余期限进行插值作为无风险利率加信用利差
-
-
-def get_credit_spread_by_maturity(maturity_years):
-    """
-    根据剩余期限(年)插值确定信用利差
-    参考郑振龙和林海(2003)的方法:
-    - 1个月 (1/12年): 0.65%
-    - 1年: 0.72%
-    - 3年: 0.90%
-    - 5年: 0.98%
-    """
-    # 定义插值点 (年, 信用利差)
-    # 1个月、1年、3年、5年
-    maturities = np.array([1/12, 1, 3, 5])
-    spreads = np.array([0.0065, 0.0072, 0.0090, 0.0098])
-    
-    # 使用线性插值
-    # 对于低于1个月的，使用1个月的利差
-    # 对于超过5年的，使用5年的利差
-    result = np.interp(maturity_years, maturities, spreads)
-    
-    return result
-
-
-def get_credit_spread_matrix(df_maturity):
-    """
-    根据剩余期限矩阵计算信用利差矩阵（向量化，applymap 已被 pandas 弃用）
-    """
-    print("   正在根据剩余期限构建信用利差矩阵...")
-
-    vals = df_maturity.values.astype(float)
-    interp = get_credit_spread_by_maturity(vals)
-    spread = np.where(np.isnan(vals) | (vals <= 0), 0.0072, interp)
-    return pd.DataFrame(spread, index=df_maturity.index, columns=df_maturity.columns)
-
-# 计算利差矩阵 (基于剩余期限插值)
-df_spread = get_credit_spread_matrix(df_maturity)
+# 信用利差由 data_pipeline.py 使用 Tushare 每日纯债价值反解。
+df_spread = _load_csv('cb_credit_spread_cache.csv').reindex(
+    index=df_price.index,
+    columns=df_price.columns,
+)
+print(f"   隐含信用利差非空率: {df_spread.notna().mean().mean():.1%}")
 
 # ==========================================
 # Z-L 蒙特卡洛核心 —— GPU (CUDA) 批处理版
@@ -308,12 +272,12 @@ df_spread = get_credit_spread_matrix(df_maturity)
 #   - 时间步: steps = max(50, int(T*240)), dt = T/steps
 #   - 回售执行: put_count>=30 且 t > put_start_idx (严格大于)
 # 仅把执行设备从 CPU(njit) 换成 GPU(cuda.jit), 模型设定不变。
-PUT_START_YEAR = 2.0  # 回售期通常为最后 2 年
-
-
 @cuda.jit
 def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
-                       redem_arr, put_price_arr, put_barrier_arr,
+                       maturity_redem_arr, call_price_arr,
+                       put_price_arr, put_barrier_arr, put_window_arr,
+                       put_years_arr, redeem_ratio_arr, redeem_window_arr,
+                       redeem_required_arr,
                        N, rng_states, out_pv):
     """每个线程模拟一只债券的一条路径; tid = bond_idx * N + path_idx。"""
     tid = cuda.grid(1)
@@ -329,14 +293,20 @@ def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
     sigma = sigma_arr[bond_idx]
     T = T_arr[bond_idx]
     BPS = BPS_arr[bond_idx]
-    redemption_price = redem_arr[bond_idx]
+    redemption_price = maturity_redem_arr[bond_idx]
+    call_price = call_price_arr[bond_idx]
     put_price = put_price_arr[bond_idx]
     put_barrier = put_barrier_arr[bond_idx]
+    put_window = int(put_window_arr[bond_idx])
+    put_years = put_years_arr[bond_idx]
+    redeem_ratio = redeem_ratio_arr[bond_idx]
+    redeem_window = int(redeem_window_arr[bond_idx])
+    redeem_required = int(redeem_required_arr[bond_idx])
 
     # 时间步 / dt / 回售起始步 —— 与 CPU 版完全一致
     steps = max(50, int(T * 240.0))
     dt = T / steps
-    put_start_time = T - PUT_START_YEAR
+    put_start_time = T - put_years
     if put_start_time < 0.0:
         put_start_time = 0.0
     put_start_idx = int(put_start_time / dt)
@@ -347,6 +317,10 @@ def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
     S_curr = S0
     X_curr = X0
     put_count = 0
+    redeem_count = 0
+    redeem_flags = cuda.local.array(64, dtype=int8)
+    for flag_idx in range(64):
+        redeem_flags[flag_idx] = 0
     path_end_time = T
     path_end_val = 0.0
     is_active = True
@@ -361,31 +335,31 @@ def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
         else:
             put_count = 0
 
-        # (2) 发行人博弈: 简单下修到 max(S, BPS)
-        if put_count > 20:
-            new_X = S_curr if S_curr > BPS else BPS
-            if new_X < X_curr:
-                X_curr = new_X
-                if S_curr >= put_barrier * X_curr:
-                    put_count = 0
+        # 未获得逐债下修条款时不假设自动下修。
 
-        # (3) 投资者博弈: 执行回售
-        if put_count >= 30 and t > put_start_idx:
+        # (2) 投资者博弈: 按真实连续天数执行回售
+        if put_count >= put_window and t > put_start_idx:
             path_end_time = t * dt
             path_end_val = put_price
             is_active = False
             break
 
-        # (4) 强赎: 纯转股价值
-        if S_curr > 1.3 * X_curr:
+        # (3) 强赎: 真实 N 日窗口内至少 M 日达到触发比例
+        slot = (t - 1) % redeem_window
+        redeem_count -= redeem_flags[slot]
+        flag = 1 if S_curr >= redeem_ratio * X_curr else 0
+        redeem_flags[slot] = flag
+        redeem_count += flag
+        if t >= redeem_window and redeem_count >= redeem_required:
             path_end_time = t * dt
-            path_end_val = S_curr * (100.0 / X_curr)
+            conv_value = S_curr * (X0 / X_curr)
+            path_end_val = conv_value if conv_value > call_price else call_price
             is_active = False
             break
 
     # 持有到期: max(赎回价, 转股价值)
     if is_active:
-        conv_val = 100.0 / X_curr * S_curr
+        conv_val = X0 / X_curr * S_curr
         path_end_val = conv_val if conv_val > redemption_price else redemption_price
 
     out_pv[tid] = path_end_val * math.exp(-(r + credit_spread) * path_end_time)
@@ -396,7 +370,9 @@ def zl_mc_pricing_batch(params, N=10000, seed=42, threads_per_block=256):
     GPU 批量定价: 一次 kernel 启动算完当日所有待定价债券。
 
     params: dict of np.float64 一维数组, 键为
-        S0, X0, r, cs, sigma, T, BPS, redem, put_price, put_barrier
+        S0, X0, r, cs, sigma, T, BPS, maturity_redem, call_price,
+        put_price, put_barrier, put_window, put_years, redeem_ratio,
+        redeem_window, redeem_required
         (长度均 = 当日待算债券数 num_bonds)
     返回: np.ndarray, shape=(num_bonds,), 各债券模型价(路径均值)。
     """
@@ -411,8 +387,11 @@ def zl_mc_pricing_batch(params, N=10000, seed=42, threads_per_block=256):
         cuda.to_device(params["S0"]), cuda.to_device(params["X0"]),
         cuda.to_device(params["r"]), cuda.to_device(params["cs"]),
         cuda.to_device(params["sigma"]), cuda.to_device(params["T"]),
-        cuda.to_device(params["BPS"]), cuda.to_device(params["redem"]),
-        cuda.to_device(params["put_price"]), cuda.to_device(params["put_barrier"]),
+        cuda.to_device(params["BPS"]), cuda.to_device(params["maturity_redem"]),
+        cuda.to_device(params["call_price"]), cuda.to_device(params["put_price"]),
+        cuda.to_device(params["put_barrier"]), cuda.to_device(params["put_window"]),
+        cuda.to_device(params["put_years"]), cuda.to_device(params["redeem_ratio"]),
+        cuda.to_device(params["redeem_window"]), cuda.to_device(params["redeem_required"]),
         N, rng_states, out_pv_device,
     )
     out_pv = out_pv_device.copy_to_host()
@@ -432,7 +411,7 @@ df_diff_pct = pd.DataFrame(index=df_price.index, columns=df_price.columns)
 
 # 增量计算逻辑
 SUMMARY_FILE = os.path.join(PIPELINE_DIR, "ZL_Model_Summary.xlsx")
-if os.path.exists(SUMMARY_FILE):
+if os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:
     print(f"   发现已存在的汇总文件：{SUMMARY_FILE}")
     print("   读取历史结果并执行增量计算...")
     try:
@@ -463,8 +442,6 @@ if os.path.exists(SUMMARY_FILE):
         print(f"   历史结果读取失败，改为全量计算：{e}")
 
 pending_mask = df_price.notna() & df_zl_model.isna()
-# 仅对 2026-07-10 及之后的日期进行增量补算（因为早期历史数据仅在周五计算，无需对历史上的周一至周四进行海量无效补算）
-pending_mask.loc[:"2026-07-09"] = False
 pending_dates = pending_mask.any(axis=1)
 calc_dates_to_run = calc_dates[pending_dates]
 calc_dates_to_run = calc_dates_to_run[calc_dates_to_run.notnull()]
@@ -484,24 +461,65 @@ if not cuda.is_available():
 print(f"   GPU: {cuda.get_current_device().name.decode() if isinstance(cuda.get_current_device().name, bytes) else cuda.get_current_device().name}")
 
 MC_N_PATHS = 10000   # 每只债券蒙特卡洛路径数 (与 CPU 版一致)
-PUT_PRICE = 100.0    # 回售价 (简化为 100)
-PUT_BARRIER = 0.7    # 回售触发比例
 
 
-def _resolve_redeem_price(bond_code):
-    """与 CPU 版一致的赎回价解析: map 命中 → 后缀匹配 → 默认 106 / 异常低强制默认。"""
-    redeem_price = 106.0
-    if bond_code in redemption_map:
-        redeem_price = redemption_map[bond_code]
-    else:
-        for suffix in ['.SH', '.SZ']:
-            code_suffix = f"{bond_code}{suffix}"
-            if code_suffix in redemption_map:
-                redeem_price = redemption_map[code_suffix]
-                break
-    if redeem_price < 100.0:
-        redeem_price = DEFAULT_REDEMPTION_PRICE
-    return redeem_price
+def _observed_clause_inputs(bond_code, date):
+    if bond_code not in _basic.index or bond_code not in _clauses.index:
+        return None
+    basic_row = _basic.loc[bond_code]
+    clause_row = _clauses.loc[bond_code]
+    required_clause_fields = [
+        'put_trigger_ratio',
+        'put_window_days',
+        'put_eligible_years',
+        'redeem_trigger_ratio',
+        'redeem_window_days',
+        'redeem_required_days',
+        'maturity_redemption_price',
+    ]
+    values = {
+        field: pd.to_numeric(clause_row.get(field), errors='coerce')
+        for field in required_clause_fields
+    }
+    if any(pd.isna(value) for value in values.values()):
+        return None
+    redeem_window = int(values['redeem_window_days'])
+    put_window = int(values['put_window_days'])
+    if (
+        redeem_window <= 0
+        or redeem_window > 64
+        or put_window <= 0
+        or int(values['redeem_required_days']) <= 0
+        or int(values['redeem_required_days']) > redeem_window
+    ):
+        return None
+    par = pd.to_numeric(basic_row.get('par_value'), errors='coerce')
+    value_date = pd.to_datetime(basic_row.get('value_date'), errors='coerce')
+    if pd.isna(par) or par <= 0 or pd.isna(value_date):
+        return None
+    try:
+        coupon_schedule = parse_coupon_schedule(basic_row.get('rate_clause'))
+        accrued = calculate_accrued_interest(
+            as_of=pd.Timestamp(date),
+            value_date=value_date,
+            par_value=float(par),
+            coupon_schedule=coupon_schedule,
+        )
+    except DataContractError:
+        return None
+    exercise_price = float(par) + float(accrued)
+    return {
+        'par': float(par),
+        'maturity_redem': float(values['maturity_redemption_price']),
+        'call_price': exercise_price,
+        'put_price': exercise_price,
+        'put_barrier': float(values['put_trigger_ratio']),
+        'put_window': put_window,
+        'put_years': float(values['put_eligible_years']),
+        'redeem_ratio': float(values['redeem_trigger_ratio']),
+        'redeem_window': redeem_window,
+        'redeem_required': int(values['redeem_required_days']),
+    }
 
 
 # 遍历每一天 (使用 tqdm 显示进度); 每个交易日组装参数后一次性 GPU 批处理
@@ -519,8 +537,13 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
 
         # 组装当日待定价债券参数 (数据清洗与归一化逻辑与 CPU 版逐字对应)
         batch_codes = []
-        p_S0, p_X0, p_r, p_cs, p_sigma, p_T, p_BPS, p_redem, p_put, p_barrier = (
-            [], [], [], [], [], [], [], [], [], []
+        (
+            p_S0, p_X0, p_r, p_cs, p_sigma, p_T, p_BPS,
+            p_maturity_redem, p_call, p_put, p_barrier, p_put_window,
+            p_put_years, p_redeem_ratio, p_redeem_window,
+            p_redeem_required,
+        ) = (
+            [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
         )
         batch_market = []
         for bond_code in df_price.columns:
@@ -536,28 +559,41 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
             s_real = row_stock_price[bond_code]
             cs = row_spread[bond_code]
 
-            if pd.isna(market_price) or pd.isna(cv) or pd.isna(T) or T <= 0:
+            clause_inputs = _observed_clause_inputs(bond_code, date)
+            if (
+                pd.isna(market_price)
+                or pd.isna(cv)
+                or pd.isna(T)
+                or T <= 0
+                or pd.isna(sigma)
+                or sigma <= 0
+                or pd.isna(r)
+                or pd.isna(cs)
+                or cs < 0
+                or pd.isna(s_real)
+                or s_real <= 0
+                or pd.isna(bps)
+                or clause_inputs is None
+            ):
                 continue
 
-            if pd.isna(sigma): sigma = 0.4
-            if pd.isna(r): r = 0.02
-            if pd.isna(bps): bps = 0
-            if pd.isna(cs): cs = 0.015
-
             S0_sim = cv
-            X0_sim = 100.0
-            if pd.notna(s_real) and s_real > 0:
-                BPS_sim = bps * cv / s_real
-            else:
-                BPS_sim = 0.0
-
-            redeem_price = _resolve_redeem_price(bond_code)
+            X0_sim = clause_inputs['par']
+            BPS_sim = bps * cv / s_real
 
             batch_codes.append(bond_code)
             batch_market.append(market_price)
             p_S0.append(S0_sim); p_X0.append(X0_sim); p_r.append(r); p_cs.append(cs)
             p_sigma.append(sigma); p_T.append(T); p_BPS.append(BPS_sim)
-            p_redem.append(redeem_price); p_put.append(PUT_PRICE); p_barrier.append(PUT_BARRIER)
+            p_maturity_redem.append(clause_inputs['maturity_redem'])
+            p_call.append(clause_inputs['call_price'])
+            p_put.append(clause_inputs['put_price'])
+            p_barrier.append(clause_inputs['put_barrier'])
+            p_put_window.append(clause_inputs['put_window'])
+            p_put_years.append(clause_inputs['put_years'])
+            p_redeem_ratio.append(clause_inputs['redeem_ratio'])
+            p_redeem_window.append(clause_inputs['redeem_window'])
+            p_redeem_required.append(clause_inputs['redeem_required'])
 
         if not batch_codes:
             continue
@@ -570,9 +606,15 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
             "sigma": np.asarray(p_sigma, dtype=np.float64),
             "T": np.asarray(p_T, dtype=np.float64),
             "BPS": np.asarray(p_BPS, dtype=np.float64),
-            "redem": np.asarray(p_redem, dtype=np.float64),
+            "maturity_redem": np.asarray(p_maturity_redem, dtype=np.float64),
+            "call_price": np.asarray(p_call, dtype=np.float64),
             "put_price": np.asarray(p_put, dtype=np.float64),
             "put_barrier": np.asarray(p_barrier, dtype=np.float64),
+            "put_window": np.asarray(p_put_window, dtype=np.float64),
+            "put_years": np.asarray(p_put_years, dtype=np.float64),
+            "redeem_ratio": np.asarray(p_redeem_ratio, dtype=np.float64),
+            "redeem_window": np.asarray(p_redeem_window, dtype=np.float64),
+            "redeem_required": np.asarray(p_redeem_required, dtype=np.float64),
         }
         # 按交易日派生确定性种子: 可复现, 且各债券/路径随机流互相独立 (tid 偏移)
         day_seed = zlib.crc32(str(date).encode()) & 0x7FFFFFFF
