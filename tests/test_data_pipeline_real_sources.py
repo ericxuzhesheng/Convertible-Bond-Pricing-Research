@@ -22,6 +22,7 @@ class FakePro:
         self.cb_daily_calls: list[dict] = []
         self.price_change_calls: list[str] = []
         self.rating_calls: list[str] = []
+        self.daily_basic_calls: list[dict] = []
 
     def cb_daily(self, **kwargs):
         self.cb_daily_fields = kwargs.get("fields")
@@ -74,6 +75,17 @@ class FakePro:
                 }
             )
         return pd.DataFrame(rows)
+
+    def daily_basic(self, **kwargs):
+        self.daily_basic_calls.append(kwargs)
+        code = kwargs["ts_code"]
+        return pd.DataFrame(
+            {
+                "ts_code": [code],
+                "trade_date": ["20240102"],
+                "total_mv": [500_000.0],
+            }
+        )
 
 
 def test_cb_daily_downloads_observed_conversion_and_bond_values(
@@ -160,3 +172,32 @@ def test_bond_floor_rejects_missing_contractual_coupon() -> None:
 
     with pytest.raises(DataContractError, match="coupon"):
         data_pipeline.calc_bond_floor_dcf(basic, maturity, curve)
+
+
+def test_stock_market_value_queries_each_underlying_security(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+    pro = FakePro()
+    basic = pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ", "123002.SZ"],
+            "stk_cd": ["000001.SZ", "000002.SZ"],
+        }
+    )
+    price = pd.DataFrame(
+        {"123001.SZ": [100.0], "123002.SZ": [101.0]},
+        index=pd.to_datetime(["20240102"]),
+    )
+
+    result = data_pipeline.fetch_stock_mv(
+        pro, basic, price, "20240101", "20240103"
+    )
+
+    assert [call["ts_code"] for call in pro.daily_basic_calls] == [
+        "000001.SZ",
+        "000002.SZ",
+    ]
+    assert result.loc[pd.Timestamp("2024-01-02"), "123001.SZ"] == pytest.approx(
+        500_000.0
+    )
