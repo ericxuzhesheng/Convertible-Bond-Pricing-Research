@@ -52,8 +52,7 @@ def main():
         print("已是最新，无需更新。")
         return
 
-    ts.set_token(_load_token())
-    pro = ts.pro_api()
+    pro = ts.pro_api(_load_token())
     df = pro.index_daily(ts_code=TS_CODE, start_date=start, end_date=args.end)
     if df is None or df.empty:
         print(f"Tushare 返回空（{start}~{args.end}），无新增。")

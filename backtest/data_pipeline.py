@@ -89,8 +89,7 @@ OUT_CREDIT_SPREAD = os.path.join(OUT_DIR, 'cb_credit_spread_cache.csv')
 # 2. 初始化 Tushare
 # ==========================================
 def init_tushare():
-    ts.set_token(load_tushare_token())
-    pro = ts.pro_api(timeout=120)
+    pro = ts.pro_api(load_tushare_token(), timeout=120)
     print("Tushare Pro 初始化成功")
     return pro
 

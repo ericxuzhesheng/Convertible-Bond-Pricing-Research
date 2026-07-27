@@ -135,9 +135,8 @@ print("3. 开始通过 Tushare 获取正股历史波动率...")
 from token_loader import load_tushare_token
 
 try:
-    ts.set_token(load_tushare_token())
-    # 初始化 Tushare 的 pro_api 接口
-    pro = ts.pro_api()
+    # Token 仅传入当前客户端，不写入用户主目录 tk.csv。
+    pro = ts.pro_api(load_tushare_token())
 except Exception as e:
     # 如果初始化失败，打印警告信息并将 pro 设为 None，后续代码会跳过网络请求
     print(f"Warning: Tushare 初始化失败: {e}")

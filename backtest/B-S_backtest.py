@@ -98,8 +98,7 @@ print("3. 开始通过 Tushare 获取正股历史波动率...")
 from token_loader import load_tushare_token
 
 try:
-    ts.set_token(load_tushare_token())
-    pro = ts.pro_api()
+    pro = ts.pro_api(load_tushare_token())
 except Exception as e:
     print(f"Warning: Tushare 初始化失败，请检查 Token 设置。错误: {e}")
     pro = None
