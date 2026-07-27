@@ -192,7 +192,7 @@ def extract_clause_terms(
     redeem_trigger = _extract_percentage(redeem, r"(?:不低于|高于)")
     redeem_window_match = re.search(
         r"连续([一二两三四五六七八九十\d]+)个交易日中"
-        r"(?:至少)?([一二两三四五六七八九十\d]+)个交易日",
+        r"(?:至少)?(?:有)?([一二两三四五六七八九十\d]+)个交易日",
         redeem,
     )
     redeem_window = (
@@ -219,11 +219,21 @@ def extract_clause_terms(
         r"(?:票面面值|债券面值|面值)(?:上浮|加)\s*(\d+(?:\.\d+)?)\s*[%％]",
         redeem,
     )
-    maturity_price = (
-        float(par_value) * (1.0 + float(maturity_match.group(1)) / 100.0)
-        if maturity_match
-        else None
-    )
+    if maturity_match:
+        maturity_price = float(par_value) * (
+            1.0 + float(maturity_match.group(1)) / 100.0
+        )
+    else:
+        absolute_ratio_match = re.search(
+            r"(?:票面面值|债券面值|面值)(?:的)?\s*"
+            r"(1\d{2}(?:\.\d+)?)\s*[%％]",
+            redeem,
+        )
+        maturity_price = (
+            float(par_value) * float(absolute_ratio_match.group(1)) / 100.0
+            if absolute_ratio_match
+            else None
+        )
 
     return ClauseTerms(
         put_trigger_ratio=put_trigger,
