@@ -30,6 +30,33 @@ def _resolve(filename, *dirs):
     return os.path.join(dirs[0], filename)
 
 
+def align_observed_strategy_inputs(
+    *,
+    common_index,
+    ratings,
+    remaining_term,
+    balance,
+    turnover,
+    prices,
+):
+    """Align source matrices without manufacturing market observations."""
+
+    frames = {
+        "ratings": ratings,
+        "remaining_term": remaining_term,
+        "balance": balance,
+        "turnover": turnover,
+        "prices": prices,
+    }
+    missing = [name for name, frame in frames.items() if frame is None]
+    if missing:
+        raise ValueError(f"missing strategy source matrices: {missing}")
+    return {
+        name: frame.reindex(common_index)
+        for name, frame in frames.items()
+    }
+
+
 class CBStrategy:
     def __init__(self, data_dir=None):
         # data_dir 显式给定时沿用旧行为；默认在仓库内解析（模型/特征在 backtest/，基准在本目录）
@@ -150,14 +177,19 @@ class CBStrategy:
         # 统一索引并填充缺失值
         print("对齐数据索引...")
         common_index = self.relative_deviation.index
-        self.ratings = self.ratings.reindex(common_index).ffill()
-        self.remaining_term = self.remaining_term.reindex(common_index).ffill()
-        self.balance = self.balance.reindex(common_index).ffill()
-        self.turnover = self.turnover.reindex(common_index).fillna(0)
-        self.prices = self.prices.reindex(common_index).ffill()
-        
-        # 信号平滑 (4周移动平均，减少噪音)
-        self.rd_smoothed = self.relative_deviation.rolling(window=4, min_periods=1).mean()
+        aligned = align_observed_strategy_inputs(
+            common_index=common_index,
+            ratings=self.ratings,
+            remaining_term=self.remaining_term,
+            balance=self.balance,
+            turnover=self.turnover,
+            prices=self.prices,
+        )
+        self.ratings = aligned["ratings"]
+        self.remaining_term = aligned["remaining_term"]
+        self.balance = aligned["balance"]
+        self.turnover = aligned["turnover"]
+        self.prices = aligned["prices"]
         
         # 加载周涨跌幅作为收益率参考 (可选，如果价格数据不准)
         # 发现“可转债周涨跌幅”数据在2025年后存在严重异常（如800%收益或-600%收益），因此禁用该数据源，改用价格计算
