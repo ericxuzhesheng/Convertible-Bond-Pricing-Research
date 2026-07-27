@@ -36,11 +36,14 @@ import os
 import re
 import time
 import warnings
+from collections.abc import Callable
 from datetime import datetime
+from typing import TypeVar
 
 import akshare as ak
 import numpy as np
 import pandas as pd
+import requests
 import tushare as ts
 from tqdm import tqdm
 
@@ -83,6 +86,34 @@ OUT_CONV_EVENTS = os.path.join(OUT_DIR, 'cb_conversion_price_events.csv')
 OUT_SHARE_EVENTS = os.path.join(OUT_DIR, 'cb_share_events.csv')
 OUT_CLAUSES = os.path.join(OUT_DIR, 'cb_clause_terms.csv')
 OUT_CREDIT_SPREAD = os.path.join(OUT_DIR, 'cb_credit_spread_cache.csv')
+T = TypeVar("T")
+
+
+def call_tushare_with_retry(
+    function: Callable[..., T],
+    *args,
+    attempts: int = 5,
+    initial_delay_seconds: float = 1.0,
+    **kwargs,
+) -> T:
+    """Retry transient HTTP failures with exponential backoff."""
+
+    if attempts < 1:
+        raise ValueError("attempts must be positive")
+    delay = float(initial_delay_seconds)
+    for attempt in range(1, attempts + 1):
+        try:
+            return function(*args, **kwargs)
+        except requests.exceptions.RequestException:
+            if attempt == attempts:
+                raise
+            print(
+                f"   Tushare 网络请求失败，{delay:g} 秒后重试 "
+                f"({attempt}/{attempts})..."
+            )
+            time.sleep(delay)
+            delay *= 2.0
+    raise AssertionError("unreachable")
 
 
 # ==========================================
@@ -126,7 +157,8 @@ def _merge_wide(existing, new: pd.DataFrame) -> pd.DataFrame:
 def fetch_trade_dates(pro, start: str, end: str) -> list[str]:
     """Return actual open SSE dates for bounded per-day market queries."""
 
-    calendar = pro.trade_cal(
+    calendar = call_tushare_with_retry(
+        pro.trade_cal,
         exchange='SSE',
         start_date=start,
         end_date=end,
@@ -160,7 +192,7 @@ def fetch_cb_basic(pro) -> pd.DataFrame:
       list_date, delist_date
     """
     print("\n[Step 1] 拉取转债基础信息 cb_basic ...")
-    df = pro.cb_basic()
+    df = call_tushare_with_retry(pro.cb_basic)
     if df is None or df.empty:
         raise RuntimeError("cb_basic 返回空数据，请检查 Token 权限")
 
@@ -216,7 +248,8 @@ def fetch_cb_daily(pro, start: str, end: str) -> dict:
     failures = []
     for trade_date in tqdm(trade_dates, desc='cb_daily'):
         try:
-            df = pro.cb_daily(
+            df = call_tushare_with_retry(
+                pro.cb_daily,
                 trade_date=trade_date,
                 fields=(
                     'ts_code,trade_date,close,amount,'
@@ -285,7 +318,9 @@ def fetch_conversion_price_events(
     for batch in tqdm(list(_batches(unique_bonds, batch_size)), desc='cb_price_chg'):
         codes = ",".join(batch)
         try:
-            frame = pro.cb_price_chg(ts_code=codes)
+            frame = call_tushare_with_retry(
+                pro.cb_price_chg, ts_code=codes
+            )
             if frame is not None and not frame.empty:
                 chunks.append(frame)
         except Exception as exc:
@@ -375,7 +410,8 @@ def calc_convert_val(
     failures = []
     for stock_code in tqdm(stock_codes, desc='stock daily for CV'):
         try:
-            df = pro.daily(
+            df = call_tushare_with_retry(
+                pro.daily,
                 ts_code=stock_code,
                 start_date=start,
                 end_date=end,
@@ -657,7 +693,8 @@ def fetch_stock_mv(
     failures = []
     for stock_code in tqdm(stock_codes, desc='daily_basic'):
         try:
-            df = pro.daily_basic(
+            df = call_tushare_with_retry(
+                pro.daily_basic,
                 ts_code=stock_code,
                 start_date=start,
                 end_date=end,
@@ -717,7 +754,9 @@ def fetch_rating_events(
     for batch in _batches(sorted(set(bonds)), batch_size):
         codes = ",".join(batch)
         try:
-            frame = pro.cb_rating(ts_code=codes)
+            frame = call_tushare_with_retry(
+                pro.cb_rating, ts_code=codes
+            )
             if frame is not None and not frame.empty:
                 chunks.append(frame)
         except Exception as exc:
@@ -762,7 +801,9 @@ def fetch_share_events(
     for batch in tqdm(list(_batches(sorted(set(bonds)), batch_size)), desc='cb_share'):
         codes = ",".join(batch)
         try:
-            frame = pro.cb_share(ts_code=codes)
+            frame = call_tushare_with_retry(
+                pro.cb_share, ts_code=codes
+            )
             if frame is not None and not frame.empty:
                 chunks.append(frame)
         except Exception as exc:
@@ -810,7 +851,9 @@ def fetch_bps(
             
             disclosed_stocks = set()
             for ed in q_ends:
-                df_disc = pro.disclosure_date(end_date=ed)
+                df_disc = call_tushare_with_retry(
+                    pro.disclosure_date, end_date=ed
+                )
                 if df_disc is not None and not df_disc.empty and "actual_date" in df_disc.columns:
                     match_df = df_disc[(df_disc["actual_date"] >= start) & (df_disc["actual_date"] <= end)]
                     disclosed_stocks.update(match_df["ts_code"].tolist())
@@ -828,7 +871,8 @@ def fetch_bps(
     bps_series: dict = {}
     for stk in tqdm(stock_codes, desc='fina_indicator'):
         try:
-            df = pro.fina_indicator(
+            df = call_tushare_with_retry(
+                pro.fina_indicator,
                 ts_code=stk,
                 start_date=start,
                 end_date=end,
