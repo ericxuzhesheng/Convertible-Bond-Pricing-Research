@@ -27,6 +27,7 @@ from market_data_contracts import (  # noqa: E402
     calculate_accrued_interest,
     extract_clause_terms,
     implied_credit_spread,
+    load_rebuildable_matrix_cache,
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
     point_in_time_fundamental_matrix,
@@ -425,3 +426,22 @@ def test_clause_history_state_does_not_carry_put_days_before_eligibility() -> No
     )
 
     assert state.put_consecutive_days == 3
+
+
+def test_full_rebuild_bypasses_persisted_model_input_cache(
+    tmp_path: Path,
+) -> None:
+    cache_path = tmp_path / "legacy_volatility.csv"
+    pd.DataFrame(
+        {"123001.SZ": [0.40]},
+        index=[pd.Timestamp("2024-01-02")],
+    ).to_csv(cache_path)
+
+    loaded = load_rebuildable_matrix_cache(
+        path=cache_path,
+        index=pd.DatetimeIndex(["2024-01-02"]),
+        columns=pd.Index(["123001.SZ"]),
+        rebuild_all=True,
+    )
+
+    assert loaded.isna().all().all()

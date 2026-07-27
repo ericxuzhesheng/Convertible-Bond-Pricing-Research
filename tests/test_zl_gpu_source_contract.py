@@ -33,11 +33,21 @@ def test_gpu_production_source_requires_real_clause_and_spread_caches() -> None:
     assert "put_window_arr" in GPU_SOURCE
     assert "redeem_required_arr" in GPU_SOURCE
     assert "maturity_redem_arr" in GPU_SOURCE
+    assert "initial_put_count_arr" in GPU_SOURCE
+    assert "initial_redeem_flags_arr" in GPU_SOURCE
+    assert "build_clause_history_state" in GPU_SOURCE
 
 
 def test_full_rebuild_ignores_historical_model_workbook() -> None:
     assert "REBUILD_ALL = '--rebuild-all' in sys.argv" in GPU_SOURCE
     assert "if os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:" in GPU_SOURCE
+    assert "load_rebuildable_matrix_cache" in GPU_SOURCE
+    assert "rebuild_all=REBUILD_ALL" in GPU_SOURCE
+
+
+def test_full_rebuild_has_an_explicit_pricing_coverage_gate() -> None:
+    assert "ZL_MIN_REBUILD_COVERAGE" in GPU_SOURCE
+    assert "rebuild coverage" in GPU_SOURCE
 
 
 def test_daily_signal_never_invokes_cpu_fallback() -> None:
