@@ -35,3 +35,31 @@ def test_strategy_alignment_does_not_invent_missing_prices_or_turnover() -> None
 
     for frame in aligned.values():
         assert pd.isna(frame.iloc[1, 0])
+
+
+def test_strategy_liquidity_and_balance_thresholds_use_wan_units() -> None:
+    date = pd.Timestamp("2024-02-29")
+    code = "123001.SZ"
+    strategy = MODULE.CBStrategy()
+    strategy.ratings = pd.DataFrame({code: [4]}, index=[date])
+    strategy.remaining_term = pd.DataFrame({code: [2.0]}, index=[date])
+    strategy.balance = pd.DataFrame({code: [1_000.0]}, index=[date])
+    strategy.turnover = pd.DataFrame({code: [100.0]}, index=[date])
+    strategy.relative_deviation = pd.DataFrame(
+        {code: [0.1]}, index=[date]
+    )
+    strategy.prices = pd.DataFrame({code: [110.0]}, index=[date])
+    strategy.listing_dates = pd.Series(
+        {code: date - pd.Timedelta(days=60)}
+    )
+
+    assert strategy.get_first_layer_universe(date).empty
+
+    strategy.balance.loc[date, code] = 4_000.0
+    strategy.turnover.loc[date, code] = 600.0
+    assert strategy.get_first_layer_universe(date).tolist() == [code]
+
+
+def test_strategy_has_no_external_legacy_data_fallback() -> None:
+    source = STRATEGY_PATH.read_text(encoding="utf-8")
+    assert "LEGACY_DIR" not in source

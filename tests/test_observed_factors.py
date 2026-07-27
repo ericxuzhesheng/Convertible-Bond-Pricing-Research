@@ -117,3 +117,29 @@ def test_factor_preprocessing_preserves_missing_observations() -> None:
     normalized = backtest.normalized_factors["liquidity"]
     assert pd.isna(normalized.loc[dates[1], "A"])
     assert normalized.loc[dates[1], ["B", "C"]].notna().all()
+
+
+def test_factor_universe_thresholds_use_wan_units() -> None:
+    date = pd.Timestamp("2024-02-29")
+    code = "123001.SZ"
+    backtest = MultiFactorBacktest()
+    backtest.bond_filters_data = {
+        "turnover": pd.DataFrame({code: [100.0]}, index=[date]),
+        "rating": pd.DataFrame({code: ["AAA"]}, index=[date]),
+        "term": pd.DataFrame({code: [2.0]}, index=[date]),
+        "balance": pd.DataFrame({code: [1_000.0]}, index=[date]),
+        "listing_check": {code: date - pd.Timedelta(days=1)},
+    }
+
+    assert backtest.filter_bonds(date, [code]) == []
+
+    backtest.bond_filters_data["turnover"].loc[date, code] = 600.0
+    backtest.bond_filters_data["balance"].loc[date, code] = 4_000.0
+    assert backtest.filter_bonds(date, [code]) == [code]
+
+
+def test_factor_loader_has_no_external_legacy_data_fallback() -> None:
+    source = (FACTOR_DIR / "mispricing_factor_core.py").read_text(
+        encoding="utf-8"
+    )
+    assert "LEGACY_DIR" not in source
