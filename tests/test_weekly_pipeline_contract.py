@@ -12,6 +12,7 @@ BACKTEST_DIR = REPO_ROOT / "backtest"
 sys.path.insert(0, str(BACKTEST_DIR))
 
 import rebuild_research_outputs  # noqa: E402
+import full_history_rebuild  # noqa: E402
 
 
 def test_research_output_rebuild_runs_all_downstream_stages(
@@ -63,3 +64,44 @@ def test_weekly_batch_fails_closed_before_git_publish() -> None:
 
     assert "rebuild_research_outputs.py" in source
     assert source.count("goto :fail") >= 3
+
+
+def test_full_history_rebuild_checks_gpu_before_any_mutation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[list[str]] = []
+    monkeypatch.setattr(
+        full_history_rebuild.subprocess,
+        "run",
+        lambda command, **kwargs: calls.append(command),
+    )
+
+    with pytest.raises(RuntimeError, match="CUDA"):
+        full_history_rebuild.run_full_rebuild(gpu_available=False)
+
+    assert calls == []
+
+
+def test_full_history_rebuild_uses_real_data_rebuild_flags(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(full_history_rebuild.subprocess, "run", fake_run)
+    full_history_rebuild.run_full_rebuild(gpu_available=True)
+
+    names = [Path(command[1]).name for command in calls]
+    assert names == [
+        "data_pipeline.py",
+        "B-S_backtest.py",
+        "Z-L_backtest_GPU_prod.py",
+        "update_benchmark.py",
+        "rebuild_research_outputs.py",
+    ]
+    assert "--rebuild-all" in calls[0]
+    assert "--rebuild-all" in calls[1]
+    assert "--rebuild-all" in calls[2]
