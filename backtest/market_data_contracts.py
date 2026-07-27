@@ -573,6 +573,95 @@ def implied_credit_spread(
     )
 
 
+def build_contractual_par_matrix(
+    *,
+    dates: Sequence[pd.Timestamp],
+    bonds: Sequence[str],
+    cb_basic: pd.DataFrame,
+) -> pd.DataFrame:
+    """Broadcast observed contractual par values, rejecting missing bonds."""
+
+    if "ts_code" not in cb_basic or "par_value" not in cb_basic:
+        raise DataContractError("contractual par value fields are unavailable")
+    basic = cb_basic.drop_duplicates("ts_code", keep="last").set_index("ts_code")
+    values = {}
+    missing = []
+    for bond in bonds:
+        par = pd.to_numeric(
+            basic.at[bond, "par_value"] if bond in basic.index else np.nan,
+            errors="coerce",
+        )
+        if pd.isna(par) or float(par) <= 0:
+            missing.append(str(bond))
+        else:
+            values[bond] = float(par)
+    if missing:
+        raise DataContractError(
+            "contractual par value unavailable for "
+            + ", ".join(missing[:10])
+            + (" ..." if len(missing) > 10 else "")
+        )
+    index = pd.DatetimeIndex(pd.to_datetime(dates))
+    return pd.DataFrame(
+        {bond: values[bond] for bond in bonds},
+        index=index,
+        dtype=float,
+    )
+
+
+def build_observed_volatility(
+    *,
+    adjusted_close: pd.Series,
+    target_dates: Sequence[pd.Timestamp],
+    window: int = 250,
+    min_observations: int = 60,
+    annualization_days: int = 250,
+) -> pd.Series:
+    """Calculate realized volatility without filling missing history."""
+
+    if min_observations < 2 or window < min_observations:
+        raise ValueError("volatility window must cover minimum observations")
+    close = pd.to_numeric(adjusted_close, errors="coerce")
+    close.index = pd.to_datetime(close.index, errors="coerce")
+    close = close.loc[close.index.notna()].sort_index()
+    close = close.loc[~close.index.duplicated(keep="last")]
+    close = close.where(close > 0)
+    log_returns = np.log(close / close.shift(1))
+    volatility = (
+        log_returns.rolling(
+            window=window - 1,
+            min_periods=min_observations - 1,
+        ).std()
+        * np.sqrt(float(annualization_days))
+    )
+    return volatility.reindex(pd.DatetimeIndex(pd.to_datetime(target_dates)))
+
+
+def build_risk_free_rate_matrix(
+    *,
+    curve: pd.DataFrame,
+    maturity: pd.DataFrame,
+    max_staleness_days: int = 7,
+) -> pd.DataFrame:
+    """Interpolate observed government yields for every valid bond-date cell."""
+
+    result = pd.DataFrame(
+        np.nan, index=maturity.index, columns=maturity.columns, dtype=float
+    )
+    for date in maturity.index:
+        for bond in maturity.columns:
+            term = pd.to_numeric(maturity.at[date, bond], errors="coerce")
+            if pd.isna(term) or float(term) <= 0:
+                continue
+            result.at[date, bond] = interpolate_observed_yield_curve(
+                curve,
+                pd.Timestamp(date),
+                float(term),
+                max_staleness_days=max_staleness_days,
+            )
+    return result
+
+
 def build_active_market_mask(
     *,
     price: pd.DataFrame,
