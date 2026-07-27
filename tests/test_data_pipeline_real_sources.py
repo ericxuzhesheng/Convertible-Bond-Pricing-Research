@@ -123,6 +123,45 @@ def test_cb_daily_queries_each_open_date_to_avoid_row_limit_truncation(
     )
 
 
+def test_cb_daily_resumes_from_completed_checkpoint_batches(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+    monkeypatch.setattr(
+        data_pipeline,
+        "CB_DAILY_CHECKPOINT_ROOT",
+        str(tmp_path / "cb_daily_checkpoint"),
+    )
+    monkeypatch.setattr(data_pipeline, "CB_DAILY_CHECKPOINT_EVERY", 1)
+
+    class InterruptOncePro(FakePro):
+        def __init__(self) -> None:
+            super().__init__()
+            self.fail_once = True
+
+        def cb_daily(self, **kwargs):
+            if kwargs["trade_date"] == "20240103" and self.fail_once:
+                self.fail_once = False
+                self.cb_daily_calls.append(kwargs)
+                raise RuntimeError("simulated interruption")
+            return super().cb_daily(**kwargs)
+
+    pro = InterruptOncePro()
+    with pytest.raises(DataContractError, match="20240103"):
+        data_pipeline.fetch_cb_daily(pro, "20240101", "20240103")
+
+    result = data_pipeline.fetch_cb_daily(pro, "20240101", "20240103")
+
+    queried_dates = [call["trade_date"] for call in pro.cb_daily_calls]
+    assert queried_dates.count("20240102") == 1
+    assert queried_dates.count("20240103") == 2
+    assert list(result["price"].index) == list(
+        pd.to_datetime(["20240102", "20240103"])
+    )
+    assert not (tmp_path / "cb_daily_checkpoint").exists()
+
+
 def test_conversion_price_events_are_downloaded_in_bounded_batches(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -34,6 +34,7 @@ Verified Tushare field names (as of 2026):
 import argparse
 import os
 import re
+import shutil
 import time
 import warnings
 from collections.abc import Callable
@@ -86,6 +87,8 @@ OUT_CONV_EVENTS = os.path.join(OUT_DIR, 'cb_conversion_price_events.csv')
 OUT_SHARE_EVENTS = os.path.join(OUT_DIR, 'cb_share_events.csv')
 OUT_CLAUSES = os.path.join(OUT_DIR, 'cb_clause_terms.csv')
 OUT_CREDIT_SPREAD = os.path.join(OUT_DIR, 'cb_credit_spread_cache.csv')
+CB_DAILY_CHECKPOINT_ROOT = os.path.join(OUT_DIR, '.cb_daily_checkpoint')
+CB_DAILY_CHECKPOINT_EVERY = 50
 T = TypeVar("T")
 
 
@@ -236,6 +239,64 @@ def fetch_cb_basic(pro) -> pd.DataFrame:
 # ==========================================
 # 5. 获取转债日线（价格 + 成交额）
 # ==========================================
+def _load_cb_daily_checkpoints(
+    checkpoint_dir: str,
+) -> tuple[set[str], list[pd.DataFrame]]:
+    completed_dates: set[str] = set()
+    chunks: list[pd.DataFrame] = []
+    if not os.path.isdir(checkpoint_dir):
+        return completed_dates, chunks
+
+    for name in sorted(os.listdir(checkpoint_dir)):
+        if not name.endswith(".pkl"):
+            continue
+        path = os.path.join(checkpoint_dir, name)
+        try:
+            payload = pd.read_pickle(path)
+            completed_dates.update(str(date) for date in payload["trade_dates"])
+            data = payload["data"]
+        except Exception as exc:
+            raise DataContractError(
+                f"cb_daily checkpoint 损坏，无法读取 {path}: {exc}"
+            ) from exc
+        if isinstance(data, pd.DataFrame) and not data.empty:
+            chunks.append(data)
+    return completed_dates, chunks
+
+
+def _save_cb_daily_checkpoint(
+    checkpoint_dir: str,
+    trade_dates: list[str],
+    chunks: list[pd.DataFrame],
+) -> None:
+    if not trade_dates:
+        return
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    payload = {
+        "trade_dates": list(trade_dates),
+        "data": (
+            pd.concat(chunks, ignore_index=True)
+            if chunks
+            else pd.DataFrame()
+        ),
+    }
+    filename = f"{trade_dates[0]}_{trade_dates[-1]}.pkl"
+    path = os.path.join(checkpoint_dir, filename)
+    temp_path = f"{path}.tmp"
+    pd.to_pickle(payload, temp_path)
+    os.replace(temp_path, path)
+
+
+def _remove_cb_daily_checkpoints(checkpoint_dir: str) -> None:
+    if os.path.isdir(checkpoint_dir):
+        shutil.rmtree(checkpoint_dir)
+    if (
+        os.path.isdir(CB_DAILY_CHECKPOINT_ROOT)
+        and not os.listdir(CB_DAILY_CHECKPOINT_ROOT)
+    ):
+        os.rmdir(CB_DAILY_CHECKPOINT_ROOT)
+
+
 def fetch_cb_daily(pro, start: str, end: str) -> dict:
     """
     cb_daily 实际字段（经验证）：
@@ -244,9 +305,19 @@ def fetch_cb_daily(pro, start: str, end: str) -> dict:
     """
     print(f"\n[Step 2] 拉取转债日线 cb_daily ({start} → {end}) ...")
     trade_dates = fetch_trade_dates(pro, start, end)
-    chunks = []
+    checkpoint_dir = os.path.join(CB_DAILY_CHECKPOINT_ROOT, f"{start}_{end}")
+    completed_dates, chunks = _load_cb_daily_checkpoints(checkpoint_dir)
+    if completed_dates:
+        print(
+            f"   从检查点恢复 {len(completed_dates)}/{len(trade_dates)} 个交易日"
+        )
+
     failures = []
+    pending_checkpoint_dates: list[str] = []
+    pending_checkpoint_chunks: list[pd.DataFrame] = []
     for trade_date in tqdm(trade_dates, desc='cb_daily'):
+        if trade_date in completed_dates:
+            continue
         try:
             df = call_tushare_with_retry(
                 pro.cb_daily,
@@ -258,10 +329,25 @@ def fetch_cb_daily(pro, start: str, end: str) -> dict:
             )
             if df is not None and not df.empty:
                 chunks.append(df)
+                pending_checkpoint_chunks.append(df)
+            pending_checkpoint_dates.append(trade_date)
+            if len(pending_checkpoint_dates) >= CB_DAILY_CHECKPOINT_EVERY:
+                _save_cb_daily_checkpoint(
+                    checkpoint_dir,
+                    pending_checkpoint_dates,
+                    pending_checkpoint_chunks,
+                )
+                pending_checkpoint_dates = []
+                pending_checkpoint_chunks = []
         except Exception as ex:
             failures.append((trade_date, str(ex)))
         time.sleep(0.3)
 
+    _save_cb_daily_checkpoint(
+        checkpoint_dir,
+        pending_checkpoint_dates,
+        pending_checkpoint_chunks,
+    )
     if failures:
         sample = "; ".join(f"{date}: {error}" for date, error in failures[:5])
         raise DataContractError(
@@ -286,6 +372,7 @@ def fetch_cb_daily(pro, start: str, end: str) -> dict:
     amount = _pivot('amount')
     convert_value = _pivot('cb_value')
     provider_bond_value = _pivot('bond_value')
+    _remove_cb_daily_checkpoints(checkpoint_dir)
     print(f"   cb_daily: 价格 {price.shape}, 成交额 {amount.shape}")
     return {
         'price': price,
