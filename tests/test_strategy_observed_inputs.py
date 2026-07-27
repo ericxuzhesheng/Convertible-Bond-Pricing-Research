@@ -63,3 +63,5 @@ def test_strategy_liquidity_and_balance_thresholds_use_wan_units() -> None:
 def test_strategy_has_no_external_legacy_data_fallback() -> None:
     source = STRATEGY_PATH.read_text(encoding="utf-8")
     assert "LEGACY_DIR" not in source
+    assert "假设无风险利率为0" not in source
+    assert "observed_average_risk_free_rate" in source
