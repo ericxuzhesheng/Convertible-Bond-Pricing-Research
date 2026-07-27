@@ -137,6 +137,68 @@ def load_wide(filename: str) -> pd.DataFrame:
     return df[df.index.notna()].apply(pd.to_numeric, errors="coerce")
 
 
+def select_signal_date(
+    *,
+    bs_deviation: pd.DataFrame,
+    zl_deviation: pd.DataFrame,
+    market_price: pd.DataFrame,
+    now: pd.Timestamp | None = None,
+    max_staleness_days: int = 7,
+) -> pd.Timestamp:
+    """Require market and both models to share one fresh latest date."""
+
+    frames = {
+        "BS": bs_deviation,
+        "ZL": zl_deviation,
+        "market": market_price,
+    }
+    latest_dates = {}
+    for name, frame in frames.items():
+        valid = frame.index[frame.notna().any(axis=1)]
+        if len(valid) == 0:
+            raise RuntimeError(f"{name} has no observed signal date")
+        latest_dates[name] = pd.Timestamp(valid[-1]).normalize()
+    if len(set(latest_dates.values())) != 1:
+        raise RuntimeError(f"signal dates disagree: {latest_dates}")
+
+    latest = next(iter(latest_dates.values()))
+    current = (
+        pd.Timestamp.now().normalize()
+        if now is None
+        else pd.Timestamp(now).normalize()
+    )
+    staleness = int((current - latest).days)
+    if staleness < 0 or staleness > max_staleness_days:
+        raise RuntimeError(
+            f"signal date {latest.date()} is stale by "
+            f"{staleness} calendar days"
+        )
+    return latest
+
+
+def combine_observed_model_scores(
+    candidates: pd.DataFrame,
+) -> pd.DataFrame:
+    """Score only bonds priced by both observed-input model runs."""
+
+    required = {"bs_dev", "zl_dev"}
+    missing = required.difference(candidates.columns)
+    if missing:
+        raise RuntimeError(f"candidate scores missing columns: {missing}")
+    result = candidates.copy()
+    valid = (
+        result["bs_dev"].notna()
+        & result["zl_dev"].notna()
+        & np.isfinite(result["bs_dev"])
+        & np.isfinite(result["zl_dev"])
+    )
+    result = result.loc[valid].copy()
+    result["score"] = (
+        result["bs_dev"] + result["zl_dev"]
+    ) / 2.0
+    return result
+
+
 def compute_signals() -> pd.DataFrame:
     print("[3/3] 计算信号并过滤 …")
 
@@ -152,37 +214,28 @@ def compute_signals() -> pd.DataFrame:
     rating.index = pd.to_datetime(rating.index, errors="coerce")
     basic   = pd.read_csv(os.path.join(DIR, "cb_basic_info.csv"))
 
-    # ── 取最新有效交易日 ──
-    latest = bs_dev.index[bs_dev.notna().any(axis=1)][-1]
+    # ── 取两个模型与市场共同的最新有效交易日 ──
+    latest = select_signal_date(
+        bs_deviation=bs_dev,
+        zl_deviation=zl_dev,
+        market_price=mkt,
+    )
     print(f"  最新有效日期: {latest.date()}")
 
-    # 数据新鲜度检查: 信号日期距今超过 7 个自然日视为陈旧
-    staleness = (datetime.today() - latest.to_pydatetime()).days
-    if staleness > 7:
-        _warn(f"信号数据已陈旧: 最新有效日期 {latest.date()}，距今 {staleness} 天")
-
     # ── 当日截面 ──
-    def latest_row(df: pd.DataFrame) -> pd.Series:
-        idx = df.index[df.notna().any(axis=1)]
-        if len(idx) == 0:
-            return pd.Series(dtype=float)
-        return df.loc[idx[-1]]
-
     s_bs   = bs_dev.loc[latest].dropna()      # BS (model-mkt)/mkt
-    s_zl   = latest_row(zl_dev)               # ZL 可能滞后一天
-    zl_valid_idx = zl_dev.index[zl_dev.notna().any(axis=1)]
-    if len(zl_valid_idx) > 0 and zl_valid_idx[-1] != latest:
-        _warn(f"Z-L 信号日期 ({zl_valid_idx[-1].date()}) 与 B-S ({latest.date()}) 不一致，综合评分混用两日数据")
+    s_zl   = zl_dev.loc[latest].dropna()
     s_mkt  = mkt.loc[latest]
     s_cv   = cv.loc[latest]
     s_mat  = mat.loc[latest]
-    s_mv   = latest_row(stock_mv)
+    if latest not in stock_mv.index or latest not in rating.index:
+        raise RuntimeError(
+            f"stock market value or rating missing signal date {latest.date()}"
+        )
+    s_mv   = stock_mv.loc[latest]
 
-    # 评级: ffill 到当日
-    rating_ffill = rating.reindex(
-        rating.index.union([latest])
-    ).sort_index().ffill()
-    s_rating = rating_ffill.loc[latest] if latest in rating_ffill.index else pd.Series(dtype=str)
+    # 评级缓存已经由公告日构建为时点日频矩阵，不再二次填充。
+    s_rating = rating.loc[latest]
 
     # ── 构建候选 DataFrame ──
     bonds = s_mkt.dropna().index
@@ -217,17 +270,17 @@ def compute_signals() -> pd.DataFrame:
     if df.empty:
         return df
 
-    # 综合得分: 两个模型低估程度均值
-    # dev > 0 表示模型价 > 市场价 = 低估
-    df["bs_score"]  = df["bs_dev"].fillna(0)
-    df["zl_score"]  = df["zl_dev"].fillna(0)
-    df["score"]     = (df["bs_score"] + df["zl_score"]) / 2
+    # 综合得分只使用同日且两个模型均有真实输出的债券。
+    # dev > 0 表示模型价 > 市场价 = 低估。
+    df = combine_observed_model_scores(df)
 
     # ── 过滤 ──
     mask = (
         (df["maturity_yr"] > MIN_MATURITY) &
-        (df["premium"].fillna(9) < MAX_PREMIUM) &
-        (df["stock_mv_wan"].fillna(0) > MIN_MV_WAN) &
+        df["premium"].notna() &
+        (df["premium"] < MAX_PREMIUM) &
+        df["stock_mv_wan"].notna() &
+        (df["stock_mv_wan"] > MIN_MV_WAN) &
         (df["rating"].isin(VALID_RATINGS))
     )
     df_filtered = df[mask].copy()
