@@ -54,6 +54,7 @@ from market_data_contracts import (
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
     validate_balance_wan_units,
+    validate_stock_market_value_wan_units,
 )
 from token_loader import load_tushare_token
 
@@ -1030,6 +1031,7 @@ def run_pipeline(
         if rebuild_all
         else _merge_wide(_load_existing(OUT_STOCK_MV), df_mv_new)
     )
+    validate_stock_market_value_wan_units(df_stk_mv)
     df_stk_mv.to_csv(OUT_STOCK_MV)
 
     # --- 公告时点可得的历史余额 ---

@@ -575,6 +575,29 @@ def validate_balance_wan_units(
         )
 
 
+def validate_stock_market_value_wan_units(
+    market_value: pd.DataFrame,
+    *,
+    minimum_plausible_wan: float = 1_000.0,
+) -> None:
+    """Reject stock market caps stored in 亿元 while labeled as 万元."""
+
+    numeric = market_value.apply(pd.to_numeric, errors="coerce")
+    observed = numeric.stack().dropna()
+    invalid = observed[
+        (observed <= 0) | (observed < minimum_plausible_wan)
+    ]
+    if not invalid.empty:
+        sample = [
+            f"{date}/{code}={value:g}"
+            for (date, code), value in invalid.head(5).items()
+        ]
+        raise DataContractError(
+            "stock market value cache is not 万元 or is implausible; "
+            f"rebuild required: {sample}"
+        )
+
+
 def build_point_in_time_rating_matrix(
     *,
     dates: Sequence[pd.Timestamp],
