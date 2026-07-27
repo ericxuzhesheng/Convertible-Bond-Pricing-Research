@@ -30,6 +30,7 @@ from market_data_contracts import (  # noqa: E402
     load_rebuildable_matrix_cache,
     observed_average_risk_free_rate,
     validate_balance_wan_units,
+    validate_stock_market_value_wan_units,
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
     point_in_time_fundamental_matrix,
@@ -484,3 +485,13 @@ def test_balance_unit_contract_rejects_raw_yuan_values() -> None:
 
     with pytest.raises(DataContractError, match="not 万元"):
         validate_balance_wan_units(balance=balance, cb_basic=basic)
+
+
+def test_stock_market_value_contract_rejects_yi_labeled_as_wan() -> None:
+    market_value = pd.DataFrame(
+        {"000001.SZ": [50.0]},
+        index=pd.DatetimeIndex(["2024-01-02"]),
+    )
+
+    with pytest.raises(DataContractError, match="not 万元"):
+        validate_stock_market_value_wan_units(market_value)
