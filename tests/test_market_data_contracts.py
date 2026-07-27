@@ -365,6 +365,7 @@ def test_implied_spread_matrix_uses_contractual_cashflows() -> None:
         government_curve=curve,
     )
 
+    actual_365_time = 366.0 / 365.0
     assert spread.loc[date, "123001.SZ"] == pytest.approx(
-        -np.log(0.95) - 0.02
+        -np.log(0.95) / actual_365_time - 0.02
     )

@@ -662,6 +662,119 @@ def build_risk_free_rate_matrix(
     return result
 
 
+def _future_contractual_cashflows(
+    *,
+    row: pd.Series,
+    valuation_date: pd.Timestamp,
+) -> tuple[np.ndarray, np.ndarray]:
+    par = pd.to_numeric(row.get("par_value"), errors="coerce")
+    frequency = pd.to_numeric(row.get("interest_freq"), errors="coerce")
+    value_date = pd.to_datetime(row.get("value_date"), errors="coerce")
+    maturity_date = pd.to_datetime(row.get("maturity_date"), errors="coerce")
+    if (
+        pd.isna(par)
+        or float(par) <= 0
+        or pd.isna(frequency)
+        or int(frequency) <= 0
+        or pd.isna(value_date)
+        or pd.isna(maturity_date)
+    ):
+        raise DataContractError("contractual cash-flow fields are unavailable")
+    frequency = int(frequency)
+    if 12 % frequency:
+        raise DataContractError(
+            f"unsupported contractual interest frequency {frequency}"
+        )
+    coupon_schedule = parse_coupon_schedule(row.get("rate_clause"))
+    months = 12 // frequency
+    payment_dates = []
+    payment = pd.Timestamp(value_date) + pd.DateOffset(months=months)
+    while payment < pd.Timestamp(maturity_date):
+        payment_dates.append(payment)
+        payment += pd.DateOffset(months=months)
+    payment_dates.append(pd.Timestamp(maturity_date))
+
+    times = []
+    amounts = []
+    for payment_date in payment_dates:
+        if payment_date <= valuation_date:
+            continue
+        rate_date = min(
+            payment_date - pd.Timedelta(days=1),
+            coupon_schedule.index.max(),
+        )
+        eligible = coupon_schedule.loc[coupon_schedule.index <= rate_date]
+        if eligible.empty:
+            raise DataContractError(
+                f"coupon unavailable for payment {payment_date.date()}"
+            )
+        coupon = float(par) * float(eligible.iloc[-1]) / frequency
+        amount = coupon
+        if payment_date == pd.Timestamp(maturity_date):
+            amount += float(par)
+        times.append((payment_date - valuation_date).days / 365.0)
+        amounts.append(amount)
+    if not times:
+        raise DataContractError("no future contractual cash flows")
+    return np.asarray(times, dtype=float), np.asarray(amounts, dtype=float)
+
+
+def build_implied_credit_spread_matrix(
+    *,
+    observed_bond_value: pd.DataFrame,
+    maturity: pd.DataFrame,
+    cb_basic: pd.DataFrame,
+    government_curve: pd.DataFrame,
+    max_staleness_days: int = 7,
+) -> pd.DataFrame:
+    """Calibrate each bond-date spread to Tushare's daily pure-bond value."""
+
+    values = observed_bond_value.reindex(
+        index=maturity.index, columns=maturity.columns
+    )
+    if "ts_code" not in cb_basic:
+        raise DataContractError("cb_basic is missing ts_code")
+    basic = cb_basic.drop_duplicates("ts_code", keep="last").set_index("ts_code")
+    result = pd.DataFrame(
+        np.nan, index=maturity.index, columns=maturity.columns, dtype=float
+    )
+    for bond in maturity.columns:
+        if bond not in basic.index:
+            continue
+        row = basic.loc[bond]
+        for date in maturity.index:
+            observed = pd.to_numeric(values.at[date, bond], errors="coerce")
+            term = pd.to_numeric(maturity.at[date, bond], errors="coerce")
+            if pd.isna(observed) or observed <= 0 or pd.isna(term) or term <= 0:
+                continue
+            try:
+                times, amounts = _future_contractual_cashflows(
+                    row=row,
+                    valuation_date=pd.Timestamp(date),
+                )
+                risk_free_rates = np.asarray(
+                    [
+                        interpolate_observed_yield_curve(
+                            government_curve,
+                            pd.Timestamp(date),
+                            float(cashflow_time),
+                            max_staleness_days=max_staleness_days,
+                        )
+                        for cashflow_time in times
+                    ],
+                    dtype=float,
+                )
+                result.at[date, bond] = implied_credit_spread(
+                    observed_bond_value=float(observed),
+                    cashflow_times=times,
+                    cashflow_amounts=amounts,
+                    risk_free_rates=risk_free_rates,
+                )
+            except DataContractError:
+                continue
+    return result
+
+
 def build_active_market_mask(
     *,
     price: pd.DataFrame,
