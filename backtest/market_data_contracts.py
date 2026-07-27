@@ -13,6 +13,7 @@ from typing import Iterable, Sequence
 
 import numpy as np
 import pandas as pd
+from scipy.optimize import brentq
 
 
 class DataContractError(RuntimeError):
@@ -517,6 +518,59 @@ def build_credit_spread_matrix(
             + ", ".join(sorted(unavailable))
         )
     return result
+
+
+def implied_credit_spread(
+    *,
+    observed_bond_value: float,
+    cashflow_times: np.ndarray,
+    cashflow_amounts: np.ndarray,
+    risk_free_rates: np.ndarray,
+    max_spread: float = 5.0,
+) -> float:
+    """Calibrate a non-negative spread to Tushare's observed pure-bond value."""
+
+    observed = float(observed_bond_value)
+    times = np.asarray(cashflow_times, dtype=float)
+    amounts = np.asarray(cashflow_amounts, dtype=float)
+    rates = np.asarray(risk_free_rates, dtype=float)
+    if (
+        not np.isfinite(observed)
+        or observed <= 0
+        or times.ndim != 1
+        or len(times) == 0
+        or len(times) != len(amounts)
+        or len(times) != len(rates)
+        or not np.isfinite(times).all()
+        or not np.isfinite(amounts).all()
+        or not np.isfinite(rates).all()
+        or (times <= 0).any()
+        or (amounts <= 0).any()
+    ):
+        raise DataContractError("observed bond value or cash-flow inputs are invalid")
+
+    def present_value(spread: float) -> float:
+        return float(np.sum(amounts * np.exp(-(rates + spread) * times)))
+
+    risk_free_value = present_value(0.0)
+    tolerance = max(1e-8, risk_free_value * 1e-8)
+    if observed > risk_free_value + tolerance:
+        raise DataContractError(
+            "observed bond value exceeds the contractual risk-free value"
+        )
+    if abs(observed - risk_free_value) <= tolerance:
+        return 0.0
+    if present_value(max_spread) > observed:
+        raise DataContractError(
+            "observed bond value implies a spread beyond the calibration bound"
+        )
+    return float(
+        brentq(
+            lambda spread: present_value(spread) - observed,
+            0.0,
+            float(max_spread),
+        )
+    )
 
 
 def build_active_market_mask(
