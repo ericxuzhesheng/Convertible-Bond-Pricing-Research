@@ -19,19 +19,30 @@ from market_data_contracts import DataContractError  # noqa: E402
 class FakePro:
     def __init__(self) -> None:
         self.cb_daily_fields = None
+        self.cb_daily_calls: list[dict] = []
         self.price_change_calls: list[str] = []
         self.rating_calls: list[str] = []
 
     def cb_daily(self, **kwargs):
         self.cb_daily_fields = kwargs.get("fields")
+        self.cb_daily_calls.append(kwargs)
+        trade_date = kwargs.get("trade_date", "20240102")
         return pd.DataFrame(
             {
                 "ts_code": ["123001.SZ"],
-                "trade_date": ["20240102"],
+                "trade_date": [trade_date],
                 "close": [101.0],
                 "amount": [2000.0],
                 "cb_value": [88.5],
                 "bond_value": [96.2],
+            }
+        )
+
+    def trade_cal(self, **kwargs):
+        return pd.DataFrame(
+            {
+                "cal_date": ["20240102", "20240103"],
+                "is_open": [1, 1],
             }
         )
 
@@ -80,6 +91,23 @@ def test_cb_daily_downloads_observed_conversion_and_bond_values(
     assert result["provider_bond_value"].loc[
         pd.Timestamp("2024-01-02"), "123001.SZ"
     ] == pytest.approx(96.2)
+
+
+def test_cb_daily_queries_each_open_date_to_avoid_row_limit_truncation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+    pro = FakePro()
+
+    result = data_pipeline.fetch_cb_daily(pro, "20240101", "20240103")
+
+    assert [call.get("trade_date") for call in pro.cb_daily_calls] == [
+        "20240102",
+        "20240103",
+    ]
+    assert list(result["price"].index) == list(
+        pd.to_datetime(["20240102", "20240103"])
+    )
 
 
 def test_conversion_price_events_are_downloaded_in_bounded_batches(
