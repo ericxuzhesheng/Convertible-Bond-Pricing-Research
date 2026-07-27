@@ -10,10 +10,13 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BACKTEST_DIR = REPO_ROOT / "backtest"
+FACTOR_DIR = REPO_ROOT / "mispricing factor"
 sys.path.insert(0, str(BACKTEST_DIR))
+sys.path.insert(0, str(FACTOR_DIR))
 
 from build_observed_factors import build_observed_factors  # noqa: E402
 from market_data_contracts import DataContractError  # noqa: E402
+from mispricing_factor_core import MultiFactorBacktest  # noqa: E402
 
 
 def _matrix(values: list[float]) -> pd.DataFrame:
@@ -90,3 +93,27 @@ def test_observed_factors_reject_nonpositive_market_values() -> None:
             lookback=2,
             min_observations=2,
         )
+
+
+def test_factor_preprocessing_preserves_missing_observations() -> None:
+    dates = pd.bdate_range("2024-01-02", periods=2)
+    columns = ["A", "B", "C"]
+    backtest = MultiFactorBacktest()
+    backtest.prices = pd.DataFrame(
+        [[100.0, 101.0, 102.0], [100.0, 101.0, 102.0]],
+        index=dates,
+        columns=columns,
+    )
+    backtest.factors = {
+        "liquidity": pd.DataFrame(
+            [[1.0, 2.0, 3.0], [np.nan, 3.0, 4.0]],
+            index=dates,
+            columns=columns,
+        )
+    }
+
+    backtest.preprocess_factors()
+
+    normalized = backtest.normalized_factors["liquidity"]
+    assert pd.isna(normalized.loc[dates[1], "A"])
+    assert normalized.loc[dates[1], ["B", "C"]].notna().all()
