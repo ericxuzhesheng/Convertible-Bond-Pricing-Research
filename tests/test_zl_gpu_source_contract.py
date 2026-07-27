@@ -87,3 +87,10 @@ def test_bs_full_rebuild_bypasses_persisted_volatility_cache() -> None:
     assert "REBUILD_ALL = '--rebuild-all' in sys.argv" in BS_SOURCE
     assert "load_rebuildable_matrix_cache" in BS_SOURCE
     assert "rebuild_all=REBUILD_ALL" in BS_SOURCE
+
+
+def test_gpu_plot_does_not_replace_missing_errors_with_zero() -> None:
+    assert (
+        "replace([np.inf, -np.inf], np.nan).fillna(0)"
+        not in GPU_SOURCE
+    )

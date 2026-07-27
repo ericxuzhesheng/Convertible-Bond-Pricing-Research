@@ -145,3 +145,24 @@ def test_factor_loader_has_no_external_legacy_data_fallback() -> None:
     assert "LEGACY_DIR" not in source
     assert "rf = 0.02" not in source
     assert "observed_average_risk_free_rate" in source
+
+
+def test_equal_weight_signal_requires_every_observed_factor() -> None:
+    date = pd.Timestamp("2024-02-29")
+    backtest = MultiFactorBacktest()
+    backtest.prices = pd.DataFrame(
+        {"A": [100.0], "B": [100.0]}, index=[date]
+    )
+    backtest.normalized_factors = {
+        "liquidity": pd.DataFrame(
+            {"A": [1.0], "B": [1.0]}, index=[date]
+        ),
+        "momentum": pd.DataFrame(
+            {"A": [2.0], "B": [np.nan]}, index=[date]
+        ),
+    }
+
+    signal = backtest.get_combined_signal_fast(date)
+
+    assert signal["A"] == pytest.approx(1.5)
+    assert pd.isna(signal["B"])
