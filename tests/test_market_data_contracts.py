@@ -15,7 +15,10 @@ sys.path.insert(0, str(BACKTEST_DIR))
 from market_data_contracts import (  # noqa: E402
     DataContractError,
     build_active_market_mask,
+    build_credit_spread_matrix,
     build_conversion_price_matrix,
+    build_point_in_time_balance_matrix,
+    build_point_in_time_rating_matrix,
     calculate_accrued_interest,
     extract_clause_terms,
     interpolate_observed_yield_curve,
@@ -159,3 +162,102 @@ def test_active_market_mask_requires_actual_market_and_model_inputs() -> None:
     )
 
     assert mask["123001.SZ"].tolist() == [True, False]
+
+
+def test_balance_uses_only_published_cb_share_observations() -> None:
+    dates = pd.to_datetime(["2024-01-02", "2024-01-09", "2024-01-10"])
+    basic = pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ"],
+            "issue_size": [1_000_000_000.0],
+            "list_date": ["20240102"],
+        }
+    )
+    share_events = pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ"],
+            "end_date": ["20240105"],
+            "publish_date": ["20240110"],
+            "remain_size": [800_000_000.0],
+        }
+    )
+
+    matrix = build_point_in_time_balance_matrix(
+        dates=dates,
+        bonds=["123001.SZ"],
+        cb_basic=basic,
+        share_events=share_events,
+    )
+
+    assert matrix["123001.SZ"].tolist() == [100_000.0, 100_000.0, 80_000.0]
+
+
+def test_rating_uses_publication_date_not_rating_date() -> None:
+    dates = pd.to_datetime(["2024-06-14", "2024-06-19", "2024-06-20"])
+    events = pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ"],
+            "rating_date": ["20240614"],
+            "ann_date": ["20240620"],
+            "rating": ["AA-"],
+        }
+    )
+
+    matrix = build_point_in_time_rating_matrix(
+        dates=dates,
+        bonds=["123001.SZ"],
+        rating_events=events,
+    )
+
+    assert pd.isna(matrix.loc[pd.Timestamp("2024-06-14"), "123001.SZ"])
+    assert pd.isna(matrix.loc[pd.Timestamp("2024-06-19"), "123001.SZ"])
+    assert matrix.loc[pd.Timestamp("2024-06-20"), "123001.SZ"] == "AA-"
+
+
+def test_credit_spread_comes_from_observed_rating_curve() -> None:
+    dates = pd.to_datetime(["2024-01-02"])
+    maturity = pd.DataFrame(
+        {"123001.SZ": [2.0]},
+        index=dates,
+    )
+    ratings = pd.DataFrame(
+        {"123001.SZ": ["AAA"]},
+        index=dates,
+    )
+    government = pd.DataFrame(
+        {1.0: [0.018], 3.0: [0.022]},
+        index=dates,
+    )
+    corporate = {
+        "AAA": pd.DataFrame(
+            {1.0: [0.025], 3.0: [0.030]},
+            index=dates,
+        )
+    }
+
+    spread = build_credit_spread_matrix(
+        maturity=maturity,
+        ratings=ratings,
+        government_curve=government,
+        corporate_curves=corporate,
+    )
+
+    expected = ((0.025 + 0.030) / 2) - ((0.018 + 0.022) / 2)
+    assert spread.loc[pd.Timestamp("2024-01-02"), "123001.SZ"] == pytest.approx(
+        expected
+    )
+
+
+def test_credit_spread_rejects_missing_rating_curve() -> None:
+    date = pd.Timestamp("2024-01-02")
+    maturity = pd.DataFrame({"123001.SZ": [2.0]}, index=[date])
+    ratings = pd.DataFrame({"123001.SZ": ["AA-"]}, index=[date])
+    government = pd.DataFrame({1.0: [0.018], 3.0: [0.022]}, index=[date])
+
+    with pytest.raises(DataContractError, match="credit curve"):
+        build_credit_spread_matrix(
+            maturity=maturity,
+            ratings=ratings,
+            government_curve=government,
+            corporate_curves={},
+        )
