@@ -39,7 +39,8 @@ echo ==============================================================
 echo [1/4] 运行 daily_signal.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%daily_signal.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
-    echo [警告] daily_signal.py 报告错误，继续执行后续步骤 >> "%LOG_FILE%"
+    echo [错误] daily_signal.py 失败，停止本次周更新 >> "%LOG_FILE%"
+    goto :fail
 ) else (
     echo [完成] daily_signal.py 执行成功 >> "%LOG_FILE%"
 )
@@ -48,18 +49,20 @@ if errorlevel 1 (
 echo [2/4] 运行 update_benchmark.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%REPO_DIR%\long-short strategy\update_benchmark.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
-    echo [警告] update_benchmark.py 报告错误，继续执行后续步骤 >> "%LOG_FILE%"
+    echo [错误] update_benchmark.py 失败，停止本次周更新 >> "%LOG_FILE%"
+    goto :fail
 ) else (
     echo [完成] update_benchmark.py 执行成功 >> "%LOG_FILE%"
 )
 
-:: ── Step 3: 重生成 README 全部图表 ───────────────────────────────────────────
-echo [3/4] 运行 regenerate_plots.py ... >> "%LOG_FILE%"
-"%PYTHON%" "%BACKTEST_DIR%regenerate_plots.py" >> "%LOG_FILE%" 2>&1
+:: ── Step 3: 重建真实因子、策略和 README 全部图表 ─────────────────────────────
+echo [3/4] 运行 rebuild_research_outputs.py ... >> "%LOG_FILE%"
+"%PYTHON%" "%BACKTEST_DIR%rebuild_research_outputs.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
-    echo [警告] regenerate_plots.py 报告错误，继续执行后续步骤 >> "%LOG_FILE%"
+    echo [错误] 下游研究结果重建失败，停止 Git 发布 >> "%LOG_FILE%"
+    goto :fail
 ) else (
-    echo [完成] regenerate_plots.py 执行成功 >> "%LOG_FILE%"
+    echo [完成] 因子、策略和图表重建成功 >> "%LOG_FILE%"
 )
 
 :: ── Step 4: Git 提交并推送 ────────────────────────────────────────────────────
@@ -97,3 +100,14 @@ echo 周更新完成: %DATE% %TIME%
 echo ==============================================================
 echo.
 ) >> "%LOG_FILE%"
+exit /b 0
+
+:fail
+(
+echo ==============================================================
+echo 周更新失败: %DATE% %TIME%
+echo 未执行后续发布；请检查上述首个错误。
+echo ==============================================================
+echo.
+) >> "%LOG_FILE%"
+exit /b 1
