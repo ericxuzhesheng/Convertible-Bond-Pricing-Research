@@ -765,6 +765,68 @@ def build_risk_free_rate_matrix(
     return result
 
 
+def observed_average_risk_free_rate(
+    *,
+    curve: pd.DataFrame,
+    start: pd.Timestamp,
+    end: pd.Timestamp,
+    tenor_years: float = 1.0,
+) -> float:
+    """Average an observed zero-curve tenor over a performance window."""
+
+    if tenor_years <= 0:
+        raise DataContractError("tenor_years must be positive")
+    table = curve.copy()
+    table.index = pd.to_datetime(table.index, errors="coerce")
+    table = table.loc[table.index.notna()].sort_index()
+    try:
+        table.columns = [float(column) for column in table.columns]
+    except (TypeError, ValueError) as exc:
+        raise DataContractError(
+            "risk-free curve tenor columns must be numeric years"
+        ) from exc
+    table = table.apply(pd.to_numeric, errors="coerce").sort_index(axis=1)
+    window = table.loc[
+        (table.index >= pd.Timestamp(start))
+        & (table.index <= pd.Timestamp(end))
+    ]
+    observations: list[float] = []
+    for _, row in window.iterrows():
+        valid = row.dropna()
+        if valid.empty:
+            continue
+        tenors = valid.index.to_numpy(dtype=float)
+        yields = valid.to_numpy(dtype=float)
+        finite = np.isfinite(tenors) & np.isfinite(yields)
+        tenors = tenors[finite]
+        yields = yields[finite]
+        if len(tenors) == 0:
+            continue
+        exact = np.isclose(tenors, float(tenor_years))
+        if exact.any():
+            observations.append(float(yields[exact][0]))
+        elif (
+            len(tenors) >= 2
+            and tenors.min() <= tenor_years <= tenors.max()
+        ):
+            order = np.argsort(tenors)
+            observations.append(
+                float(
+                    np.interp(
+                        tenor_years,
+                        tenors[order],
+                        yields[order],
+                    )
+                )
+            )
+    if not observations:
+        raise DataContractError(
+            f"no observed {tenor_years:g}Y risk-free yields between "
+            f"{pd.Timestamp(start).date()} and {pd.Timestamp(end).date()}"
+        )
+    return float(np.mean(observations))
+
+
 def _future_contractual_cashflows(
     *,
     row: pd.Series,

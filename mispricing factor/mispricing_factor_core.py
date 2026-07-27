@@ -32,6 +32,11 @@ BACKTEST_DIR = REPO_ROOT / "backtest"
 LS_DIR = REPO_ROOT / "long-short strategy"
 MIN_DAILY_TURNOVER_WAN = 500.0
 MIN_OUTSTANDING_BALANCE_WAN = 3_000.0
+sys.path.insert(0, str(BACKTEST_DIR))
+
+from market_data_contracts import (  # noqa: E402
+    observed_average_risk_free_rate,
+)
 
 # 设置中文字体
 plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei"]
@@ -59,6 +64,7 @@ class MultiFactorBacktest:
         self.rebalance_dates = None
         self.bond_filters_data = None  # 转债筛选数据
         self.ic_history_df = None  # IC 历史数据
+        self.risk_free_curve = None
         self.aligned_factors = {}  # 对齐后的原始因子
         self.normalized_factors = {}  # 对齐且Z-Score后的因子
 
@@ -149,6 +155,17 @@ class MultiFactorBacktest:
         prices = prices[prices.index.notna()]
         prices.index.name = "date"
         self.prices = prices
+
+        risk_free_path = self.resolve("rf_yield_cache.csv")
+        if not risk_free_path.exists():
+            raise FileNotFoundError(
+                f"缺少 AkShare 国债收益率缓存: {risk_free_path}"
+            )
+        self.risk_free_curve = pd.read_csv(
+            risk_free_path,
+            index_col=0,
+            parse_dates=True,
+        )
 
         # 加载基准指数数据 (000832.CSI)
         print("  加载基准指数数据 (000832.CSI)...")
@@ -1123,7 +1140,14 @@ class MultiFactorBacktest:
         else:
             annual_factor = 12
 
-        rf = 0.02  # 无风险利率
+        if self.risk_free_curve is None:
+            raise ValueError("缺少 AkShare 国债收益率曲线，无法计算夏普比率")
+        rf = observed_average_risk_free_rate(
+            curve=self.risk_free_curve,
+            start=start_date,
+            end=end_date,
+            tenor_years=1.0,
+        )
 
         def get_ann_ret(ret_series):
             nav = (1 + ret_series).cumprod()
