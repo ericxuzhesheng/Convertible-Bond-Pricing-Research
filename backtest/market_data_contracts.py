@@ -368,6 +368,157 @@ def point_in_time_fundamental_matrix(
     return result
 
 
+def build_point_in_time_balance_matrix(
+    *,
+    dates: Sequence[pd.Timestamp],
+    bonds: Sequence[str],
+    cb_basic: pd.DataFrame,
+    share_events: pd.DataFrame,
+) -> pd.DataFrame:
+    """Build outstanding balance in CNY 10,000 using published cb_share rows."""
+
+    index = pd.DatetimeIndex(pd.to_datetime(dates)).sort_values()
+    result = pd.DataFrame(index=index, columns=bonds, dtype=float)
+    basic = cb_basic.copy()
+    if "ts_code" not in basic:
+        raise DataContractError("cb_basic is missing ts_code")
+    basic = basic.drop_duplicates("ts_code", keep="last").set_index("ts_code")
+
+    events = share_events.copy()
+    if not events.empty:
+        required = {"ts_code", "publish_date", "remain_size"}
+        missing = required.difference(events.columns)
+        if missing:
+            raise DataContractError(
+                f"cb_share events missing columns: {sorted(missing)}"
+            )
+        events["publish_date"] = pd.to_datetime(
+            events["publish_date"], errors="coerce"
+        )
+        events["remain_size"] = pd.to_numeric(
+            events["remain_size"], errors="coerce"
+        )
+        events = events.dropna(
+            subset=["ts_code", "publish_date", "remain_size"]
+        )
+
+    for bond in bonds:
+        if bond not in basic.index:
+            continue
+        issue_size = pd.to_numeric(
+            basic.at[bond, "issue_size"]
+            if "issue_size" in basic
+            else np.nan,
+            errors="coerce",
+        )
+        if pd.isna(issue_size) or issue_size <= 0:
+            raise DataContractError(f"issue size unavailable for {bond}")
+        series = pd.Series(float(issue_size) / 10_000.0, index=index)
+
+        if "list_date" in basic:
+            list_date = pd.to_datetime(
+                basic.at[bond, "list_date"], errors="coerce"
+            )
+            if pd.notna(list_date):
+                series.loc[series.index < list_date] = np.nan
+
+        if not events.empty:
+            subset = events.loc[events["ts_code"] == bond].sort_values(
+                "publish_date"
+            )
+            for event in subset.itertuples(index=False):
+                publication = pd.Timestamp(event.publish_date)
+                balance_wan = float(event.remain_size) / 10_000.0
+                series.loc[series.index >= publication] = balance_wan
+        result[bond] = series
+    return result
+
+
+def build_point_in_time_rating_matrix(
+    *,
+    dates: Sequence[pd.Timestamp],
+    bonds: Sequence[str],
+    rating_events: pd.DataFrame,
+) -> pd.DataFrame:
+    """Align ratings from their public announcement date."""
+
+    required = {"ts_code", "ann_date", "rating"}
+    missing = required.difference(rating_events.columns)
+    if missing:
+        raise DataContractError(
+            f"rating events missing columns: {sorted(missing)}"
+        )
+    index = pd.DatetimeIndex(pd.to_datetime(dates)).sort_values()
+    result = pd.DataFrame(index=index, columns=bonds, dtype=object)
+    events = rating_events.copy()
+    events["ann_date"] = pd.to_datetime(events["ann_date"], errors="coerce")
+    events = events.dropna(subset=["ts_code", "ann_date", "rating"])
+
+    for bond in bonds:
+        subset = events.loc[events["ts_code"] == bond].sort_values("ann_date")
+        if subset.empty:
+            continue
+        series = subset.set_index("ann_date")["rating"].astype(str)
+        series = series[~series.index.duplicated(keep="last")]
+        result[bond] = series.reindex(index, method="ffill")
+    return result
+
+
+def build_credit_spread_matrix(
+    *,
+    maturity: pd.DataFrame,
+    ratings: pd.DataFrame,
+    government_curve: pd.DataFrame,
+    corporate_curves: dict[str, pd.DataFrame],
+    max_staleness_days: int = 7,
+) -> pd.DataFrame:
+    """Subtract the observed government curve from the observed rating curve."""
+
+    aligned_ratings = ratings.reindex(
+        index=maturity.index, columns=maturity.columns
+    )
+    result = pd.DataFrame(
+        np.nan, index=maturity.index, columns=maturity.columns, dtype=float
+    )
+    normalized_curves = {
+        str(rating).strip().upper(): curve
+        for rating, curve in corporate_curves.items()
+    }
+
+    unavailable: set[str] = set()
+    for date in maturity.index:
+        for bond in maturity.columns:
+            term = pd.to_numeric(maturity.at[date, bond], errors="coerce")
+            rating = aligned_ratings.at[date, bond]
+            if pd.isna(term) or float(term) <= 0 or pd.isna(rating):
+                continue
+            rating_key = str(rating).strip().upper()
+            corporate_curve = normalized_curves.get(rating_key)
+            if corporate_curve is None:
+                unavailable.add(rating_key)
+                continue
+            government_yield = interpolate_observed_yield_curve(
+                government_curve,
+                pd.Timestamp(date),
+                float(term),
+                max_staleness_days=max_staleness_days,
+            )
+            corporate_yield = interpolate_observed_yield_curve(
+                corporate_curve,
+                pd.Timestamp(date),
+                float(term),
+                max_staleness_days=max_staleness_days,
+            )
+            result.at[date, bond] = max(corporate_yield - government_yield, 0.0)
+
+    if unavailable:
+        raise DataContractError(
+            "credit curve unavailable for ratings: "
+            + ", ".join(sorted(unavailable))
+        )
+    return result
+
+
 def build_active_market_mask(
     *,
     price: pd.DataFrame,
