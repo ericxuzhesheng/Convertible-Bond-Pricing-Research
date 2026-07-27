@@ -10,6 +10,9 @@ GPU_SOURCE = (
 DAILY_SOURCE = (
     REPO_ROOT / "backtest" / "daily_signal.py"
 ).read_text(encoding="utf-8")
+CPU_SOURCE = (
+    REPO_ROOT / "backtest" / "Z-L_backtest_CPU.py"
+).read_text(encoding="utf-8")
 
 
 def test_gpu_production_source_has_no_constant_market_data_fallbacks() -> None:
@@ -52,3 +55,16 @@ def test_full_rebuild_has_an_explicit_pricing_coverage_gate() -> None:
 
 def test_daily_signal_never_invokes_cpu_fallback() -> None:
     assert "Z-L_backtest_CPU.py" not in DAILY_SOURCE
+
+
+def test_legacy_cpu_entrypoint_cannot_emit_assumption_based_prices() -> None:
+    assert "LEGACY_CPU_DISABLED" in CPU_SOURCE
+    forbidden = [
+        "df_volatility.fillna(0.40)",
+        "pd.DataFrame(0.02",
+        "get_credit_spread_by_maturity",
+        "redeem_price = 106.0",
+        "put_barrier=0.7",
+    ]
+    for snippet in forbidden:
+        assert snippet not in CPU_SOURCE
