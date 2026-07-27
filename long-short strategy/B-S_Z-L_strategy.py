@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import matplotlib.ticker as ticker
@@ -20,6 +21,11 @@ REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 BACKTEST_DIR = os.path.join(REPO_ROOT, "backtest")
 MIN_DAILY_TURNOVER_WAN = 500.0
 MIN_OUTSTANDING_BALANCE_WAN = 3_000.0
+sys.path.insert(0, BACKTEST_DIR)
+
+from market_data_contracts import (  # noqa: E402
+    observed_average_risk_free_rate,
+)
 
 
 def _resolve(filename, *dirs):
@@ -82,6 +88,7 @@ class CBStrategy:
         self.returns_data = None
         self.benchmark_prices = None
         self.benchmark_returns_daily = None
+        self.risk_free_curve = None
         self.results = {}
         
         self.rating_map = {'AAA': 4, 'AA+': 3, 'AA': 2, 'AA-': 1}
@@ -136,6 +143,18 @@ class CBStrategy:
         self.balance = _load_csv_cache("cb_balance_cache.csv", "可转债余额")
         self.turnover = _load_csv_cache("cb_amount_cache.csv", "可转债交易额")
         self.prices = _load_csv_cache("cb_price_cache.csv", "可转债价格")
+        risk_free_path = _resolve(
+            "rf_yield_cache.csv", self.model_dir, BACKTEST_DIR
+        )
+        if not os.path.exists(risk_free_path):
+            raise FileNotFoundError(
+                f"缺少 AkShare 国债收益率缓存: {risk_free_path}"
+            )
+        self.risk_free_curve = pd.read_csv(
+            risk_free_path,
+            index_col=0,
+            parse_dates=True,
+        )
 
         # 计算 listing_dates
         if self.balance is not None:
@@ -422,6 +441,14 @@ class CBStrategy:
         l_cum = self.results['long_cum_ret']
         sh_cum = self.results['short_cum_ret']
         b_cum = self.results['benchmark_cum_ret']
+        if self.risk_free_curve is None:
+            raise ValueError("缺少 AkShare 国债收益率曲线，无法计算夏普比率")
+        risk_free_rate = observed_average_risk_free_rate(
+            curve=self.risk_free_curve,
+            start=self.rebalance_dates[0],
+            end=max(s_cum.index),
+            tenor_years=1.0,
+        )
         
         def get_metrics(r, c):
             # 1. 年化收益率 (使用实际日历天数计算，更准确)
@@ -438,8 +465,12 @@ class CBStrategy:
             # 2. 年化波动率 (基于月度收益率序列)
             ann_vol = r.std() * np.sqrt(12)
             
-            # 3. 夏普比率 (假设无风险利率为0)
-            sharpe = ann_ret / ann_vol if ann_vol != 0 else 0
+            # 3. 夏普比率（使用回测期 AkShare 1Y 国债收益率均值）
+            sharpe = (
+                (ann_ret - risk_free_rate) / ann_vol
+                if ann_vol != 0
+                else 0
+            )
             
             # 4. 最大回撤
             roll_max = (1 + c).cummax()
