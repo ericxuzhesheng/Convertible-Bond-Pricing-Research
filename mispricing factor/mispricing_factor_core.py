@@ -30,7 +30,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
 BACKTEST_DIR = REPO_ROOT / "backtest"
 LS_DIR = REPO_ROOT / "long-short strategy"
-LEGACY_DIR = Path(r"d:\Python\浙商证券固收\转债错误定价")
+MIN_DAILY_TURNOVER_WAN = 500.0
+MIN_OUTSTANDING_BALANCE_WAN = 3_000.0
 
 # 设置中文字体
 plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei"]
@@ -51,7 +52,7 @@ class MultiFactorBacktest:
         self.dev_key = f"{model.lower()}_deviation"
         self.data_dir = Path(data_dir) if data_dir else SCRIPT_DIR
         # 输入文件候选目录: 本目录 → backtest/ → long-short strategy/ → 旧外部目录
-        self.search_dirs = [self.data_dir, BACKTEST_DIR, LS_DIR, LEGACY_DIR]
+        self.search_dirs = [self.data_dir, BACKTEST_DIR, LS_DIR]
         self.factors = {}
         self.prices = None
         self.model_deviation = None
@@ -348,10 +349,10 @@ class MultiFactorBacktest:
         根据5个条件筛选转债
 
         筛选条件：
-        1. 流动性：过去一周成交额 > 500万
+        1. 流动性：当日成交额 > 500万元
         2. 评级：AA-及以上
         3. 剩余期限：> 1年
-        4. 未转股余额：> 3000万
+        4. 未转股余额：> 3000万元
         5. 上市时间：超过1个月
 
         参数:
@@ -401,12 +402,15 @@ class MultiFactorBacktest:
                 # 如果在筛选数据库中完全找不到该转债，说明数据缺失，剔除
                 continue
 
-            # 2. 流动性：过去一周成交额 > 500万 (0.05亿)
+            # 2. 流动性：Tushare cb_daily.amount，单位万元
             if turnover_row is not None and bond_code in turnover_row:
                 val = turnover_row[bond_code]
                 try:
                     val = float(val)
-                    if pd.isna(val) or val <= 0.05:  # 单位是亿
+                    if (
+                        pd.isna(val)
+                        or val <= MIN_DAILY_TURNOVER_WAN
+                    ):
                         continue
                 except:
                     continue
@@ -433,12 +437,15 @@ class MultiFactorBacktest:
             else:
                 continue
 
-            # 5. 未转股余额：> 3000万 (0.3亿)
+            # 5. 未转股余额：Tushare cb_share，经管道统一为万元
             if balance_row is not None and bond_code in balance_row:
                 val = balance_row[bond_code]
                 try:
                     val = float(val)
-                    if pd.isna(val) or val <= 0.3:  # 单位是亿
+                    if (
+                        pd.isna(val)
+                        or val <= MIN_OUTSTANDING_BALANCE_WAN
+                    ):
                         continue
                 except:
                     continue

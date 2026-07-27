@@ -18,7 +18,8 @@ plt.rcParams['axes.unicode_minus'] = False
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 BACKTEST_DIR = os.path.join(REPO_ROOT, "backtest")
-LEGACY_DIR = r"d:\Python\浙商证券固收\转债错误定价"
+MIN_DAILY_TURNOVER_WAN = 500.0
+MIN_OUTSTANDING_BALANCE_WAN = 3_000.0
 
 
 def _resolve(filename, *dirs):
@@ -65,7 +66,9 @@ class CBStrategy:
             self.bench_file = os.path.join(data_dir, "000832_CSI_close_price.csv")
         else:
             self.model_dir = BACKTEST_DIR
-            self.bench_file = _resolve("000832_CSI_close_price.csv", SCRIPT_DIR, LEGACY_DIR)
+            self.bench_file = _resolve(
+                "000832_CSI_close_price.csv", SCRIPT_DIR
+            )
         self.select_ratio = 0.2  # 筛选比例：Top 20% 做多，Bottom 20% 做空
         
         # 数据存储
@@ -110,7 +113,7 @@ class CBStrategy:
         print("加载特征数据库 (CSV 缓存)...")
 
         def _load_csv_cache(filename, name):
-            path = _resolve(filename, self.model_dir, BACKTEST_DIR, LEGACY_DIR)
+            path = _resolve(filename, self.model_dir, BACKTEST_DIR)
             if not os.path.exists(path):
                 print(f"  错误: 未找到 {name} 缓存文件 {path}")
                 return None
@@ -215,10 +218,10 @@ class CBStrategy:
     def get_first_layer_universe(self, date):
         """
         实现第一层硬约束筛选:
-        1. 流动性: 周成交额 > 500万 (0.05亿元)
+        1. 流动性: 日成交额 > 500万元
         2. 评级: >= AA- (映射值为1)
         3. 剩余期限: > 1年
-        4. 未转股余额: > 3000万 (0.3亿元)
+        4. 未转股余额: > 3000万元
         5. 上市时间: > 1个月 (30天)
         """
         # 获取该日期的截面数据
@@ -236,11 +239,15 @@ class CBStrategy:
         # 2. 期限筛选
         valid_term = t_at_date[t_at_date > 1].index
         
-        # 3. 余额筛选 (单位: 亿元)
-        valid_balance = b_at_date[b_at_date > 0.3].index
+        # 3. 余额筛选（Tushare cb_share，经管道统一为万元）
+        valid_balance = b_at_date[
+            b_at_date > MIN_OUTSTANDING_BALANCE_WAN
+        ].index
         
-        # 4. 流动性筛选 (单位: 亿元, 假设表单中为周成交额)
-        valid_turnover = v_at_date[v_at_date > 0.05].index
+        # 4. 流动性筛选（Tushare cb_daily.amount，单位万元）
+        valid_turnover = v_at_date[
+            v_at_date > MIN_DAILY_TURNOVER_WAN
+        ].index
         
         # 5. 上市时间筛选
         valid_listing = self.listing_dates[date - self.listing_dates > pd.Timedelta(days=30)].index
