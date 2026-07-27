@@ -53,6 +53,7 @@ from market_data_contracts import (
     extract_clause_terms,
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
+    validate_balance_wan_units,
 )
 from token_loader import load_tushare_token
 
@@ -1045,6 +1046,7 @@ def run_pipeline(
         if rebuild_all
         else _merge_wide(_load_existing(OUT_BALANCE), bal_new)
     )
+    validate_balance_wan_units(balance=balance, cb_basic=cb_basic)
     balance.to_csv(OUT_BALANCE)
 
     # --- 信用评级 ---

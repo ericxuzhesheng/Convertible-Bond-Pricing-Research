@@ -538,6 +538,43 @@ def build_point_in_time_balance_matrix(
     return result
 
 
+def validate_balance_wan_units(
+    *,
+    balance: pd.DataFrame,
+    cb_basic: pd.DataFrame,
+    tolerance: float = 0.01,
+) -> None:
+    """Reject balance matrices that are not consistently stored in 万元."""
+
+    required = {"ts_code", "issue_size"}
+    missing = required.difference(cb_basic.columns)
+    if missing:
+        raise DataContractError(
+            f"cb_basic missing balance unit fields: {sorted(missing)}"
+        )
+    issue_size = (
+        cb_basic.drop_duplicates("ts_code", keep="last")
+        .set_index("ts_code")["issue_size"]
+        .apply(pd.to_numeric, errors="coerce")
+    )
+    violations: list[str] = []
+    for bond in balance.columns:
+        if bond not in issue_size.index or pd.isna(issue_size.at[bond]):
+            continue
+        maximum_wan = float(issue_size.at[bond]) / 10_000.0
+        observed = pd.to_numeric(balance[bond], errors="coerce").dropna()
+        if (
+            (observed < 0).any()
+            or (observed > maximum_wan * (1.0 + tolerance)).any()
+        ):
+            violations.append(bond)
+    if violations:
+        raise DataContractError(
+            "balance cache is not 万元 or exceeds observed issue size; "
+            f"rebuild required for {violations[:10]}"
+        )
+
+
 def build_point_in_time_rating_matrix(
     *,
     dates: Sequence[pd.Timestamp],
