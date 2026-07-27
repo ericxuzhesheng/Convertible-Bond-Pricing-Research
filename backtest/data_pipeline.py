@@ -61,7 +61,7 @@ warnings.filterwarnings('ignore')
 # ==========================================
 # 1. 配置
 # ==========================================
-DEFAULT_START = '20190101'
+DEFAULT_START = '20170101'
 DEFAULT_END   = datetime.today().strftime('%Y%m%d')
 OUT_DIR       = os.path.dirname(os.path.abspath(__file__))
 
@@ -486,10 +486,24 @@ def fetch_yield_curve(start: str, end: str) -> pd.DataFrame:
         fetch_start = start
 
     try:
-        df_yield = ak.bond_china_yield(
-            start_date=fetch_start[:4] + '0101',
-            end_date=end
-        )
+        yield_chunks = []
+        cursor = pd.Timestamp(fetch_start)
+        end_ts = pd.Timestamp(end)
+        while cursor <= end_ts:
+            segment_end = min(
+                pd.Timestamp(year=cursor.year, month=12, day=31),
+                end_ts,
+            )
+            frame = ak.bond_china_yield(
+                start_date=cursor.strftime('%Y%m%d'),
+                end_date=segment_end.strftime('%Y%m%d'),
+            )
+            if frame is not None and not frame.empty:
+                yield_chunks.append(frame)
+            cursor = segment_end + pd.Timedelta(days=1)
+        if not yield_chunks:
+            raise DataContractError("AkShare returned no government yield rows")
+        df_yield = pd.concat(yield_chunks, ignore_index=True)
         target = df_yield[df_yield['曲线名称'] == '中债国债收益率曲线'].copy()
         target['日期'] = pd.to_datetime(target['日期'])
         target = target.set_index('日期').sort_index()
