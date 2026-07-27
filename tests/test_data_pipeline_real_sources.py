@@ -217,3 +217,35 @@ def test_observed_bond_floor_is_masked_to_actual_market_cells() -> None:
         96.2
     )
     assert pd.isna(floor.loc[pd.Timestamp("2024-01-03"), "123001.SZ"])
+
+
+def test_clause_cache_uses_akshare_contract_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_detail(symbol: str):
+        assert symbol == "123001"
+        return pd.DataFrame(
+            {
+                "SECURITY_CODE": ["123001"],
+                "RESALE_CLAUSE": [
+                    "最后两个计息年度，连续三十个交易日低于转股价的70%时回售。"
+                ],
+                "REDEEM_CLAUSE": [
+                    "到期按面值上浮8%赎回；连续三十个交易日中至少十五个交易日"
+                    "不低于转股价的130%，或余额不足3,000万元。"
+                ],
+                "PAR_VALUE": [100.0],
+            }
+        )
+
+    monkeypatch.setattr(data_pipeline.ak, "bond_zh_cov_info", fake_detail)
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+
+    result = data_pipeline.fetch_clause_terms_akshare(["123001.SZ"])
+
+    row = result.set_index("ts_code").loc["123001.SZ"]
+    assert row["source_ok"]
+    assert row["put_trigger_ratio"] == pytest.approx(0.70)
+    assert row["redeem_trigger_ratio"] == pytest.approx(1.30)
+    assert row["redeem_required_days"] == 15
+    assert row["maturity_redemption_price"] == pytest.approx(108.0)
