@@ -826,7 +826,9 @@ ax1.set_xlabel('年份')
 ax2 = ax1.twinx()
 # 绘制误差面积图 (灰色填充)
 # 确保数据类型为 float，并处理 inf/nan
-daily_err_pct = daily_err_pct.astype(float).replace([np.inf, -np.inf], np.nan).fillna(0)
+daily_err_pct = daily_err_pct.astype(float).replace(
+    [np.inf, -np.inf], np.nan
+)
 ax2.fill_between(daily_err_pct.index, daily_err_pct, 0, color='gray', alpha=0.5, label='定价错误')
 ax2.set_ylabel('平均定价错误 (%)')
 # 设置右轴范围，使其看起来像论文中的下方分布

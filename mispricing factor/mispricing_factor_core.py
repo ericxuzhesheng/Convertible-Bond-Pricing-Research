@@ -581,13 +581,7 @@ class MultiFactorBacktest:
             if date in df.index:
                 signals[name] = df.loc[date]
             else:
-                # 如果该日期没有数据，使用最近的数据
-                valid_dates = df.index[df.index <= date]
-                if len(valid_dates) > 0:
-                    nearest_date = valid_dates[-1]
-                    signals[name] = df.loc[nearest_date]
-                else:
-                    signals[name] = pd.Series(dtype=float)
+                signals[name] = pd.Series(dtype=float)
 
         # 对齐所有因子的代码
         all_codes = set()
@@ -610,23 +604,22 @@ class MultiFactorBacktest:
                 normalized["valuation"] = -normalized["valuation"]
 
             # 等权合成
-            combined = normalized.mean(axis=1)
+            complete = normalized.notna().all(axis=1)
+            combined = normalized.mean(axis=1).where(complete)
         else:
             # --- 动态权重模式 ---
             # 权重已包含方向 (IC正负)，直接加权
-            combined = pd.Series(0.0, index=normalized.index)
-            valid_weights = 0
-
-            for name, w in weights.items():
-                if name in normalized.columns:
-                    # 处理可能的 NaN
-                    s = normalized[name].fillna(0)
-                    combined += s * w
-                    valid_weights += abs(w)
-
-            # 如果没有有效权重，返回全0
-            if valid_weights == 0:
+            selected = [
+                name for name in weights if name in normalized.columns
+            ]
+            if not selected:
                 combined = pd.Series(np.nan, index=normalized.index)
+            else:
+                complete = normalized[selected].notna().all(axis=1)
+                combined = sum(
+                    normalized[name] * weights[name]
+                    for name in selected
+                ).where(complete)
 
         return combined
 
@@ -820,11 +813,6 @@ class MultiFactorBacktest:
 
         weights = inv_vol.div(sum_inv_vol, axis=0)
 
-        # 填充 NaN (比如前期数据不足) 为等权
-        # 或者设为0? 设为等权比较合理
-        n_factors = len(self.normalized_factors)
-        weights = weights.fillna(1.0 / n_factors)
-
         print("  风险平价权重计算完成")
         return weights
 
@@ -851,22 +839,21 @@ class MultiFactorBacktest:
         # 计算综合得分
         if weights is None:
             # --- 等权模式 ---
-            combined = signal_df.mean(axis=1)
+            complete = signal_df.notna().all(axis=1)
+            combined = signal_df.mean(axis=1).where(complete)
         else:
             # --- 动态权重模式 ---
-            combined = pd.Series(0.0, index=signal_df.index)
-            valid_weights = 0
-
-            for name, w in weights.items():
-                if name in signal_df.columns:
-                    # normalized_factors 已经处理过 NaN (fillna(0))
-                    # signal_df 已经处理过方向 (取负)
-                    s = signal_df[name]
-                    combined += s * w
-                    valid_weights += abs(w)
-
-            if valid_weights == 0:
+            selected = [
+                name for name in weights if name in signal_df.columns
+            ]
+            if not selected:
                 combined = pd.Series(np.nan, index=signal_df.index)
+            else:
+                complete = signal_df[selected].notna().all(axis=1)
+                combined = sum(
+                    signal_df[name] * weights[name]
+                    for name in selected
+                ).where(complete)
 
         return combined
 
