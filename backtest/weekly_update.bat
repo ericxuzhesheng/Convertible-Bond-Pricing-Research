@@ -75,7 +75,7 @@ git add "backtest\weekly_update.bat" >> "%LOG_FILE%" 2>&1
 git add "backtest\setup_weekly_task.ps1" >> "%LOG_FILE%" 2>&1
 git add "backtest\top5_*.csv" >> "%LOG_FILE%" 2>&1
 git add "long-short strategy\update_benchmark.py" >> "%LOG_FILE%" 2>&1
-git add "long-short strategy\000832_CSI_close_price.xlsx" >> "%LOG_FILE%" 2>&1
+git add "long-short strategy\000832_CSI_close_price.csv" >> "%LOG_FILE%" 2>&1
 
 :: 检查是否有实际变更
 git diff --cached --quiet

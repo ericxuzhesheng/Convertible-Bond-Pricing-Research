@@ -21,33 +21,9 @@ plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
 warnings.filterwarnings('ignore')
 
 # ==========================================
-# 1. 配置与数据读取
+# 1. 配置与数据读取 (基于 Tushare Pipeline CSV 缓存)
 # ==========================================
-# USE_PIPELINE=True  → 从 data_pipeline.py 生成的 CSV 读取（无需手动更新 Excel）
-# USE_PIPELINE=False → 从原始 Excel 文件读取（旧流程，向后兼容）
-USE_PIPELINE = True
-
 PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
-
-# 原始 Excel 路径（USE_PIPELINE=False 时使用）
-BASE_DIR  = r"D:\Python\浙商证券固收\转债错误定价"
-EXCEL_PATH = os.path.join(BASE_DIR, "【浙商固收】转债资产端特征数据库【周更新外发】.xlsx")
-DATA_FILE  = os.path.join(BASE_DIR, "转债错误定价数据.xlsx")
-
-SHEET_PRICE    = "可转债价格"
-SHEET_CV       = "转换价值"
-SHEET_FLOOR    = "纯债价值"
-SHEET_MATURITY = "剩余期限"
-SHEET_STOCK_MAP = "正股市值"
-SHEET_RATING   = "信用评级"
-
-
-def load_data(file_path, sheet_name):
-    df = pd.read_excel(file_path, sheet_name=sheet_name, index_col=0, engine='openpyxl')
-    df.index = pd.to_datetime(df.index, errors='coerce')
-    df = df.dropna(how='all')
-    df = df[~df.index.duplicated(keep='first')]
-    return df.apply(pd.to_numeric, errors='coerce')
 
 
 def _load_csv(filename):
@@ -64,18 +40,11 @@ def _load_csv(filename):
     return df.apply(pd.to_numeric, errors='coerce')
 
 
-if USE_PIPELINE:
-    print("1. 正在从 Tushare Pipeline CSV 读取数据 ...")
-    df_price    = _load_csv('cb_price_cache.csv')
-    df_cv       = _load_csv('cb_convert_val_cache.csv')
-    df_floor    = _load_csv('cb_bond_floor_cache.csv')
-    df_maturity = _load_csv('cb_maturity_cache.csv')
-else:
-    print("1. 正在读取 Excel 静态数据 ...")
-    df_price    = load_data(EXCEL_PATH, SHEET_PRICE)
-    df_cv       = load_data(EXCEL_PATH, SHEET_CV)
-    df_floor    = load_data(EXCEL_PATH, SHEET_FLOOR)
-    df_maturity = load_data(EXCEL_PATH, SHEET_MATURITY)
+print("1. 正在从 Tushare Pipeline CSV 读取数据 ...")
+df_price    = _load_csv('cb_price_cache.csv')
+df_cv       = _load_csv('cb_convert_val_cache.csv')
+df_floor    = _load_csv('cb_bond_floor_cache.csv')
+df_maturity = _load_csv('cb_maturity_cache.csv')
 
 # 对齐日期索引（取交集）
 common_idx = df_price.index.intersection(df_cv.index).intersection(df_floor.index)
@@ -99,60 +68,29 @@ def normalize_code(v):
     return s
 
 
-if USE_PIPELINE:
-    # 2.1 从 cb_basic_info.csv 读取映射
-    try:
-        df_basic_info = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
-        df_map = df_basic_info.dropna(subset=['ts_code', 'stk_cd'])
-        df_map = df_map.drop_duplicates(subset=['ts_code'], keep='first')
-        bond_to_stock      = dict(zip(df_map['ts_code'], df_map['stk_cd']))
-        stock_code_to_bond = dict(zip(df_map['stk_cd'],  df_map['ts_code']))
-        stock_name_to_bond = {}
-        print(f"   已加载 {len(bond_to_stock)} 条转债映射关系（来源：cb_basic_info.csv）")
-    except Exception as e:
-        print(f"   映射读取失败: {e}")
-        bond_to_stock = {}
-        stock_code_to_bond = {}
-        stock_name_to_bond = {}
-
-    # 2.2 从 cb_bps_cache.csv 读取 BPS
-    try:
-        df_bps = _load_csv('cb_bps_cache.csv')
-        df_bps = df_bps.reindex(df_price.index, method='ffill')
-        print(f"   BPS 数据加载完成（来源：cb_bps_cache.csv）")
-    except Exception as e:
-        print(f"   BPS 读取失败: {e}，将使用全零 BPS")
-        df_bps = pd.DataFrame(0.0, index=df_price.index, columns=df_price.columns)
-else:
-    # 2.1 原始 Excel 读取
-    df_list_raw = pd.read_excel(DATA_FILE, sheet_name=0, header=None, engine='openpyxl')
-    stock_codes_row = df_list_raw.iloc[0, 1:].map(normalize_code)
-    bond_codes_row  = df_list_raw.iloc[1, 1:].map(normalize_code)
-    df_map = pd.DataFrame({"bond": bond_codes_row, "stock": stock_codes_row}).dropna()
-    df_map = df_map.drop_duplicates(subset=["bond"], keep="first")
-    bond_to_stock      = dict(zip(df_map["bond"],  df_map["stock"]))
-    stock_code_to_bond = dict(zip(df_map["stock"], df_map["bond"]))
+# 2.1 从 cb_basic_info.csv 读取映射
+try:
+    df_basic_info = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
+    df_map = df_basic_info.dropna(subset=['ts_code', 'stk_cd'])
+    df_map = df_map.drop_duplicates(subset=['ts_code'], keep='first')
+    bond_to_stock      = dict(zip(df_map['ts_code'], df_map['stk_cd']))
+    stock_code_to_bond = dict(zip(df_map['stk_cd'],  df_map['ts_code']))
     stock_name_to_bond = {}
-    if len(df_list_raw) > 2:
-        stock_names_row = df_list_raw.iloc[2, 1:].astype(str).str.strip()
-        stock_names_row = stock_names_row[(stock_names_row != "") & (stock_names_row != "NAN")]
-        df_name_map = pd.DataFrame({"name": stock_names_row, "bond": bond_codes_row.iloc[:len(stock_names_row)]})
-        df_name_map = df_name_map.dropna(subset=["bond"]).drop_duplicates(subset=["name"], keep="first")
-        stock_name_to_bond = dict(zip(df_name_map["name"], df_name_map["bond"]))
-    print(f"   已加载 {len(bond_to_stock)} 条转债映射关系")
+    print(f"   已加载 {len(bond_to_stock)} 条转债映射关系（来源：cb_basic_info.csv）")
+except Exception as e:
+    print(f"   映射读取失败: {e}")
+    bond_to_stock = {}
+    stock_code_to_bond = {}
+    stock_name_to_bond = {}
 
-    # 2.2 原始 Excel 读取 BPS
-    df_bps_raw = pd.read_excel(DATA_FILE, sheet_name='每股净资产', header=4, index_col=0, engine='openpyxl')
-    df_bps_raw = df_bps_raw.iloc[1:]
-    df_bps_raw.index = pd.to_datetime(df_bps_raw.index, errors='coerce')
-    df_bps_raw = df_bps_raw[~df_bps_raw.index.duplicated(keep='first')].sort_index()
-    mapped_cols = {col: stock_code_to_bond[col] for col in df_bps_raw.columns if col in stock_code_to_bond}
-    if not mapped_cols:
-        print("   警告：BPS 列名无法映射到转债代码")
-    else:
-        print(f"   成功映射 {len(mapped_cols)} 个 BPS 列")
-    df_bps = df_bps_raw[list(mapped_cols.keys())].rename(columns=mapped_cols)
-    df_bps = df_bps.ffill().sort_index().reindex(df_price.index, method='ffill')
+# 2.2 从 cb_bps_cache.csv 读取 BPS
+try:
+    df_bps = _load_csv('cb_bps_cache.csv')
+    df_bps = df_bps.reindex(df_price.index, method='ffill')
+    print(f"   BPS 数据加载完成（来源：cb_bps_cache.csv）")
+except Exception as e:
+    print(f"   BPS 读取失败: {e}，将使用全零 BPS")
+    df_bps = pd.DataFrame(0.0, index=df_price.index, columns=df_price.columns)
 
 # 确保列与 df_price 一致 (取交集)
 valid_bonds = df_price.columns.intersection(df_bps.columns)
@@ -164,76 +102,20 @@ df_bps      = df_bps[valid_bonds]
 
 print(f"   BPS 数据处理完成，有效对齐转债数量: {len(valid_bonds)}")
 
-# 2.3 获取到期赎回价 (从 Excel 读取)
+# 2.3 获取到期赎回价 (从 cb_basic_info.csv 读取)
 # ==========================================
 DEFAULT_REDEMPTION_PRICE = 110.0
 
-def get_redemption_prices_from_excel(file_path):
-    """
-    从 Excel 的 '到期赎回价' Sheet 读取赎回价
-    """
-    print("   正在从 Excel 读取到期赎回价...")
-    try:
-        # 根据截图:
-        # 第一行 (Header=0) 是中文列名: 代码, 名称, 到期赎回价
-        # 第二行是英文列名: Code, Name, callprice (需要剔除)
-        # 数据从第三行开始
-        
-        # 读取 Header=0 (中文)
-        df = pd.read_excel(file_path, sheet_name='到期赎回价', header=0, engine='openpyxl')
-        
-        # 剔除第二行 (英文名)
-        df = df.iloc[1:]
-        
-        # 清洗列名 (去除空格)
-        df.columns = [c.strip() for c in df.columns]
-        
-        # 提取需要的列: '代码' 和 '到期赎回价'
-        # 截图显示列名可能是 "代码 " 或 "到期赎回价 " (带空格?) 
-        # 我们尝试模糊匹配
-        code_col = None
-        price_col = None
-        
-        for col in df.columns:
-            if "代码" in col: code_col = col
-            if "到期赎回价" in col: price_col = col
-            
-        if not code_col or not price_col:
-            print(f"   未找到对应的列名，当前列: {df.columns}")
-            return {}
-            
-        # 清洗数据
-        # 代码列: 118065.SH -> 118065 (如果需要去后缀)
-        # 但我们之前保留了后缀，所以直接用
-        
-        # 价格列: 转为 numeric
-        df[price_col] = pd.to_numeric(df[price_col], errors='coerce')
-        
-        # 转换为字典 {code: price}
-        redemption_map = df.set_index(code_col)[price_col].dropna().to_dict()
-        
-        print(f"   成功读取 {len(redemption_map)} 条赎回价数据")
-        return redemption_map
-        
-    except Exception as e:
-        print(f"   Excel 读取失败: {e}")
-        return {}
-
-# 获取赎回价字典
-if USE_PIPELINE:
-    # pipeline 模式: 从 cb_basic_info.csv 的 maturity_price 列读取（与 B-S 模型一致）
-    try:
-        _basic = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
-        redemption_map = (
-            _basic.dropna(subset=['ts_code', 'maturity_price'])
-            .set_index('ts_code')['maturity_price'].to_dict()
-        )
-        print(f"   成功读取 {len(redemption_map)} 条赎回价数据（来源：cb_basic_info.csv）")
-    except Exception as e:
-        print(f"   赎回价读取失败: {e}，回退到 Excel")
-        redemption_map = get_redemption_prices_from_excel(DATA_FILE)
-else:
-    redemption_map = get_redemption_prices_from_excel(DATA_FILE)
+try:
+    _basic = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
+    redemption_map = (
+        _basic.dropna(subset=['ts_code', 'maturity_price'])
+        .set_index('ts_code')['maturity_price'].to_dict()
+    )
+    print(f"   成功读取 {len(redemption_map)} 条赎回价数据（来源：cb_basic_info.csv）")
+except Exception as e:
+    print(f"   赎回价读取失败: {e}，使用默认值 {DEFAULT_REDEMPTION_PRICE}")
+    redemption_map = {}
 
 
 # ==========================================
@@ -879,62 +761,11 @@ print("3. Fig3_ZL_Maturity.png")
 # ==========================================
 try:
     print("   正在绘制图 4: 错误定价与评级的关系...")
-    if USE_PIPELINE:
-        # pipeline 模式: 直接读取评级缓存（行=日期, 列=债券代码），不依赖外部 Excel
-        df_rating = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_rating_cache.csv'), index_col=0)
-        df_rating.index = pd.to_datetime(df_rating.index, errors='coerce')
-        df_rating = df_rating[df_rating.index.notnull()].sort_index()
-        date_col = 'cb_rating_cache.csv'
-        print(f"   评级数据来源: {date_col}")
-    else:
-        # 读取评级数据预览以确定 Header
-        df_rating_preview = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=None, nrows=10, engine='openpyxl')
-
-        header_idx = 0
-        for idx, row in df_rating_preview.iterrows():
-            matches = row.astype(str).str.contains(r'\d{6}\.(SH|SZ)').sum()
-            if matches > 5:
-                header_idx = idx
-                break
-
-        df_rating = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_RATING, header=header_idx, engine='openpyxl')
-
-        # 识别日期列
-        date_col = None
-        for col in df_rating.columns[:5]:
-            sample = df_rating[col].dropna().iloc[:10]
-            if len(sample) == 0: continue
-            try:
-                dates = pd.to_datetime(sample, errors='coerce')
-                # 检查有效日期比例
-                if dates.notnull().mean() < 0.5:
-                    continue
-                # 检查日期范围是否合理，排除被误判为日期的数字 (如 0 -> 1970-01-01)
-                valid_dates = dates[dates.notnull()]
-                if valid_dates.min().year < 2000:
-                    continue
-                date_col = col
-                break
-            except Exception:
-                continue
-
-        if date_col is None and len(df_rating.columns) > 2:
-            # 尝试检查第 3 列 (索引 2)，即使前面的逻辑没过
-            col_candidate = df_rating.columns[2]
-            sample = df_rating[col_candidate].dropna().iloc[:10]
-            try:
-                dates = pd.to_datetime(sample, errors='coerce')
-                if dates.notnull().any() and dates.max().year >= 2000:
-                    date_col = col_candidate
-            except Exception:
-                pass
-
-        if date_col:
-            print(f"   使用评级日期列：{date_col}")
-            df_rating[date_col] = pd.to_datetime(df_rating[date_col], errors='coerce')
-            df_rating = df_rating.dropna(subset=[date_col])
-            df_rating = df_rating.set_index(date_col)
-            df_rating = df_rating.sort_index()
+    df_rating = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_rating_cache.csv'), index_col=0)
+    df_rating.index = pd.to_datetime(df_rating.index, errors='coerce')
+    df_rating = df_rating[df_rating.index.notnull()].sort_index()
+    date_col = 'cb_rating_cache.csv'
+    print(f"   评级数据来源: {date_col}")
 
     if date_col:
         # 1. 筛选 2019 年以后的数据

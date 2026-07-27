@@ -35,12 +35,10 @@ class CBStrategy:
         # data_dir 显式给定时沿用旧行为；默认在仓库内解析（模型/特征在 backtest/，基准在本目录）
         if data_dir:
             self.model_dir = data_dir
-            self.features_file = os.path.join(data_dir, "【浙商固收】转债资产端特征数据库【周更新外发】.xlsx")
-            self.bench_file = os.path.join(data_dir, "000832_CSI_close_price.xlsx")
+            self.bench_file = os.path.join(data_dir, "000832_CSI_close_price.csv")
         else:
             self.model_dir = BACKTEST_DIR
-            self.features_file = _resolve("【浙商固收】转债资产端特征数据库【周更新外发】.xlsx", BACKTEST_DIR, LEGACY_DIR)
-            self.bench_file = _resolve("000832_CSI_close_price.xlsx", SCRIPT_DIR, LEGACY_DIR)
+            self.bench_file = _resolve("000832_CSI_close_price.csv", SCRIPT_DIR, LEGACY_DIR)
         self.select_ratio = 0.2  # 筛选比例：Top 20% 做多，Bottom 20% 做空
         
         # 数据存储
@@ -81,104 +79,71 @@ class CBStrategy:
         df_rd = pd.read_excel(model_path, sheet_name='相对偏差')
         self.relative_deviation = self._clean_ts_data(df_rd)
         
-        # 2. 加载特征数据库
-        print("加载特征数据库...")
-        xl_feat = pd.ExcelFile(self.features_file)
-        
-        # 评级 (Row 2 codes, Row 4+ dates/data)
-        df_rating = xl_feat.parse('信用评级', header=None)
-        codes_rating = df_rating.iloc[2, 3:].values
-        dates_rating = pd.to_datetime(df_rating.iloc[4:, 2], errors='coerce')
-        data_rating = df_rating.iloc[4:, 3:]
-        self.ratings = pd.DataFrame(data_rating.values, index=dates_rating, columns=codes_rating)
-        self.ratings = self.ratings[self.ratings.index.notnull()]
-        if hasattr(self.ratings, 'map'):
-            self.ratings = self.ratings.map(lambda x: self.rating_map.get(str(x).strip(), 0))
-        else:
-            self.ratings = self.ratings.applymap(lambda x: self.rating_map.get(str(x).strip(), 0))
+        # 2. 加载特征数据库 (自 CSV 缓存)
+        print("加载特征数据库 (CSV 缓存)...")
 
-        # 剩余期限 (Row 0 codes, Row 2+ dates/data)
-        df_term = xl_feat.parse('剩余期限', header=None)
-        codes_term = df_term.iloc[0, 1:].values
-        dates_term = pd.to_datetime(df_term.iloc[2:, 0], errors='coerce')
-        data_term = df_term.iloc[2:, 1:]
-        self.remaining_term = pd.DataFrame(data_term.values, index=dates_term, columns=codes_term)
-        self.remaining_term = self.remaining_term.apply(pd.to_numeric, errors='coerce')
-        self.remaining_term = self.remaining_term[self.remaining_term.index.notnull()]
+        def _load_csv_cache(filename, name):
+            path = _resolve(filename, self.model_dir, BACKTEST_DIR, LEGACY_DIR)
+            if not os.path.exists(path):
+                print(f"  错误: 未找到 {name} 缓存文件 {path}")
+                return None
+            print(f"  加载 {name} 数据 ({os.path.basename(path)})...")
+            df = pd.read_csv(path, index_col=0)
+            df.index = pd.to_datetime(df.index, errors="coerce")
+            df = df[df.index.notna()]
+            valid_cols = [c for c in df.columns if str(c).endswith((".SH", ".SZ"))]
+            return df[valid_cols]
 
-        # 可转债余额 (Row 3 codes, Row 2 listing_dates, Row 5+ dates/data)
-        df_balance = xl_feat.parse('可转债余额', header=None)
-        codes_bal = df_balance.iloc[3, 1:].values
-        self.listing_dates = pd.Series(df_balance.iloc[2, 1:].values, index=codes_bal)
-        self.listing_dates = pd.to_datetime(self.listing_dates, errors='coerce')
-        
-        dates_bal = pd.to_datetime(df_balance.iloc[5:, 0], errors='coerce')
-        data_bal = df_balance.iloc[5:, 1:]
-        self.balance = pd.DataFrame(data_bal.values, index=dates_bal, columns=codes_bal)
-        self.balance = self.balance.apply(pd.to_numeric, errors='coerce')
-        self.balance = self.balance[self.balance.index.notnull()]
+        df_rating = _load_csv_cache("cb_rating_cache.csv", "信用评级")
+        if df_rating is not None:
+            self.ratings = df_rating
+            if hasattr(self.ratings, "map"):
+                self.ratings = self.ratings.map(lambda x: self.rating_map.get(str(x).strip(), 0))
+            else:
+                self.ratings = self.ratings.applymap(lambda x: self.rating_map.get(str(x).strip(), 0))
 
-        # 可转债交易额 (Row 3 codes, Row 5+ dates/data)
-        df_turnover = xl_feat.parse('可转债交易额', header=None)
-        codes_turn = df_turnover.iloc[3, 1:].values
-        dates_turn = pd.to_datetime(df_turnover.iloc[5:, 0], errors='coerce')
-        data_turn = df_turnover.iloc[5:, 1:]
-        self.turnover = pd.DataFrame(data_turn.values, index=dates_turn, columns=codes_turn)
-        self.turnover = self.turnover.apply(pd.to_numeric, errors='coerce')
-        self.turnover = self.turnover[self.turnover.index.notnull()]
+        self.remaining_term = _load_csv_cache("cb_maturity_cache.csv", "剩余期限")
+        self.balance = _load_csv_cache("cb_balance_cache.csv", "可转债余额")
+        self.turnover = _load_csv_cache("cb_amount_cache.csv", "可转债交易额")
+        self.prices = _load_csv_cache("cb_price_cache.csv", "可转债价格")
 
-        # 价格数据 (Row 0 codes, Row 2+ dates/data)
-        df_prices = xl_feat.parse('可转债价格', header=None)
-        codes_px = df_prices.iloc[0, 1:].values
-        dates_px = pd.to_datetime(df_prices.iloc[2:, 0], errors='coerce')
-        data_px = df_prices.iloc[2:, 1:]
-        self.prices = pd.DataFrame(data_px.values, index=dates_px, columns=codes_px)
-        self.prices = self.prices.apply(pd.to_numeric, errors='coerce')
-        self.prices = self.prices[self.prices.index.notnull()]
-        
+        # 计算 listing_dates
+        if self.balance is not None:
+            df_bal_num = self.balance.apply(pd.to_numeric, errors="coerce")
+            listing_dict = {}
+            for code in df_bal_num.columns:
+                valid_series = df_bal_num[code]
+                valid_indices = valid_series[valid_series.notna() & (valid_series > 0)].index
+                if len(valid_indices) > 0:
+                    listing_dict[code] = valid_indices[0]
+            self.listing_dates = pd.Series(listing_dict)
+
         # 3. 从本地文件加载 000832.CSI 中证转债指数
-        print("从本地 Excel 加载中证转债指数 (000832_CSI_close_price.xlsx)...")
+        print("从本地 CSV 加载中证转债指数 (000832_CSI_close_price.csv)...")
         try:
             bench_file = self.bench_file
             if not os.path.exists(bench_file):
                 raise FileNotFoundError(f"未找到基准文件: {bench_file}")
-            
-            # 根据探索发现，数据从第6行开始 (skiprows=5)
-            df_bench = pd.read_excel(bench_file, skiprows=5)
-            
+
+            df_bench = pd.read_csv(bench_file)
             if df_bench is not None and not df_bench.empty:
-                # 确保包含必要列
-                if 'Date' not in df_bench.columns or 'close' not in df_bench.columns:
-                    # 尝试处理可能的列名差异
+                if "Date" not in df_bench.columns or "close" not in df_bench.columns:
                     df_bench.columns = [str(c).strip() for c in df_bench.columns]
-                    if 'Date' not in df_bench.columns or 'close' not in df_bench.columns:
+                    if "Date" not in df_bench.columns or "close" not in df_bench.columns:
                         raise ValueError(f"基准文件格式错误，缺少 Date 或 close 列。现有列: {df_bench.columns.tolist()}")
 
-                df_bench['Date'] = pd.to_datetime(df_bench['Date'])
-                df_bench.set_index('Date', inplace=True)
+                df_bench["Date"] = pd.to_datetime(df_bench["Date"])
+                df_bench.set_index("Date", inplace=True)
                 df_bench.sort_index(inplace=True)
-                
-                self.benchmark_prices = df_bench['close']
-                # 使用收盘价计算日收益率
+
+                self.benchmark_prices = df_bench["close"]
                 self.benchmark_returns_daily = self.benchmark_prices.pct_change().fillna(0)
                 print("本地基准数据加载成功。")
             else:
                 raise ValueError("本地基准数据为空")
         except Exception as e:
-            print(f"从本地加载基准数据失败: {e}，将尝试从特征数据库回退。")
-            # 回退逻辑 (从特征数据库的 '收益率走势' 页签读取)
-            try:
-                df_bench = xl_feat.parse('收益率走势')
-                self.benchmark_returns_raw = self._clean_ts_data(df_bench)
-                if '中证转债' in self.benchmark_returns_raw.columns:
-                    self.benchmark_prices = self.benchmark_returns_raw['中证转债']
-                else:
-                    self.benchmark_prices = self.benchmark_returns_raw.iloc[:, 0]
-                self.benchmark_returns_daily = self.benchmark_prices.pct_change().fillna(0)
-                print("从特征数据库回退加载基准成功。")
-            except Exception as e2:
-                print(f"所有基准加载方式均失败: {e2}")
-                self.benchmark_returns_daily = None
+            print(f"从本地加载基准数据失败: {e}")
+            self.benchmark_returns_daily = None
 
         print("数据加载与清洗完成。")
         

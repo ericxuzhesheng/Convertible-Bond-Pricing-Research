@@ -20,9 +20,8 @@ import tushare as ts
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 BACKTEST_DIR = os.path.join(REPO_ROOT, "backtest")
-BENCH_FILE = os.path.join(SCRIPT_DIR, "000832_CSI_close_price.xlsx")
+BENCH_FILE = os.path.join(SCRIPT_DIR, "000832_CSI_close_price.csv")
 TS_CODE = "000832.CSI"
-META_ROWS = 6  # 前 5 行元数据 + 1 行列名 ['Date','close']
 
 
 def _load_token():
@@ -38,13 +37,14 @@ def main():
                         help="抓取截止日期 YYYYMMDD，默认今天")
     args = parser.parse_args()
 
-    raw = pd.read_excel(BENCH_FILE, header=None)
-    header_block = raw.iloc[:META_ROWS].copy()          # 保留前 6 行（含列名行）
-    series = raw.iloc[META_ROWS:].copy()                # 既有时序
-    series.columns = ["Date", "close"]
+    if os.path.exists(BENCH_FILE):
+        series = pd.read_csv(BENCH_FILE)
+    else:
+        series = pd.DataFrame(columns=["Date", "close"])
+
     series["Date"] = pd.to_datetime(series["Date"], errors="coerce")
     series = series.dropna(subset=["Date"])
-    last_date = series["Date"].max()
+    last_date = series["Date"].max() if not series.empty else pd.to_datetime("2017-01-01")
     print(f"现有基准最新日期: {last_date.date()}  (共 {len(series)} 行)")
 
     start = (last_date + dt.timedelta(days=1)).strftime("%Y%m%d")
@@ -72,11 +72,7 @@ def main():
     merged_series = pd.concat([series, new], ignore_index=True)
     merged_series = merged_series.drop_duplicates(subset="Date").sort_values("Date")
 
-    # 重组为原始两列布局：元数据块 + 时序（无表头，保持 Wind 结构）
-    out_top = header_block.values.tolist()
-    out_body = merged_series.values.tolist()
-    out = pd.DataFrame(out_top + out_body)
-    out.to_excel(BENCH_FILE, header=False, index=False)
+    merged_series.to_csv(BENCH_FILE, index=False)
     print(f"已写回 {BENCH_FILE}  (总 {len(merged_series)} 行时序)")
 
 

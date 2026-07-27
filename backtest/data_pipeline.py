@@ -519,6 +519,32 @@ def fetch_bps(
     )
     stock_codes = list(set(bond_to_stock.values()))
 
+    # 增量更新加速：通过 disclosure_date 预筛期间有财报披露的正股
+    if start >= "20200101" and len(stock_codes) > 50:
+        try:
+            print("   正在通过财报披露日 (disclosure_date) 预筛当期有更新的个股...")
+            start_yr = int(start[:4])
+            end_yr = int(end[:4])
+            q_ends = [f"{y}{q}" for y in range(start_yr - 1, end_yr + 1) for q in ["0331", "0630", "0930", "1231"]]
+            q_ends = [ed for ed in q_ends if int(ed) >= (start_yr - 1) * 10000]
+            
+            disclosed_stocks = set()
+            for ed in q_ends:
+                df_disc = pro.disclosure_date(end_date=ed)
+                if df_disc is not None and not df_disc.empty and "actual_date" in df_disc.columns:
+                    match_df = df_disc[(df_disc["actual_date"] >= start) & (df_disc["actual_date"] <= end)]
+                    disclosed_stocks.update(match_df["ts_code"].tolist())
+                time.sleep(0.1)
+            
+            orig_len = len(stock_codes)
+            stock_codes = [s for s in stock_codes if s in disclosed_stocks]
+            print(f"   预筛完成：仅 {len(stock_codes)} / {orig_len} 只正股在 [{start}, {end}] 区间内披露了财报。")
+            if not stock_codes:
+                print("   当期无正股财报披露，直接跳过 fina_indicator 耗时网络查询。")
+                return pd.DataFrame(index=df_price.index, columns=df_price.columns, dtype=float)
+        except Exception as e:
+            print(f"   财报预筛失败 ({e})，将回退至全量正股查询。")
+
     bps_series: dict = {}
     for stk in tqdm(stock_codes, desc='fina_indicator'):
         try:

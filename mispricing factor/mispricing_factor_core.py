@@ -151,11 +151,10 @@ class MultiFactorBacktest:
 
         # 加载基准指数数据 (000832.CSI)
         print("  加载基准指数数据 (000832.CSI)...")
-        benchmark_file = self.resolve("000832_CSI_close_price.xlsx")
+        benchmark_file = self.resolve("000832_CSI_close_price.csv")
         if benchmark_file.exists():
             try:
-                # header=5 对应第6行 (Date, close)
-                df_bench = pd.read_excel(benchmark_file, header=5)
+                df_bench = pd.read_csv(benchmark_file)
                 df_bench["Date"] = pd.to_datetime(df_bench["Date"])
                 df_bench = df_bench.set_index("Date")["close"]
                 # 过滤掉0值
@@ -252,87 +251,58 @@ class MultiFactorBacktest:
 
     def load_bond_filters_data(self):
         """
-        加载转债筛选所需的数据 (从Excel文件)
+        加载转债筛选所需的数据 (从CSV缓存文件)
         """
         print("\n" + "=" * 60)
-        print("加载转债筛选数据 (Excel)")
+        print("加载转债筛选数据 (CSV缓存)")
         print("=" * 60)
 
-        excel_path = self.resolve("【浙商固收】转债资产端特征数据库【周更新外发】.xlsx")
-        if not excel_path.exists():
-            print(f"  错误: 未找到筛选数据文件 {excel_path}")
-            self.bond_filters_data = None
-            return
-
         try:
-            print(f"  正在读取 {excel_path.name} ...")
-            # 使用 pd.ExcelFile 避免重复打开文件
-            xls = pd.ExcelFile(excel_path)
-
             self.bond_filters_data = {}
 
+            def _load_csv_wide(filename, name):
+                csv_path = self.resolve(filename)
+                if not csv_path.exists():
+                    print(f"  错误: 未找到 {name} 缓存文件 {csv_path}")
+                    return None
+                print(f"  加载 {name} 数据 ({csv_path.name})...")
+                df = pd.read_csv(csv_path, index_col=0)
+                df.index = pd.to_datetime(df.index, errors="coerce")
+                df = df[df.index.notna()]
+                valid_cols = [c for c in df.columns if str(c).endswith((".SH", ".SZ"))]
+                return df[valid_cols]
+
             # 1. 加载流动性 (可转债交易额)
-            # Row 3 (index 3) is Codes. Data starts Row 5 (index 5). Date Col 0.
-            print("  加载流动性数据...")
-            df_turnover = pd.read_excel(xls, sheet_name="可转债交易额", header=None)
-            # 确保日期列是 datetime 类型
-            dates = pd.to_datetime(df_turnover.iloc[5:, 0].tolist(), errors="coerce")
-            codes = df_turnover.iloc[3, 1:].tolist()
-            data = df_turnover.iloc[5:, 1:].values
-            # 创建DataFrame并设置索引
-            df_turn = pd.DataFrame(data, index=dates, columns=codes)
-            # 移除无效日期的行
-            df_turn = df_turn[df_turn.index.notna()]
-            self.bond_filters_data["turnover"] = df_turn
+            df_turn = _load_csv_wide("cb_amount_cache.csv", "流动性")
+            if df_turn is not None:
+                self.bond_filters_data["turnover"] = df_turn
 
             # 2. 加载评级 (信用评级)
-            # Row 2 (index 2) is Codes. Data starts Row 4 (index 4). Date Col 2. Codes start Col 3.
-            print("  加载评级数据...")
-            df_rating = pd.read_excel(xls, sheet_name="信用评级", header=None)
-            dates = pd.to_datetime(df_rating.iloc[4:, 2].tolist(), errors="coerce")
-            codes = df_rating.iloc[2, 3:].tolist()
-            data = df_rating.iloc[4:, 3:].values
-            df_rate = pd.DataFrame(data, index=dates, columns=codes)
-            df_rate = df_rate[df_rate.index.notna()]
-            self.bond_filters_data["rating"] = df_rate
+            df_rate = _load_csv_wide("cb_rating_cache.csv", "评级")
+            if df_rate is not None:
+                self.bond_filters_data["rating"] = df_rate
 
             # 3. 加载剩余期限
-            # Row 0 (index 0) is Codes. Data starts Row 2 (index 2). Date Col 0. Codes start Col 1.
-            print("  加载剩余期限数据...")
-            df_term = pd.read_excel(xls, sheet_name="剩余期限", header=None)
-            dates = pd.to_datetime(df_term.iloc[2:, 0].tolist(), errors="coerce")
-            codes = df_term.iloc[0, 1:].tolist()
-            data = df_term.iloc[2:, 1:].values
-            df_t = pd.DataFrame(data, index=dates, columns=codes)
-            df_t = df_t[df_t.index.notna()]
-            self.bond_filters_data["term"] = df_t
+            df_t = _load_csv_wide("cb_maturity_cache.csv", "剩余期限")
+            if df_t is not None:
+                self.bond_filters_data["term"] = df_t
 
             # 4. 加载未转股余额
-            # Row 3 (index 3) is Codes. Data starts Row 5 (index 5). Date Col 0. Codes start Col 1.
-            print("  加载未转股余额数据...")
-            df_balance = pd.read_excel(xls, sheet_name="可转债余额", header=None)
-            dates = pd.to_datetime(df_balance.iloc[5:, 0].tolist(), errors="coerce")
-            codes = df_balance.iloc[3, 1:].tolist()
-            data = df_balance.iloc[5:, 1:].values
-            df_bal = pd.DataFrame(data, index=dates, columns=codes)
-            df_bal = df_bal[df_bal.index.notna()]
-            self.bond_filters_data["balance"] = df_bal
+            df_bal = _load_csv_wide("cb_balance_cache.csv", "未转股余额")
+            if df_bal is not None:
+                self.bond_filters_data["balance"] = df_bal
 
             # 5. 计算上市时间 (第一次有数据往后推4周)
-            # 使用余额数据判断
             print("  计算上市时间限制...")
             listing_check = {}
-            # 确保余额数据是数值型
-            df_bal = df_bal.apply(pd.to_numeric, errors="coerce")
-
-            for code in df_bal.columns:
-                # 找到第一个非NaN且大于0的日期
-                valid_series = df_bal[code]
-                valid_indices = valid_series[valid_series.notna()].index
-                if len(valid_indices) > 0:
-                    first_date = valid_indices[0]
-                    # 往后推4周 (28天)
-                    listing_check[code] = first_date + timedelta(days=28)
+            if df_bal is not None:
+                df_bal_num = df_bal.apply(pd.to_numeric, errors="coerce")
+                for code in df_bal_num.columns:
+                    valid_series = df_bal_num[code]
+                    valid_indices = valid_series[valid_series.notna() & (valid_series > 0)].index
+                    if len(valid_indices) > 0:
+                        first_date = valid_indices[0]
+                        listing_check[code] = first_date + timedelta(days=28)
 
             self.bond_filters_data["listing_check"] = listing_check
 
