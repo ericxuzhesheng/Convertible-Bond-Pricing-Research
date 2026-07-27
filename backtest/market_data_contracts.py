@@ -32,6 +32,15 @@ class ClauseTerms:
     maturity_redemption_price: float | None
 
 
+@dataclass(frozen=True)
+class ClauseHistoryState:
+    """Observed clause-trigger state carried into a valuation date."""
+
+    put_consecutive_days: int
+    redeem_count: int
+    redeem_flags: np.ndarray
+
+
 _CHINESE_INTEGERS = {
     "一": 1,
     "二": 2,
@@ -65,6 +74,63 @@ def _first_positive(values: Iterable[object]) -> float | None:
         if pd.notna(numeric) and float(numeric) > 0:
             return float(numeric)
     return None
+
+
+def build_clause_history_state(
+    *,
+    conversion_value: pd.Series,
+    valuation_date: pd.Timestamp,
+    par_value: float,
+    put_trigger_ratio: float,
+    put_eligible_start: pd.Timestamp,
+    redeem_trigger_ratio: float,
+    redeem_window_days: int,
+) -> ClauseHistoryState:
+    """Build clause counters from observed conversion values through valuation.
+
+    The returned redemption ring is always length 64 because that is the fixed
+    local-array capacity used by the CUDA kernel.  Put observations before the
+    contractual eligibility date never contribute to the carried counter.
+    """
+
+    if not np.isfinite(par_value) or par_value <= 0:
+        raise DataContractError("par_value must be positive")
+    if not 1 <= int(redeem_window_days) <= 64:
+        raise DataContractError("redeem_window_days must be between 1 and 64")
+
+    observed = pd.to_numeric(conversion_value, errors="coerce").copy()
+    observed.index = pd.to_datetime(observed.index, errors="coerce")
+    observed = observed.loc[
+        observed.index.notna()
+        & (observed.index <= pd.Timestamp(valuation_date))
+    ].sort_index()
+    observed = observed.dropna()
+
+    redeem_flags = np.zeros(64, dtype=np.int32)
+    redeem_history = (
+        observed.tail(int(redeem_window_days)).to_numpy(dtype=float)
+        >= float(redeem_trigger_ratio) * float(par_value)
+    ).astype(np.int32)
+    redeem_flags[: len(redeem_history)] = redeem_history
+
+    eligible = observed.loc[
+        observed.index >= pd.Timestamp(put_eligible_start)
+    ]
+    put_hits = (
+        eligible.to_numpy(dtype=float)
+        <= float(put_trigger_ratio) * float(par_value)
+    )
+    put_consecutive_days = 0
+    for hit in put_hits[::-1]:
+        if not hit:
+            break
+        put_consecutive_days += 1
+
+    return ClauseHistoryState(
+        put_consecutive_days=put_consecutive_days,
+        redeem_count=int(redeem_history.sum()),
+        redeem_flags=redeem_flags,
+    )
 
 
 def build_conversion_price_matrix(
