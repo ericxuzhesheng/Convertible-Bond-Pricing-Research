@@ -106,7 +106,7 @@ def run_pipeline() -> None:
     )
     if result.returncode != 0:
         tail = result.stderr[-500:] if result.stderr else "(无 stderr)"
-        _warn(f"data_pipeline 失败，信号可能基于陈旧数据: {tail}")
+        raise RuntimeError(f"data_pipeline 失败，已停止后续模型与信号: {tail}")
     else:
         print("  数据更新完成。")
 
@@ -120,17 +120,11 @@ def run_models() -> None:
             cwd=DIR, capture_output=True, text=True
         )
         if result.returncode != 0:
-            if name == "Z-L":
-                print("  GPU 版本运行未检测到可用设备或报错，自动回退至 CPU 加速版 (Z-L_backtest_CPU.py) …")
-                result = subprocess.run(
-                    [sys.executable, os.path.join(DIR, "Z-L_backtest_CPU.py")],
-                    cwd=DIR, capture_output=True, text=True
-                )
-            if result.returncode != 0:
-                tail = result.stderr[-300:] if result.stderr else "(无 stderr)"
-                _warn(f"{name} 模型运行失败，该模型偏差可能缺失或过期: {tail}")
-            else:
-                print(f"  {name} 完成。")
+            tail = result.stderr[-300:] if result.stderr else "(无 stderr)"
+            raise RuntimeError(
+                f"{name} 模型运行失败，已停止信号生成；"
+                f"不会静默切换设备或使用陈旧结果: {tail}"
+            )
         else:
             print(f"  {name} 完成。")
 
