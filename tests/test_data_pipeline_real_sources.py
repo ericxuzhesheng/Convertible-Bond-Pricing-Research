@@ -201,3 +201,19 @@ def test_stock_market_value_queries_each_underlying_security(
     assert result.loc[pd.Timestamp("2024-01-02"), "123001.SZ"] == pytest.approx(
         500_000.0
     )
+
+
+def test_observed_bond_floor_is_masked_to_actual_market_cells() -> None:
+    dates = pd.to_datetime(["2024-01-02", "2024-01-03"])
+    price = pd.DataFrame({"123001.SZ": [101.0, np.nan]}, index=dates)
+    provider_value = pd.DataFrame({"123001.SZ": [96.2, 96.4]}, index=dates)
+
+    floor = data_pipeline.build_observed_bond_floor(
+        provider_bond_value=provider_value,
+        market_price=price,
+    )
+
+    assert floor.loc[pd.Timestamp("2024-01-02"), "123001.SZ"] == pytest.approx(
+        96.2
+    )
+    assert pd.isna(floor.loc[pd.Timestamp("2024-01-03"), "123001.SZ"])
