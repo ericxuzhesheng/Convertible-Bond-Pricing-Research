@@ -29,6 +29,7 @@ from market_data_contracts import (  # noqa: E402
     implied_credit_spread,
     load_rebuildable_matrix_cache,
     observed_average_risk_free_rate,
+    validate_balance_wan_units,
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
     point_in_time_fundamental_matrix,
@@ -467,3 +468,19 @@ def test_average_risk_free_rate_uses_observed_curve_window() -> None:
     )
 
     assert rate == pytest.approx(0.019)
+
+
+def test_balance_unit_contract_rejects_raw_yuan_values() -> None:
+    balance = pd.DataFrame(
+        {"123001.SZ": [500_000_000.0]},
+        index=pd.DatetimeIndex(["2024-01-02"]),
+    )
+    basic = pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ"],
+            "issue_size": [500_000_000.0],
+        }
+    )
+
+    with pytest.raises(DataContractError, match="not 万元"):
+        validate_balance_wan_units(balance=balance, cb_basic=basic)
