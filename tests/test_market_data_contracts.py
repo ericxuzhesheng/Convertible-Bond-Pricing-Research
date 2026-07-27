@@ -21,6 +21,7 @@ from market_data_contracts import (  # noqa: E402
     build_point_in_time_rating_matrix,
     calculate_accrued_interest,
     extract_clause_terms,
+    implied_credit_spread,
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
     point_in_time_fundamental_matrix,
@@ -260,4 +261,25 @@ def test_credit_spread_rejects_missing_rating_curve() -> None:
             ratings=ratings,
             government_curve=government,
             corporate_curves={},
+        )
+
+
+def test_implied_credit_spread_is_solved_from_observed_bond_value() -> None:
+    spread = implied_credit_spread(
+        observed_bond_value=95.0,
+        cashflow_times=np.array([1.0]),
+        cashflow_amounts=np.array([100.0]),
+        risk_free_rates=np.array([0.02]),
+    )
+
+    assert spread == pytest.approx(-np.log(0.95) - 0.02)
+
+
+def test_implied_credit_spread_rejects_inconsistent_bond_value() -> None:
+    with pytest.raises(DataContractError, match="bond value"):
+        implied_credit_spread(
+            observed_bond_value=110.0,
+            cashflow_times=np.array([1.0]),
+            cashflow_amounts=np.array([100.0]),
+            risk_free_rates=np.array([0.02]),
         )
