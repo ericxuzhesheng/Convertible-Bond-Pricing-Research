@@ -49,6 +49,7 @@ from market_data_contracts import (
     build_conversion_price_matrix,
     build_point_in_time_balance_matrix,
     build_point_in_time_rating_matrix,
+    extract_clause_terms,
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
 )
@@ -77,6 +78,7 @@ RF_CACHE      = os.path.join(OUT_DIR, 'rf_yield_cache.csv')
 OUT_CONV_PRICE = os.path.join(OUT_DIR, 'cb_conversion_price_cache.csv')
 OUT_CONV_EVENTS = os.path.join(OUT_DIR, 'cb_conversion_price_events.csv')
 OUT_SHARE_EVENTS = os.path.join(OUT_DIR, 'cb_share_events.csv')
+OUT_CLAUSES = os.path.join(OUT_DIR, 'cb_clause_terms.csv')
 
 
 # ==========================================
@@ -299,6 +301,50 @@ def fetch_conversion_price_events(
         keep='last',
     )
     return result.sort_values(['ts_code', 'change_date'])
+
+
+def fetch_clause_terms_akshare(bonds: list[str]) -> pd.DataFrame:
+    """Download contractual redemption/put clauses from Eastmoney via AkShare."""
+
+    print("\n[Step 3] 拉取可转债回售/赎回条款 AkShare ...")
+    rows = []
+    for ts_code in tqdm(sorted(set(bonds)), desc='bond clauses'):
+        symbol = str(ts_code).split('.')[0]
+        try:
+            detail = ak.bond_zh_cov_info(symbol=symbol)
+            if detail is None or detail.empty:
+                raise DataContractError("empty AkShare bond detail")
+            record = detail.iloc[0]
+            par_value = pd.to_numeric(record.get('PAR_VALUE'), errors='coerce')
+            if pd.isna(par_value) or float(par_value) <= 0:
+                raise DataContractError("contractual par value unavailable")
+            resale_clause = record.get('RESALE_CLAUSE')
+            redeem_clause = record.get('REDEEM_CLAUSE')
+            terms = extract_clause_terms(
+                resale_clause,
+                redeem_clause,
+                par_value=float(par_value),
+            )
+            rows.append(
+                {
+                    'ts_code': ts_code,
+                    'source_ok': True,
+                    'source_error': '',
+                    'resale_clause': resale_clause,
+                    'redeem_clause': redeem_clause,
+                    **terms.__dict__,
+                }
+            )
+        except Exception as exc:
+            rows.append(
+                {
+                    'ts_code': ts_code,
+                    'source_ok': False,
+                    'source_error': str(exc),
+                }
+            )
+        time.sleep(0.05)
+    return pd.DataFrame(rows)
 
 
 def calc_convert_val(
@@ -887,6 +933,10 @@ def run_pipeline(
         change_events=conversion_events,
     )
     conversion_price.to_csv(OUT_CONV_PRICE)
+    clause_terms = fetch_clause_terms_akshare(list(df_price.columns))
+    clause_terms.to_csv(OUT_CLAUSES, index=False)
+    clause_coverage = clause_terms['source_ok'].fillna(False).mean()
+    print(f"   条款数据覆盖率: {clause_coverage:.1%}")
 
     observed_cv = daily['convert_value'].reindex(
         index=df_price_new.index,

@@ -216,7 +216,7 @@ def extract_clause_terms(
     )
 
     maturity_match = re.search(
-        r"(?:票面面值|债券面值)(?:上浮|加)\s*(\d+(?:\.\d+)?)\s*[%％]",
+        r"(?:票面面值|债券面值|面值)(?:上浮|加)\s*(\d+(?:\.\d+)?)\s*[%％]",
         redeem,
     )
     maturity_price = (
