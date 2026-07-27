@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
+import pandas as pd
 import pytest
 
 
@@ -52,3 +54,33 @@ def test_zl_gpu_failure_does_not_silently_fall_back_to_cpu(
         daily_signal.run_models()
 
     assert calls == ["B-S_backtest.py", "Z-L_backtest_GPU_prod.py"]
+
+
+def test_signal_date_requires_same_fresh_market_and_model_date() -> None:
+    dates = pd.DatetimeIndex(["2024-01-02", "2024-01-03"])
+    market = pd.DataFrame({"A": [100.0, 101.0]}, index=dates)
+    bs = pd.DataFrame({"A": [0.1, 0.2]}, index=dates)
+    zl = pd.DataFrame({"A": [0.1, np.nan]}, index=dates)
+
+    with pytest.raises(RuntimeError, match="dates disagree"):
+        daily_signal.select_signal_date(
+            bs_deviation=bs,
+            zl_deviation=zl,
+            market_price=market,
+            now=pd.Timestamp("2024-01-04"),
+        )
+
+
+def test_signal_score_requires_both_observed_model_outputs() -> None:
+    candidates = pd.DataFrame(
+        {
+            "ts_code": ["A", "B"],
+            "bs_dev": [0.2, 0.3],
+            "zl_dev": [0.1, np.nan],
+        }
+    )
+
+    scored = daily_signal.combine_observed_model_scores(candidates)
+
+    assert scored["ts_code"].tolist() == ["A"]
+    assert scored.iloc[0]["score"] == pytest.approx(0.15)
