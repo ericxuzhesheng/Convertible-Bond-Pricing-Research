@@ -198,9 +198,11 @@ def test_bond_cache_merge_cannot_reintroduce_exchangeable_columns() -> None:
     result = data_pipeline._merge_bond_wide(
         existing,
         new,
-        bond_codes=pd.Index(["110001.SH"]),
+        bond_codes=pd.Index(["110001.SH", "123999.SZ"]),
     )
 
+    # An eligible code with no observations must not inflate every cache with
+    # an all-NaN column.
     assert result.columns.tolist() == ["110001.SH"]
     assert result.loc[pd.Timestamp("2024-01-12"), "110001.SH"] == 102.0
 

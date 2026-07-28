@@ -198,6 +198,45 @@ def _merge_wide(existing, new: pd.DataFrame) -> pd.DataFrame:
     return combined.sort_index()
 
 
+def _merge_bond_wide(
+    existing,
+    new: pd.DataFrame,
+    *,
+    bond_codes: pd.Index,
+) -> pd.DataFrame:
+    """Merge a bond matrix without reintroducing excluded instruments."""
+
+    merged = _merge_wide(existing, new)
+    return merged.loc[:, merged.columns.isin(bond_codes)]
+
+
+def filter_exchangeable_bonds(cb_basic: pd.DataFrame) -> pd.DataFrame:
+    """Return the public-convertible universe without exchangeable bonds."""
+
+    if "ts_code" not in cb_basic.columns:
+        raise DataContractError("cb_basic missing ts_code")
+    codes = cb_basic["ts_code"].astype(str)
+    short_names = cb_basic.get(
+        "bond_short_name",
+        pd.Series("", index=cb_basic.index, dtype=object),
+    ).fillna("").astype(str)
+    full_names = cb_basic.get(
+        "bond_full_name",
+        pd.Series("", index=cb_basic.index, dtype=object),
+    ).fillna("").astype(str)
+    exchangeable = (
+        codes.str.startswith(("120", "132"))
+        | short_names.str.contains(r"EB\d*$", case=False, regex=True)
+        | full_names.str.contains("可交换公司债券", regex=False)
+    )
+    filtered = cb_basic.loc[~exchangeable].copy().reset_index(drop=True)
+    if filtered.empty:
+        raise DataContractError(
+            "exchangeable-bond filter removed the entire research universe"
+        )
+    return filtered
+
+
 def fetch_trade_dates(pro, start: str, end: str) -> list[str]:
     """Return actual open SSE dates for bounded per-day market queries."""
 
@@ -1203,16 +1242,32 @@ def run_pipeline(
             .reset_index()
         )
         cb_basic = merged_basic
+    original_bond_count = len(cb_basic)
+    cb_basic = filter_exchangeable_bonds(cb_basic)
+    excluded_bond_count = original_bond_count - len(cb_basic)
+    bond_codes = pd.Index(
+        cb_basic["ts_code"].astype(str).drop_duplicates(),
+        name="ts_code",
+    )
+    print(f"   Excluded {excluded_bond_count} exchangeable bonds")
     cb_basic.to_csv(OUT_BASIC, index=False)
     print(f"   已保存: {OUT_BASIC}  ({len(cb_basic)} 条)")
 
     # --- 转债日线 ---
     daily = fetch_cb_daily(pro, start, end)
+    daily = {
+        label: frame.loc[:, frame.columns.isin(bond_codes)]
+        for label, frame in daily.items()
+    }
     df_price_new = daily['price']
     df_price = (
         df_price_new
         if rebuild_all
-        else _merge_wide(_load_existing(OUT_PRICE), df_price_new)
+        else _merge_bond_wide(
+            _load_existing(OUT_PRICE),
+            df_price_new,
+            bond_codes=bond_codes,
+        )
     )
     df_price = df_price.where(df_price > 0)
     df_price.to_csv(OUT_PRICE)
@@ -1221,7 +1276,11 @@ def run_pipeline(
     amount = (
         amount_new
         if rebuild_all
-        else _merge_wide(_load_existing(OUT_AMOUNT), amount_new)
+        else _merge_bond_wide(
+            _load_existing(OUT_AMOUNT),
+            amount_new,
+            bond_codes=bond_codes,
+        )
     )
     amount.to_csv(OUT_AMOUNT)
 
@@ -1299,7 +1358,11 @@ def run_pipeline(
     df_cv = (
         df_cv_new
         if rebuild_all
-        else _merge_wide(_load_existing(OUT_CV), df_cv_new)
+        else _merge_bond_wide(
+            _load_existing(OUT_CV),
+            df_cv_new,
+            bond_codes=bond_codes,
+        )
     )
     df_cv.to_csv(OUT_CV)
 
@@ -1308,7 +1371,11 @@ def run_pipeline(
     df_maturity = (
         df_mat_new
         if rebuild_all
-        else _merge_wide(_load_existing(OUT_MATURITY), df_mat_new)
+        else _merge_bond_wide(
+            _load_existing(OUT_MATURITY),
+            df_mat_new,
+            bond_codes=bond_codes,
+        )
     )
     df_maturity.to_csv(OUT_MATURITY)
 
@@ -1323,7 +1390,11 @@ def run_pipeline(
     df_floor = (
         df_floor_new
         if rebuild_all
-        else _merge_wide(_load_existing(OUT_FLOOR), df_floor_new)
+        else _merge_bond_wide(
+            _load_existing(OUT_FLOOR),
+            df_floor_new,
+            bond_codes=bond_codes,
+        )
     )
     df_floor.to_csv(OUT_FLOOR)
 
@@ -1345,9 +1416,10 @@ def run_pipeline(
     credit_spread = (
         credit_spread_new
         if rebuild_all
-        else _merge_wide(
+        else _merge_bond_wide(
             _load_existing(OUT_CREDIT_SPREAD),
             credit_spread_new,
+            bond_codes=bond_codes,
         )
     )
     credit_spread.to_csv(OUT_CREDIT_SPREAD)
@@ -1381,7 +1453,11 @@ def run_pipeline(
     df_stk_mv = (
         df_mv_new
         if rebuild_all
-        else _merge_wide(_load_existing(OUT_STOCK_MV), df_mv_new)
+        else _merge_bond_wide(
+            _load_existing(OUT_STOCK_MV),
+            df_mv_new,
+            bond_codes=bond_codes,
+        )
     )
     validate_stock_market_value_wan_units(df_stk_mv)
     df_stk_mv.to_csv(OUT_STOCK_MV)
@@ -1398,7 +1474,11 @@ def run_pipeline(
     balance = (
         bal_new
         if rebuild_all
-        else _merge_wide(_load_existing(OUT_BALANCE), bal_new)
+        else _merge_bond_wide(
+            _load_existing(OUT_BALANCE),
+            bal_new,
+            bond_codes=bond_codes,
+        )
     )
     validate_balance_wan_units(balance=balance, cb_basic=cb_basic)
     balance.to_csv(OUT_BALANCE)
@@ -1408,7 +1488,11 @@ def run_pipeline(
     df_rating = (
         df_rating_new
         if rebuild_all
-        else _merge_wide(_load_existing(OUT_RATING), df_rating_new)
+        else _merge_bond_wide(
+            _load_existing(OUT_RATING),
+            df_rating_new,
+            bond_codes=bond_codes,
+        )
     )
     df_rating.to_csv(OUT_RATING)
 
@@ -1417,7 +1501,11 @@ def run_pipeline(
     df_bps = (
         df_bps_new
         if rebuild_all
-        else _merge_wide(_load_existing(OUT_BPS), df_bps_new)
+        else _merge_bond_wide(
+            _load_existing(OUT_BPS),
+            df_bps_new,
+            bond_codes=bond_codes,
+        )
     )
     # Point-in-time carry-forward across incremental weekly boundaries.
     # Values remain unavailable before their announcement dates.
