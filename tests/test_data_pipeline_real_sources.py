@@ -184,6 +184,30 @@ def test_cb_daily_rejects_empty_open_date_instead_of_checkpointing_it(
         )
 
 
+def test_weekly_rebuild_caps_end_at_last_completed_week() -> None:
+    class CurrentWeekPro(FakePro):
+        def trade_cal(self, **kwargs):
+            return pd.DataFrame(
+                {
+                    "cal_date": [
+                        "20260724",
+                        "20260727",
+                        "20260728",
+                    ],
+                    "is_open": [1, 1, 1],
+                }
+            )
+
+    resolved = data_pipeline.resolve_completed_weekly_end(
+        CurrentWeekPro(),
+        start="20260724",
+        requested_end="20260728",
+        as_of=pd.Timestamp("2026-07-28 12:00:00"),
+    )
+
+    assert resolved == "20260724"
+
+
 def test_cb_daily_treats_nonpositive_close_as_missing(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

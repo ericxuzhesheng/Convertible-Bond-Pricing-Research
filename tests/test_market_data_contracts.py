@@ -478,6 +478,25 @@ def test_completed_weekly_dates_exclude_partial_current_week() -> None:
     ]
 
 
+def test_completed_weekly_dates_wait_for_friday_market_close() -> None:
+    dates = pd.to_datetime(["2026-07-17", "2026-07-24"])
+
+    before_close = select_completed_weekly_dates(
+        dates,
+        as_of=pd.Timestamp("2026-07-24 12:00:00"),
+    )
+    after_close = select_completed_weekly_dates(
+        dates,
+        as_of=pd.Timestamp("2026-07-24 18:00:00"),
+    )
+
+    assert before_close.tolist() == [pd.Timestamp("2026-07-17")]
+    assert after_close.tolist() == [
+        pd.Timestamp("2026-07-17"),
+        pd.Timestamp("2026-07-24"),
+    ]
+
+
 def test_pricing_coverage_fails_closed_on_tiny_weekly_sample() -> None:
     date = pd.Timestamp("2024-01-12")
     market = pd.DataFrame(
