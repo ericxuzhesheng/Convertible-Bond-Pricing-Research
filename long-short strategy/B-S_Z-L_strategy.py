@@ -3,9 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-import matplotlib.ticker as ticker
 
 # 设置绘图风格
 try:
@@ -186,7 +183,9 @@ class CBStrategy:
                 df_bench.sort_index(inplace=True)
 
                 self.benchmark_prices = df_bench["close"]
-                self.benchmark_returns_daily = self.benchmark_prices.pct_change().fillna(0)
+                self.benchmark_returns_daily = self.benchmark_prices.pct_change(
+                    fill_method=None
+                )
                 print("本地基准数据加载成功。")
             else:
                 raise ValueError("本地基准数据为空")
@@ -313,10 +312,10 @@ class CBStrategy:
             if i % 12 == 0:
                 print(f"调仓日期: {date.date()}, 第一层硬约束筛选后标的数量: {len(universe)}")
             
-            strategy_ret = 0
-            long_ret = 0
-            short_ret = 0
-            bench_ret = 0
+            strategy_ret = np.nan
+            long_ret = np.nan
+            short_ret = np.nan
+            bench_ret = np.nan
             
             if len(universe) > 10: 
                 # 2. 估值与相对偏差筛选
@@ -346,13 +345,16 @@ class CBStrategy:
                             short_ret = s_rets_raw.mean()
                             strategy_ret = long_ret - short_ret
                         else:
-                            strategy_ret = 0
+                            strategy_ret = np.nan
                     else:
                         p_start = self.prices.loc[date]
                         p_end = self.prices.loc[next_date]
                         valid_long = [c for c in current_long if pd.notnull(p_start[c]) and pd.notnull(p_end[c])]
                         valid_short = [c for c in current_short if pd.notnull(p_start[c]) and pd.notnull(p_end[c])]
-                        if valid_long and valid_short:
+                        if (
+                            len(valid_long) == len(current_long)
+                            and len(valid_short) == len(current_short)
+                        ):
                             l_ret = (p_end[valid_long] / p_start[valid_long] - 1).mean()
                             s_ret = (p_end[valid_short] / p_start[valid_short] - 1).mean()
                             long_ret = l_ret
@@ -364,44 +366,32 @@ class CBStrategy:
                 if i % 12 == 0:
                     print(f"警告: {date.date()} 第一层约束后候选池过小 ({len(universe)})。")
                 
+            if not np.isfinite(strategy_ret):
+                raise RuntimeError(
+                    f"strategy return unavailable for {date.date()} -> "
+                    f"{next_date.date()}"
+                )
             portfolio_returns.append(strategy_ret)
             portfolio_long_returns.append(long_ret)
             portfolio_short_returns.append(-short_ret)
             
             # 基准收益：使用价格直接计算，逻辑与 B-S 模型保持一致
-            if self.benchmark_prices is not None:
-                def get_price(target_date):
-                    if target_date in self.benchmark_prices.index:
-                        return self.benchmark_prices.loc[target_date]
-                    valid_dates = self.benchmark_prices.index[self.benchmark_prices.index <= target_date]
-                    if len(valid_dates) > 0:
-                        return self.benchmark_prices.loc[valid_dates[-1]]
-                    return None
-                
-                p0 = get_price(date)
-                p1 = get_price(next_date)
-                
-                if p0 is not None and p1 is not None and p0 != 0:
-                    bench_ret = (p1 - p0) / p0
-                else:
-                    bench_ret = 0
-            else:
-                # 回退：计算 universe 中所有标的的等权平均收益
-                if self.returns_data is not None:
-                    mask = (self.returns_data.index > date) & (self.returns_data.index <= next_date)
-                    if mask.any():
-                        u_rets = (1 + self.returns_data.loc[mask, universe.intersection(self.returns_data.columns)]).prod() - 1
-                        bench_ret = u_rets.mean()
-                    else:
-                        bench_ret = 0
-                else:
-                    if len(universe) > 0:
-                        p_start = self.prices.loc[date]
-                        p_end = self.prices.loc[next_date]
-                        valid_u = [c for c in universe if pd.notnull(p_start[c]) and pd.notnull(p_end[c])]
-                        bench_ret = (p_end[valid_u] / p_start[valid_u] - 1).mean() if valid_u else 0
-                    else:
-                        bench_ret = 0
+            if self.benchmark_prices is None:
+                raise RuntimeError("benchmark return unavailable: no benchmark")
+            if (
+                date not in self.benchmark_prices.index
+                or next_date not in self.benchmark_prices.index
+            ):
+                raise RuntimeError(
+                    "benchmark return unavailable: exact rebalance date missing"
+                )
+            p0 = self.benchmark_prices.loc[date]
+            p1 = self.benchmark_prices.loc[next_date]
+            if pd.isna(p0) or pd.isna(p1) or p0 == 0:
+                raise RuntimeError(
+                    "benchmark return unavailable: invalid benchmark price"
+                )
+            bench_ret = (p1 - p0) / p0
             benchmark_returns_list.append(bench_ret)
             actual_rebalance_dates.append(next_date)
 
@@ -459,7 +449,8 @@ class CBStrategy:
             else:
                 days = (c.index[-1] - c.index[0]).days
                 
-            if days <= 0: return 0, 0, 0, 0
+            if days <= 0:
+                return 0, 0, 0, 0
             ann_ret = (1 + c.iloc[-1]) ** (365.25 / days) - 1
             
             # 2. 年化波动率 (基于月度收益率序列)
@@ -504,10 +495,14 @@ class CBStrategy:
         ops_df = []
         for op in self.results['operations']:
             date = op['date'].date()
-            for ticker in op['long']:
-                ops_df.append({'日期': date, '方向': '做多', '标的': ticker})
-            for ticker in op['short']:
-                ops_df.append({'日期': date, '方向': '做空', '标的': ticker})
+            for bond_code in op['long']:
+                ops_df.append(
+                    {'日期': date, '方向': '做多', '标的': bond_code}
+                )
+            for bond_code in op['short']:
+                ops_df.append(
+                    {'日期': date, '方向': '做空', '标的': bond_code}
+                )
         
         pd.DataFrame(ops_df).to_csv(os.path.join(SCRIPT_DIR, 'strategy_operations.csv'), index=False, encoding='utf_8_sig')
         print("调仓记录已保存为 strategy_operations.csv")

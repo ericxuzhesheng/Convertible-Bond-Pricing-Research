@@ -19,8 +19,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import warnings
-from datetime import datetime, timedelta
-import glob, re
+from datetime import timedelta
+import glob
+import re
 import sys
 
 warnings.filterwarnings("ignore")
@@ -35,6 +36,7 @@ MIN_OUTSTANDING_BALANCE_WAN = 3_000.0
 sys.path.insert(0, str(BACKTEST_DIR))
 
 from market_data_contracts import (  # noqa: E402
+    DataContractError,
     observed_average_risk_free_rate,
 )
 
@@ -186,7 +188,7 @@ class MultiFactorBacktest:
             print("  警告: 未找到基准数据文件，将使用市场等权平均")
             self.benchmark_prices = None
 
-        print(f"\n数据加载完成！")
+        print("\n数据加载完成！")
         print(f"  价格数据: {self.prices.shape[0]} 天 × {self.prices.shape[1]} 只转债")
         print(f"  日期范围: {self.prices.index.min()} 至 {self.prices.index.max()}")
 
@@ -429,7 +431,7 @@ class MultiFactorBacktest:
                         or val <= MIN_DAILY_TURNOVER_WAN
                     ):
                         continue
-                except:
+                except (TypeError, ValueError):
                     continue
             else:
                 continue  # 没有成交额数据
@@ -449,7 +451,7 @@ class MultiFactorBacktest:
                     val = float(val)
                     if pd.isna(val) or val <= 1.0:
                         continue
-                except:
+                except (TypeError, ValueError):
                     continue
             else:
                 continue
@@ -464,7 +466,7 @@ class MultiFactorBacktest:
                         or val <= MIN_OUTSTANDING_BALANCE_WAN
                     ):
                         continue
-                except:
+                except (TypeError, ValueError):
                     continue
             else:
                 continue
@@ -630,22 +632,15 @@ class MultiFactorBacktest:
         """
         # 尝试使用指数数据
         if hasattr(self, "benchmark_prices") and self.benchmark_prices is not None:
-            # 辅助函数：获取指定日期（或之前最近日期）的数据
-            def get_price(target_date):
-                if target_date in self.benchmark_prices.index:
-                    return self.benchmark_prices.loc[target_date]
-                # 找到之前最近的日期
-                valid_dates = self.benchmark_prices.index[
-                    self.benchmark_prices.index <= target_date
-                ]
-                if len(valid_dates) > 0:
-                    return self.benchmark_prices.loc[valid_dates[-1]]
-                return None
-
-            p0 = get_price(date)
-            p1 = get_price(next_date)
-
-            if p0 is not None and p1 is not None and p0 != 0:
+            if (
+                date in self.benchmark_prices.index
+                and next_date in self.benchmark_prices.index
+            ):
+                p0 = self.benchmark_prices.loc[date]
+                p1 = self.benchmark_prices.loc[next_date]
+            else:
+                return np.nan
+            if pd.notna(p0) and pd.notna(p1) and p0 != 0:
                 return (p1 - p0) / p0
 
         return np.nan
@@ -659,7 +654,7 @@ class MultiFactorBacktest:
             return np.nan
 
         if len(holdings) == 0:
-            return 0.0
+            return np.nan
 
         # 过滤出在价格数据中存在的转债
         available_holdings = [h for h in holdings if h in self.prices.columns]
@@ -673,12 +668,12 @@ class MultiFactorBacktest:
         # 计算收益率
         returns = (price_t1 - price_t0) / price_t0
 
-        # 去除NaN后等权平均
-        valid_returns = returns.dropna()
-        if len(valid_returns) == 0:
+        # A held bond with no end price is not silently removed from the
+        # portfolio; doing so creates survivorship bias.
+        if returns.isna().any() or not np.isfinite(returns).all():
             return np.nan
 
-        return valid_returns.mean()
+        return returns.mean()
 
     def preprocess_factors(self):
         """
@@ -727,7 +722,7 @@ class MultiFactorBacktest:
         if self.prices is None:
             return None
 
-        returns = self.prices.pct_change()
+        returns = self.prices.pct_change(fill_method=None)
         # 20日滚动年化波动率
         vol = returns.rolling(window=20).std() * np.sqrt(252)
         return vol
@@ -758,7 +753,7 @@ class MultiFactorBacktest:
         if self.prices is None:
             return None
 
-        bond_returns = self.prices.pct_change()
+        bond_returns = self.prices.pct_change(fill_method=None)
         factor_returns_dict = {}
 
         print("  计算各因子每日收益率...")
@@ -936,6 +931,20 @@ class MultiFactorBacktest:
 
         self.results_df = pd.DataFrame(results)
         self.results_df = self.results_df.set_index("date")
+        required_return_columns = [
+            column
+            for column in self.results_df.columns
+            if column == "benchmark_return" or column.endswith("_return")
+        ]
+        missing_returns = self.results_df[required_return_columns].isna()
+        if missing_returns.any().any():
+            first_date, first_column = missing_returns.stack().loc[
+                lambda values: values
+            ].index[0]
+            raise DataContractError(
+                "backtest return unavailable: "
+                f"{first_column} at {pd.Timestamp(first_date).date()}"
+            )
 
         print(f"\n回测完成！共 {len(self.results_df)} 期")
         return self.results_df
@@ -960,8 +969,6 @@ class MultiFactorBacktest:
         print("=" * 60)
 
         import matplotlib.pyplot as plt
-        import pandas as pd
-
         df = self.results_df
         plt.style.use("seaborn-v0_8-white" if "seaborn-v0_8-white" in plt.style.available else "seaborn-white")
         plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei"]
@@ -991,8 +998,8 @@ class MultiFactorBacktest:
             col_name = f"{f}_nav"
             if col_name in df.columns:
                 c = colors.get(f, "#17becf")
-                l, = ax1.plot(df.index, df[col_name], label=factor_names_cn.get(f, f), color=c, linewidth=1.5)
-                lines1.append(l)
+                line, = ax1.plot(df.index, df[col_name], label=factor_names_cn.get(f, f), color=c, linewidth=1.5)
+                lines1.append(line)
                 labels1.append(factor_names_cn.get(f, f))
                 
         l_ew1, = ax1.plot(df.index, df["long_nav"], label="五因子等权" if len(self.normalized_factors) == 5 else "六因子等权", color="brown", linewidth=2)
@@ -1022,8 +1029,8 @@ class MultiFactorBacktest:
             col_name = f"{f}_nav_gross"
             if col_name in df.columns:
                 c = colors.get(f, "#17becf")
-                l, = ax2.plot(df.index, df[col_name], label=factor_names_cn.get(f, f), color=c, linewidth=1.5)
-                lines2.append(l)
+                line, = ax2.plot(df.index, df[col_name], label=factor_names_cn.get(f, f), color=c, linewidth=1.5)
+                lines2.append(line)
                 labels2.append(factor_names_cn.get(f, f))
                 
         l_ew2, = ax2.plot(df.index, df["long_nav_gross"], label="五因子等权" if len(self.normalized_factors) == 5 else "六因子等权", color="brown", linewidth=2)
@@ -1054,8 +1061,8 @@ class MultiFactorBacktest:
             col_name = f"{f}_turnover"
             if col_name in df.columns:
                 c = colors.get(f, "#17becf")
-                l, = ax3.plot(df.index, df[col_name], label=factor_names_cn.get(f, f), color=c, linewidth=1.5, alpha=0.8)
-                lines3.append(l)
+                line, = ax3.plot(df.index, df[col_name], label=factor_names_cn.get(f, f), color=c, linewidth=1.5, alpha=0.8)
+                lines3.append(line)
                 labels3.append(factor_names_cn.get(f, f))
 
         l_ew3, = ax3.plot(df.index, df["ew_turnover"], label="五因子等权" if len(self.normalized_factors) == 5 else "六因子等权", color="brown", linewidth=2)

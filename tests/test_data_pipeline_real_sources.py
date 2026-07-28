@@ -24,6 +24,23 @@ class FakePro:
         self.price_change_calls: list[str] = []
         self.rating_calls: list[str] = []
         self.daily_basic_calls: list[dict] = []
+        self.fina_indicator_calls: list[dict] = []
+        self.cb_basic_fields = None
+
+    def cb_basic(self, **kwargs):
+        self.cb_basic_fields = kwargs.get("fields")
+        return pd.DataFrame(
+            {
+                "ts_code": ["123001.SZ"],
+                "stk_code": ["000001.SZ"],
+                "maturity_date": ["20250102"],
+                "par": [100.0],
+                "pay_per_year": [1],
+                "maturity_call_price": [110.0],
+                "coupon_rate": [0.5],
+                "remain_size": [500_000_000.0],
+            }
+        )
 
     def cb_daily(self, **kwargs):
         self.cb_daily_fields = kwargs.get("fields")
@@ -88,6 +105,17 @@ class FakePro:
             }
         )
 
+    def fina_indicator(self, **kwargs):
+        self.fina_indicator_calls.append(kwargs)
+        return pd.DataFrame(
+            {
+                "ts_code": [kwargs["ts_code"]],
+                "ann_date": ["20231231"],
+                "end_date": ["20230930"],
+                "bps": [12.5],
+            }
+        )
+
 
 def test_cb_daily_downloads_observed_conversion_and_bond_values(
     monkeypatch: pytest.MonkeyPatch,
@@ -106,6 +134,15 @@ def test_cb_daily_downloads_observed_conversion_and_bond_values(
     ] == pytest.approx(96.2)
 
 
+def test_cb_basic_explicitly_requests_nondefault_maturity_price() -> None:
+    pro = FakePro()
+
+    result = data_pipeline.fetch_cb_basic(pro)
+
+    assert "maturity_call_price" in pro.cb_basic_fields.split(",")
+    assert result.loc[0, "maturity_call_price"] == pytest.approx(110.0)
+
+
 def test_cb_daily_queries_each_open_date_to_avoid_row_limit_truncation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -121,6 +158,54 @@ def test_cb_daily_queries_each_open_date_to_avoid_row_limit_truncation(
     assert list(result["price"].index) == list(
         pd.to_datetime(["20240102", "20240103"])
     )
+
+
+def test_cb_daily_rejects_empty_open_date_instead_of_checkpointing_it(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+    monkeypatch.setattr(
+        data_pipeline,
+        "CB_DAILY_CHECKPOINT_ROOT",
+        str(tmp_path / "cb_daily_checkpoint"),
+    )
+
+    class EmptySecondDayPro(FakePro):
+        def cb_daily(self, **kwargs):
+            if kwargs["trade_date"] == "20240103":
+                self.cb_daily_calls.append(kwargs)
+                return pd.DataFrame()
+            return super().cb_daily(**kwargs)
+
+    with pytest.raises(DataContractError, match="20240103"):
+        data_pipeline.fetch_cb_daily(
+            EmptySecondDayPro(), "20240101", "20240103"
+        )
+
+
+def test_cb_daily_treats_nonpositive_close_as_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+    monkeypatch.setattr(
+        data_pipeline,
+        "CB_DAILY_CHECKPOINT_ROOT",
+        str(tmp_path / "cb_daily_checkpoint"),
+    )
+
+    class ZeroClosePro(FakePro):
+        def cb_daily(self, **kwargs):
+            frame = super().cb_daily(**kwargs)
+            frame["close"] = 0.0
+            return frame
+
+    result = data_pipeline.fetch_cb_daily(
+        ZeroClosePro(), "20240101", "20240103"
+    )
+
+    assert result["price"].isna().all().all()
 
 
 def test_cb_daily_resumes_from_completed_checkpoint_batches(
@@ -240,6 +325,97 @@ def test_stock_market_value_queries_each_underlying_security(
     ]
     assert result.loc[pd.Timestamp("2024-01-02"), "123001.SZ"] == pytest.approx(
         500_000.0
+    )
+
+
+def test_bps_query_uses_announcement_history_not_report_period_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+    pro = FakePro()
+    basic = pd.DataFrame(
+        {"ts_code": ["123001.SZ"], "stk_cd": ["000001.SZ"]}
+    )
+    dates = pd.to_datetime(["2024-01-02", "2024-01-05"])
+    price = pd.DataFrame({"123001.SZ": [100.0, 101.0]}, index=dates)
+
+    result = data_pipeline.fetch_bps(
+        pro, basic, price, "20240101", "20240105"
+    )
+
+    assert pro.fina_indicator_calls == [
+        {
+            "ts_code": "000001.SZ",
+            "start_date": "20220101",
+            "end_date": "20231231",
+            "fields": "ts_code,ann_date,end_date,bps,update_flag",
+        },
+        {
+            "ts_code": "000001.SZ",
+            "start_date": "20240101",
+            "end_date": "20241231",
+            "fields": "ts_code,ann_date,end_date,bps,update_flag",
+        },
+    ]
+    assert result["123001.SZ"].tolist() == [12.5, 12.5]
+
+
+def test_bps_query_fails_closed_when_any_underlying_request_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+
+    class FailingBpsPro(FakePro):
+        def fina_indicator(self, **kwargs):
+            raise RuntimeError("source unavailable")
+
+    basic = pd.DataFrame(
+        {"ts_code": ["123001.SZ"], "stk_cd": ["000001.SZ"]}
+    )
+    price = pd.DataFrame(
+        {"123001.SZ": [100.0]},
+        index=pd.to_datetime(["2024-01-02"]),
+    )
+
+    with pytest.raises(DataContractError, match="fina_indicator failed"):
+        data_pipeline.fetch_bps(
+            FailingBpsPro(), basic, price, "20240101", "20240105"
+        )
+
+
+def test_bps_same_announcement_prefers_latest_report_period(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+
+    class SameAnnouncementPro(FakePro):
+        def fina_indicator(self, **kwargs):
+            self.fina_indicator_calls.append(kwargs)
+            if kwargs["start_date"] != "20240101":
+                return pd.DataFrame()
+            return pd.DataFrame(
+                {
+                    "ts_code": [kwargs["ts_code"], kwargs["ts_code"]],
+                    "ann_date": ["20240101", "20240101"],
+                    "end_date": ["20231231", "20230930"],
+                    "bps": [13.0, 11.0],
+                }
+            )
+
+    basic = pd.DataFrame(
+        {"ts_code": ["123001.SZ"], "stk_cd": ["000001.SZ"]}
+    )
+    price = pd.DataFrame(
+        {"123001.SZ": [100.0]},
+        index=pd.to_datetime(["2024-01-02"]),
+    )
+
+    result = data_pipeline.fetch_bps(
+        SameAnnouncementPro(), basic, price, "20240101", "20240105"
+    )
+
+    assert result.loc[pd.Timestamp("2024-01-02"), "123001.SZ"] == pytest.approx(
+        13.0
     )
 
 

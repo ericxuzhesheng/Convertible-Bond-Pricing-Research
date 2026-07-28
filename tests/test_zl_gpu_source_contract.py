@@ -49,9 +49,13 @@ def test_gpu_production_source_requires_real_clause_and_spread_caches() -> None:
 
 def test_full_rebuild_ignores_historical_model_workbook() -> None:
     assert "REBUILD_ALL = '--rebuild-all' in sys.argv" in GPU_SOURCE
-    assert "if os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:" in GPU_SOURCE
+    assert (
+        "if os.path.exists(SUMMARY_FILE) and not REBUILD_ALL "
+        "and can_reuse_history:"
+        in GPU_SOURCE
+    )
     assert "load_rebuildable_matrix_cache" in GPU_SOURCE
-    assert "rebuild_all=REBUILD_ALL" in GPU_SOURCE
+    assert "refresh_cache=REFRESH_INPUT_CACHE" in GPU_SOURCE
 
 
 def test_full_rebuild_has_an_explicit_pricing_coverage_gate() -> None:
@@ -83,10 +87,69 @@ def test_legacy_experimental_gpu_cannot_emit_assumption_based_prices() -> None:
     assert "get_credit_spread_by_maturity" not in EXPERIMENTAL_GPU_SOURCE
 
 
-def test_bs_full_rebuild_bypasses_persisted_volatility_cache() -> None:
+def test_bs_model_rebuild_does_not_implicitly_clear_input_cache() -> None:
     assert "REBUILD_ALL = '--rebuild-all' in sys.argv" in BS_SOURCE
+    assert "REFRESH_INPUT_CACHE = '--refresh-input-cache' in sys.argv" in BS_SOURCE
     assert "load_rebuildable_matrix_cache" in BS_SOURCE
-    assert "rebuild_all=REBUILD_ALL" in BS_SOURCE
+    assert "refresh_cache=REFRESH_INPUT_CACHE" in BS_SOURCE
+
+
+def test_pro_bar_uses_the_authenticated_client() -> None:
+    assert "api=pro" in BS_SOURCE
+    assert "api=pro" in GPU_SOURCE
+
+
+def test_production_models_have_weekly_mode_and_coverage_gates() -> None:
+    for source in (BS_SOURCE, GPU_SOURCE):
+        assert "WEEKLY_ONLY = '--weekly' in sys.argv" in source
+        assert "select_completed_weekly_dates" in source
+        assert "validate_pricing_coverage" in source
+
+
+def test_zl_reuses_only_history_with_current_contract_manifest() -> None:
+    assert "ZL_INPUT_CONTRACT_VERSION" in GPU_SOURCE
+    assert "ZL_Model_Manifest.json" in GPU_SOURCE
+    assert "can_reuse_history" in GPU_SOURCE
+    assert "verified_dates" in GPU_SOURCE
+    assert "_build_input_fingerprint" in GPU_SOURCE
+    assert '"input_fingerprint"' in GPU_SOURCE
+    assert '"output_sha256"' in GPU_SOURCE
+    assert '"model_parameters"' in GPU_SOURCE
+
+
+def test_zl_uses_official_maturity_call_price_for_terminal_redemption() -> None:
+    assert "basic_row.get('maturity_call_price')" in GPU_SOURCE
+
+
+def test_zl_never_reuses_stored_deviation_sheets() -> None:
+    assert "df_diff_hist = pd.read_excel" not in GPU_SOURCE
+    assert "df_diff_pct_hist = pd.read_excel" not in GPU_SOURCE
+    assert "df_diff = df_zl_model - df_price" in GPU_SOURCE
+
+
+def test_zl_does_not_require_unused_bps_or_stock_price_inputs() -> None:
+    assert "BPS_arr" not in GPU_SOURCE
+    assert "cb_bps_cache.csv" not in GPU_SOURCE
+    assert "zl_stock_price_cache.csv" not in GPU_SOURCE
+
+
+def test_bs_and_zl_share_the_verified_volatility_cache() -> None:
+    assert 'VOL_CACHE_FILE = os.path.join(PIPELINE_DIR, "bs_volatility_cache.csv")' in GPU_SOURCE
+    assert "zl_stock_volatility_cache.csv" not in GPU_SOURCE
+
+
+def test_zl_fingerprint_schema_contains_only_effective_static_fields() -> None:
+    assert "BASIC_FINGERPRINT_FIELDS" in GPU_SOURCE
+    assert "CLAUSE_FINGERPRINT_FIELDS" in GPU_SOURCE
+    for field in (
+        "par_value",
+        "value_date",
+        "maturity_date",
+        "maturity_call_price",
+        "rate_clause",
+    ):
+        assert f'"{field}"' in GPU_SOURCE
+    assert '"remain_size"' not in GPU_SOURCE
 
 
 def test_gpu_plot_does_not_replace_missing_errors_with_zero() -> None:

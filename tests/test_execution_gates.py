@@ -56,6 +56,23 @@ def test_zl_gpu_failure_does_not_silently_fall_back_to_cpu(
     assert calls == ["B-S_backtest.py", "Z-L_backtest_GPU_prod.py"]
 
 
+def test_weekly_model_run_passes_weekly_flag_to_both_models(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(daily_signal.subprocess, "run", fake_run)
+
+    daily_signal.run_models(weekly_only=True)
+
+    assert calls[0][-1] == "--weekly"
+    assert calls[1][-1] == "--weekly"
+
+
 def test_signal_date_requires_same_fresh_market_and_model_date() -> None:
     dates = pd.DatetimeIndex(["2024-01-02", "2024-01-03"])
     market = pd.DataFrame({"A": [100.0, 101.0]}, index=dates)

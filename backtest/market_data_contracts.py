@@ -142,11 +142,15 @@ def load_rebuildable_matrix_cache(
     path: str | PathLike[str],
     index: pd.Index,
     columns: pd.Index,
-    rebuild_all: bool,
+    refresh_cache: bool = False,
 ) -> pd.DataFrame:
-    """Load an aligned cache unless a full rebuild explicitly bypasses it."""
+    """Load an aligned observed-input cache unless refresh is explicit.
 
-    if rebuild_all:
+    Rebuilding model outputs and redownloading market inputs are deliberately
+    separate operations. A model-only rebuild must not clear valid inputs.
+    """
+
+    if refresh_cache:
         return pd.DataFrame(index=index, columns=columns, dtype=float)
     try:
         cached = pd.read_csv(path, index_col=0, parse_dates=True)
@@ -158,6 +162,154 @@ def load_rebuildable_matrix_cache(
         index=index,
         columns=columns,
     )
+
+
+def select_completed_weekly_dates(
+    dates: Sequence[pd.Timestamp],
+    *,
+    as_of: pd.Timestamp | None = None,
+) -> pd.DatetimeIndex:
+    """Return the last observed trading date in each completed W-FRI week."""
+
+    observed = pd.DatetimeIndex(pd.to_datetime(dates, errors="coerce"))
+    observed = observed[observed.notna()].sort_values().unique()
+    if len(observed) == 0:
+        return pd.DatetimeIndex([])
+    cutoff = (
+        pd.Timestamp.now().normalize()
+        if as_of is None
+        else pd.Timestamp(as_of).normalize()
+    )
+    periods = observed.to_period("W-FRI")
+    complete = np.asarray(
+        [period.end_time.normalize() <= cutoff for period in periods],
+        dtype=bool,
+    )
+    completed_dates = observed[complete]
+    completed_periods = periods[complete]
+    if len(completed_dates) == 0:
+        return pd.DatetimeIndex([])
+    frame = pd.DataFrame(
+        {"date": completed_dates, "period": completed_periods}
+    )
+    return pd.DatetimeIndex(
+        frame.groupby("period", sort=True)["date"].max().to_numpy()
+    )
+
+
+def validate_pricing_coverage(
+    *,
+    market_price: pd.DataFrame,
+    model_price: pd.DataFrame,
+    dates: Sequence[pd.Timestamp],
+    min_coverage: float,
+    min_count: int,
+    label: str,
+) -> None:
+    """Fail when a published pricing date has too few observed model values."""
+
+    if not 0.0 < float(min_coverage) <= 1.0:
+        raise ValueError("min_coverage must be in (0, 1]")
+    if int(min_count) < 1:
+        raise ValueError("min_count must be positive")
+    aligned_model = model_price.reindex(
+        index=market_price.index,
+        columns=market_price.columns,
+    ).apply(pd.to_numeric, errors="coerce")
+    numeric_market = market_price.apply(pd.to_numeric, errors="coerce")
+    failures = []
+    for raw_date in dates:
+        date = pd.Timestamp(raw_date)
+        if date not in numeric_market.index:
+            failures.append(f"{date.date()}: missing market row")
+            continue
+        active = (
+            numeric_market.loc[date].notna()
+            & np.isfinite(numeric_market.loc[date])
+            & (numeric_market.loc[date] > 0)
+        )
+        expected = int(active.sum())
+        priced = int(
+            (
+                active
+                & aligned_model.loc[date].notna()
+                & np.isfinite(aligned_model.loc[date])
+            ).sum()
+        )
+        coverage = priced / expected if expected else 0.0
+        if (
+            expected == 0
+            or priced < int(min_count)
+            or coverage < float(min_coverage)
+        ):
+            failures.append(
+                f"{date.date()}: {priced}/{expected} ({coverage:.2%})"
+            )
+    if failures:
+        raise DataContractError(
+            f"{label} pricing coverage failed: " + "; ".join(failures)
+        )
+
+
+def validate_observed_source_coverage(
+    *,
+    market_price: pd.DataFrame,
+    source: pd.DataFrame,
+    dates: Sequence[pd.Timestamp],
+    min_coverage: float,
+    min_count: int,
+    label: str,
+    require_finite_numeric: bool = False,
+) -> None:
+    """Fail when an observed weekly source does not cover the active market."""
+
+    if not 0.0 < float(min_coverage) <= 1.0:
+        raise ValueError("min_coverage must be in (0, 1]")
+    if int(min_count) < 1:
+        raise ValueError("min_count must be positive")
+    numeric_market = market_price.apply(pd.to_numeric, errors="coerce")
+    aligned = source.reindex(
+        index=market_price.index,
+        columns=market_price.columns,
+    )
+    if require_finite_numeric:
+        numeric_source = aligned.apply(pd.to_numeric, errors="coerce")
+        observed = numeric_source.notna() & np.isfinite(numeric_source)
+    else:
+        observed = aligned.notna()
+        for column in aligned.columns:
+            text_mask = aligned[column].map(
+                lambda value: bool(str(value).strip())
+                if pd.notna(value)
+                else False
+            )
+            observed[column] &= text_mask
+    failures = []
+    for raw_date in dates:
+        date = pd.Timestamp(raw_date)
+        if date not in numeric_market.index:
+            failures.append(f"{date.date()}: missing market row")
+            continue
+        active = (
+            numeric_market.loc[date].notna()
+            & np.isfinite(numeric_market.loc[date])
+            & (numeric_market.loc[date] > 0)
+        )
+        expected = int(active.sum())
+        available = int((active & observed.loc[date]).sum())
+        coverage = available / expected if expected else 0.0
+        if (
+            expected == 0
+            or available < int(min_count)
+            or coverage < float(min_coverage)
+        ):
+            failures.append(
+                f"{date.date()}: {available}/{expected} ({coverage:.2%})"
+            )
+    if failures:
+        raise DataContractError(
+            f"{label} coverage failed: " + "; ".join(failures)
+        )
 
 
 def build_conversion_price_matrix(
@@ -312,6 +464,7 @@ def extract_clause_terms(
         r"(?:票面面值|债券面值|面值)(?:上浮|加)\s*(\d+(?:\.\d+)?)\s*[%％]",
         redeem,
     )
+    maturity_price: float | None
     if maturity_match:
         maturity_price = float(par_value) * (
             1.0 + float(maturity_match.group(1)) / 100.0
@@ -896,6 +1049,13 @@ def _future_contractual_cashflows(
     frequency = pd.to_numeric(row.get("interest_freq"), errors="coerce")
     value_date = pd.to_datetime(row.get("value_date"), errors="coerce")
     maturity_date = pd.to_datetime(row.get("maturity_date"), errors="coerce")
+    maturity_redemption = pd.to_numeric(
+        row.get(
+            "maturity_call_price",
+            row.get("maturity_price", row.get("maturity_redemption_price")),
+        ),
+        errors="coerce",
+    )
     if (
         pd.isna(par)
         or float(par) <= 0
@@ -903,6 +1063,8 @@ def _future_contractual_cashflows(
         or int(frequency) <= 0
         or pd.isna(value_date)
         or pd.isna(maturity_date)
+        or pd.isna(maturity_redemption)
+        or float(maturity_redemption) <= 0
     ):
         raise DataContractError("contractual cash-flow fields are unavailable")
     frequency = int(frequency)
@@ -936,7 +1098,9 @@ def _future_contractual_cashflows(
         coupon = float(par) * float(eligible.iloc[-1]) / frequency
         amount = coupon
         if payment_date == pd.Timestamp(maturity_date):
-            amount += float(par)
+            # Tushare defines maturity_call_price as the contractual maturity
+            # redemption amount including the final interest payment.
+            amount = float(maturity_redemption)
         times.append((payment_date - valuation_date).days / 365.0)
         amounts.append(amount)
     if not times:

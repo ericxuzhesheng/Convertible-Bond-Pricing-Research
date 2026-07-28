@@ -34,10 +34,10 @@ def test_remote_gpu_stage_runs_zl_then_downstream(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    calls: list[str] = []
+    calls: list[list[str]] = []
 
     def fake_run(command, **kwargs):
-        calls.append(Path(command[1]).name)
+        calls.append(command)
         return SimpleNamespace(returncode=0)
 
     monkeypatch.setattr(remote_gpu_rebuild.subprocess, "run", fake_run)
@@ -51,16 +51,90 @@ def test_remote_gpu_stage_runs_zl_then_downstream(
         "build_results_archive",
         lambda **kwargs: tmp_path / "results.zip",
     )
+    monkeypatch.setattr(
+        remote_gpu_rebuild,
+        "validate_cpu_stage_handoff",
+        lambda **kwargs: {},
+    )
 
     remote_gpu_rebuild.run_remote_gpu_stage(
         gpu_available=True,
         results_repo=None,
     )
 
-    assert calls == [
-        "Z-L_backtest_GPU_prod.py",
-        "rebuild_research_outputs.py",
+    assert Path(calls[0][1]).name == "Z-L_backtest_GPU_prod.py"
+    assert calls[0][2:] == [
+        "--rebuild-all",
+        "--weekly",
     ]
+    assert Path(calls[1][1]).name == "rebuild_research_outputs.py"
+
+
+def test_gpu_stage_rejects_corrupt_cpu_handoff(tmp_path: Path) -> None:
+    import hashlib
+    import json
+
+    source = tmp_path / "input.csv"
+    source.write_text("original", encoding="utf-8")
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "workflow_run_id": "123",
+                "workflow_source_sha": "abc",
+                "branch": "test-branch",
+                "files": {
+                    "backtest/input.csv": hashlib.sha256(
+                        source.read_bytes()
+                    ).hexdigest()
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    source.write_text("changed", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="hash mismatch"):
+        remote_gpu_rebuild.validate_cpu_stage_handoff(
+            manifest_path=manifest,
+            required_files={"backtest/input.csv": source},
+            expected_run_id="123",
+            expected_source_sha="abc",
+            expected_branch="test-branch",
+        )
+
+
+def test_gpu_stage_rejects_wrong_cpu_workflow_run(tmp_path: Path) -> None:
+    import hashlib
+    import json
+
+    source = tmp_path / "input.csv"
+    source.write_text("verified", encoding="utf-8")
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "workflow_run_id": "old-run",
+                "workflow_source_sha": "abc",
+                "branch": "test-branch",
+                "files": {
+                    "backtest/input.csv": hashlib.sha256(
+                        source.read_bytes()
+                    ).hexdigest()
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="workflow_run_id"):
+        remote_gpu_rebuild.validate_cpu_stage_handoff(
+            manifest_path=manifest,
+            required_files={"backtest/input.csv": source},
+            expected_run_id="new-run",
+            expected_source_sha="abc",
+            expected_branch="test-branch",
+        )
 
 
 def test_validate_zl_coverage_rejects_incomplete_rebuild(
@@ -88,7 +162,23 @@ def test_cpu_workflow_rebuilds_bs_and_benchmark_before_publish() -> None:
         REPO_ROOT / ".github" / "workflows" / "full-backtest-cpu.yml"
     ).read_text(encoding="utf-8")
 
-    assert "B-S_backtest.py --rebuild-all" in workflow
+    assert "data_pipeline.py --rebuild-all --weekly" in workflow
+    assert (
+        "B-S_backtest.py --rebuild-all --weekly --refresh-input-cache"
+        in workflow
+    )
+    assert "select_completed_weekly_dates" in workflow
+    assert "needs: rebuild-data" in workflow
+    assert "actions/download-artifact" in workflow
+    assert "path: backtest" in workflow
+    assert '"files": file_hashes' in workflow
+    for required in (
+        "cb_amount_cache.csv",
+        "cb_balance_cache.csv",
+        "cb_rating_cache.csv",
+        "BS_Model_Summary.xlsx",
+    ):
+        assert required in workflow
     assert "update_benchmark.py" in workflow
     assert "python -m pytest -q" in workflow
     assert "actions/upload-artifact" in workflow

@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import tushare as ts
-import akshare as ak
 from scipy.stats import norm
 from tqdm import tqdm
 import warnings
@@ -9,7 +8,7 @@ import time
 import os
 import sys
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
+import matplotlib.patches as mpatches
 import seaborn as sns
 
 from market_data_contracts import (
@@ -19,7 +18,10 @@ from market_data_contracts import (
     build_observed_volatility,
     build_risk_free_rate_matrix,
     load_rebuildable_matrix_cache,
+    select_completed_weekly_dates,
+    validate_pricing_coverage,
 )
+from token_loader import load_tushare_token
 
 # 设置中文显示
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
@@ -33,6 +35,8 @@ warnings.filterwarnings('ignore')
 # ==========================================
 PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
 REBUILD_ALL = '--rebuild-all' in sys.argv
+REFRESH_INPUT_CACHE = '--refresh-input-cache' in sys.argv
+WEEKLY_ONLY = '--weekly' in sys.argv
 
 
 def _load_csv(filename):
@@ -60,6 +64,15 @@ df_price    = df_price.loc[common_idx]
 df_cv       = df_cv.loc[common_idx]
 df_floor    = df_floor.loc[common_idx]
 df_maturity = df_maturity.loc[common_idx]
+if WEEKLY_ONLY:
+    weekly_dates = select_completed_weekly_dates(df_price.index)
+    if len(weekly_dates) == 0:
+        raise DataContractError("no completed weekly valuation date")
+    df_price = df_price.loc[weekly_dates]
+    df_cv = df_cv.loc[weekly_dates]
+    df_floor = df_floor.loc[weekly_dates]
+    df_maturity = df_maturity.loc[weekly_dates]
+coverage_dates = df_price.index[-1:]
 
 # ==========================================
 # 2. 建立 [转债代码 -> 正股代码] 映射
@@ -95,8 +108,6 @@ print(f"   已加载 {len(df_k_strike.columns)} 只转债的真实契约面值")
 print("3. 开始通过 Tushare 获取正股历史波动率...")
 
 # 初始化 Tushare（token 从环境变量 TUSHARE_TOKEN 或 backtest/tushare_token.txt 读取）
-from token_loader import load_tushare_token
-
 try:
     pro = ts.pro_api(load_tushare_token())
 except Exception as e:
@@ -116,7 +127,13 @@ def _fetch_bond_volatility(bond_code):
     ).strftime("%Y%m%d")
     end_dt = df_price.index.max().strftime("%Y%m%d")
     # 使用 ts.pro_bar 获取前复权行情（受积分/频率限制）
-    df_stock = ts.pro_bar(ts_code=stock_code_full, adj='qfq', start_date=start_dt, end_date=end_dt)
+    df_stock = ts.pro_bar(
+        ts_code=stock_code_full,
+        adj='qfq',
+        start_date=start_dt,
+        end_date=end_dt,
+        api=pro,
+    )
     if df_stock is None or df_stock.empty:
         return None
     df_stock['trade_date'] = pd.to_datetime(df_stock['trade_date'])
@@ -134,12 +151,20 @@ df_volatility = load_rebuildable_matrix_cache(
     path=VOL_CACHE_FILE,
     index=df_price.index,
     columns=df_price.columns,
-    rebuild_all=REBUILD_ALL,
+    refresh_cache=REFRESH_INPUT_CACHE,
 )
 
 # 增量补算: 有市场价但波动率缺失的债券（新债，或缓存生成后新增的交易日）
 # 修复历史 bug: 旧逻辑缓存存在时直接 fillna(0.40)，导致所有新交易日永远用 40% 兜底波动率
-pending_vol = (df_price.notna() & df_volatility.isna()).any()
+input_check_dates = (
+    df_price.index
+    if REBUILD_ALL or REFRESH_INPUT_CACHE
+    else coverage_dates
+)
+pending_vol = (
+    df_price.loc[input_check_dates].notna()
+    & df_volatility.loc[input_check_dates].isna()
+).any()
 pending_bonds = pending_vol[pending_vol].index.tolist()
 if pending_bonds:
     print(f"   {len(pending_bonds)} 只转债的波动率存在缺口，开始增量补算 ...")
@@ -180,6 +205,18 @@ yield_table.columns = [
     for column in yield_table.columns
 ]
 yield_table = yield_table.T.groupby(level=0).first().T.sort_index(axis=1)
+if WEEKLY_ONLY:
+    curve_start = yield_table.dropna(how="all").index.min()
+    supported_dates = df_price.index[df_price.index >= curve_start]
+    if len(supported_dates) == 0:
+        raise DataContractError("weekly dates are earlier than the yield curve")
+    df_price = df_price.loc[supported_dates]
+    df_cv = df_cv.loc[supported_dates]
+    df_floor = df_floor.loc[supported_dates]
+    df_maturity = df_maturity.loc[supported_dates]
+    df_k_strike = df_k_strike.loc[supported_dates]
+    df_volatility = df_volatility.loc[supported_dates]
+    coverage_dates = df_price.index[-1:]
 rf_df = build_risk_free_rate_matrix(
     curve=yield_table,
     maturity=df_maturity,
@@ -265,6 +302,17 @@ print(
     f"   有效配对样本: {int(active_mask.sum().sum()):,} / "
     f"{int(df_price.notna().sum().sum()):,}"
 )
+contract_validation_dates = (
+    df_price.index if REBUILD_ALL and WEEKLY_ONLY else coverage_dates
+)
+validate_pricing_coverage(
+    market_price=df_price,
+    model_price=df_theoretical,
+    dates=contract_validation_dates,
+    min_coverage=float(os.environ.get("BS_MIN_PRICING_COVERAGE", "0.98")),
+    min_count=int(os.environ.get("BS_MIN_PRICING_COUNT", "20")),
+    label="BS weekly" if WEEKLY_ONLY else "BS latest",
+)
 
 # 计算偏差 (理论价 - 实际价)
 # > 0 表示理论价高于市场价 (市场低估)
@@ -346,9 +394,8 @@ ax2.set_ylim(-30, 80)
 
 # 合并图例
 lines = [l1, l2]
-labels = [l.get_label() for l in lines]
+labels = [line.get_label() for line in lines]
 # 添加填充图的图例代理
-import matplotlib.patches as mpatches
 patch = mpatches.Patch(color='gray', alpha=0.5, label='定价错误')
 lines.append(patch)
 labels.append('定价错误')
@@ -505,7 +552,7 @@ try:
         df_bar = df_plot4.groupby('Rating', observed=True)['Mispricing_Pct'].mean().reset_index()
         
         sns.barplot(x='Rating', y='Mispricing_Pct', data=df_bar, palette='coolwarm')
-        plt.title(f'图4 错误定价与评级的关系 (2019年以来平均)')
+        plt.title('图4 错误定价与评级的关系 (2019年以来平均)')
         plt.ylabel('平均错误定价 (%)')
         plt.xlabel('信用评级')
         plt.axhline(0, color='k', linewidth=0.8)

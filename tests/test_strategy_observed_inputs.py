@@ -65,3 +65,9 @@ def test_strategy_has_no_external_legacy_data_fallback() -> None:
     assert "LEGACY_DIR" not in source
     assert "假设无风险利率为0" not in source
     assert "observed_average_risk_free_rate" in source
+
+
+def test_strategy_does_not_encode_missing_periods_as_zero_returns() -> None:
+    source = STRATEGY_PATH.read_text(encoding="utf-8")
+    assert "strategy_ret = 0" not in source
+    assert "benchmark return unavailable" in source

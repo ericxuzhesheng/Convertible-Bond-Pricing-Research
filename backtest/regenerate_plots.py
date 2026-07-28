@@ -122,6 +122,61 @@ def build_matched_plot_series(
     )
 
 
+def build_reliable_weekly_plot_series(
+    daily: pd.DataFrame,
+    *,
+    min_sample_count: int = 20,
+) -> pd.DataFrame:
+    """Select each week's last valid cross-section and mask tiny samples."""
+
+    required = ["model", "market", "relative_deviation_pct", "sample_count"]
+    missing = set(required).difference(daily.columns)
+    if missing:
+        raise ValueError(f"weekly plot data missing columns: {sorted(missing)}")
+    ordered = daily.sort_index().copy()
+    valid = (
+        np.isfinite(ordered["model"])
+        & np.isfinite(ordered["market"])
+        & np.isfinite(ordered["relative_deviation_pct"])
+        & (ordered["sample_count"] > 0)
+    )
+    selected = []
+    if ordered.empty:
+        return ordered
+    grouped = {
+        period: group
+        for period, group in ordered.groupby(ordered.index.to_period("W-FRI"))
+    }
+    periods = pd.period_range(
+        ordered.index.min().to_period("W-FRI"),
+        ordered.index.max().to_period("W-FRI"),
+        freq="W-FRI",
+    )
+    for period in periods:
+        group = grouped.get(period)
+        if group is None:
+            gap_date = period.end_time.normalize()
+            selected.append(
+                pd.DataFrame(
+                    np.nan,
+                    index=pd.DatetimeIndex([gap_date]),
+                    columns=ordered.columns,
+                )
+            )
+            continue
+        valid_group = group.loc[valid.reindex(group.index, fill_value=False)]
+        selected.append(
+            valid_group.tail(1) if not valid_group.empty else group.tail(1)
+        )
+    weekly = pd.concat(selected) if selected else ordered.iloc[0:0]
+    unreliable = weekly["sample_count"] < int(min_sample_count)
+    weekly.loc[
+        unreliable,
+        ["model", "market", "relative_deviation_pct"],
+    ] = np.nan
+    return weekly
+
+
 def _save(path: str) -> None:
     plt.savefig(path, dpi=300, bbox_inches="tight")
     plt.close()
@@ -144,8 +199,9 @@ def plot_bs_timeseries() -> None:
         market=df_market,
         relative_deviation=df_reldev,
     )
-    weekly = _weekly_last_observation(daily).dropna(
-        subset=["model", "market", "relative_deviation_pct"]
+    weekly = build_reliable_weekly_plot_series(
+        daily,
+        min_sample_count=20,
     )
     weekly_model_avg, weekly_market_avg, weekly_err_pct = (
         weekly["model"],
@@ -191,8 +247,9 @@ def plot_zl_timeseries() -> None:
         market=df_market,
         relative_deviation=df_reldev,
     )
-    weekly = _weekly_last_observation(daily).dropna(
-        subset=["model", "market", "relative_deviation_pct"]
+    weekly = build_reliable_weekly_plot_series(
+        daily,
+        min_sample_count=20,
     )
     weekly_model_avg, weekly_market_avg, weekly_err_pct = (
         weekly["model"],

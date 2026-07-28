@@ -2,19 +2,20 @@ import pandas as pd
 import numpy as np
 import tushare as ts
 import akshare as ak
-from scipy.stats import norm
 from tqdm import tqdm
 import warnings
 import time
 import os
 import sys
+import json
+import hashlib
 import zlib
 import math
 from collections import Counter
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
-from numba import njit, cuda, int8
+from numba import cuda, int8
 from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_normal_float64
 
 from market_data_contracts import (
@@ -25,7 +26,10 @@ from market_data_contracts import (
     calculate_accrued_interest,
     load_rebuildable_matrix_cache,
     parse_coupon_schedule,
+    select_completed_weekly_dates,
+    validate_pricing_coverage,
 )
+from token_loader import load_tushare_token
 
 # 设置中文显示
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
@@ -39,6 +43,134 @@ warnings.filterwarnings('ignore')
 # ==========================================
 PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
 REBUILD_ALL = '--rebuild-all' in sys.argv
+REFRESH_INPUT_CACHE = '--refresh-input-cache' in sys.argv
+WEEKLY_ONLY = '--weekly' in sys.argv
+MC_N_PATHS = 10000
+ZL_INPUT_CONTRACT_VERSION = "weekly-observed-v2"
+ZL_MANIFEST_FILE = os.path.join(PIPELINE_DIR, "ZL_Model_Manifest.json")
+MODEL_PARAMETERS = {
+    "mc_paths": MC_N_PATHS,
+    "weekly_only": WEEKLY_ONLY,
+    "seed_scheme": "crc32-date-v1",
+}
+BASIC_FINGERPRINT_FIELDS = [
+    "par_value",
+    "value_date",
+    "maturity_date",
+    "maturity_call_price",
+    "rate_clause",
+]
+CLAUSE_FINGERPRINT_FIELDS = [
+    "put_trigger_ratio",
+    "put_window_days",
+    "put_eligible_years",
+    "redeem_trigger_ratio",
+    "redeem_window_days",
+    "redeem_required_days",
+]
+
+
+def _load_verified_manifest() -> dict:
+    try:
+        with open(ZL_MANIFEST_FILE, encoding="utf-8") as manifest_file:
+            manifest = json.load(manifest_file)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+    return manifest if isinstance(manifest, dict) else {}
+
+
+verified_manifest = _load_verified_manifest()
+manifest_contract_matches = (
+    verified_manifest.get("contract_version")
+    == ZL_INPUT_CONTRACT_VERSION
+)
+can_reuse_history = False
+verified_dates = {
+    pd.Timestamp(value)
+    for value in verified_manifest.get("verified_dates", [])
+    if pd.notna(pd.to_datetime(value, errors="coerce"))
+}
+
+
+def _sha256_file(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as source_file:
+        for chunk in iter(lambda: source_file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _update_frame_digest(
+    digest,
+    *,
+    label: str,
+    frame: pd.DataFrame,
+) -> None:
+    normalized = frame.sort_index().sort_index(axis=1).copy()
+    columns_payload = json.dumps(
+        [str(column) for column in normalized.columns],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    dtypes_payload = json.dumps(
+        [str(dtype) for dtype in normalized.dtypes],
+        separators=(",", ":"),
+    )
+    row_hashes = pd.util.hash_pandas_object(
+        normalized,
+        index=True,
+        categorize=False,
+    )
+    digest.update(label.encode("utf-8"))
+    digest.update(b"\0")
+    digest.update(columns_payload.encode("utf-8"))
+    digest.update(b"\0")
+    digest.update(dtypes_payload.encode("ascii"))
+    digest.update(b"\0")
+    digest.update(row_hashes.to_numpy(dtype=np.uint64).tobytes())
+    digest.update(b"\0")
+
+
+def _build_input_fingerprint(cutoff: pd.Timestamp) -> str:
+    price_prefix = df_price.loc[df_price.index <= cutoff]
+    active_bonds = price_prefix.columns[price_prefix.notna().any(axis=0)]
+    if price_prefix.empty or len(active_bonds) == 0:
+        raise DataContractError(
+            f"cannot fingerprint empty ZL inputs through {cutoff.date()}"
+        )
+
+    digest = hashlib.sha256()
+    digest.update(_sha256_file(os.path.abspath(__file__)).encode("ascii"))
+    digest.update(
+        json.dumps(
+            MODEL_PARAMETERS,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    )
+    matrix_inputs = {
+        "market_price": df_price,
+        "conversion_value_history": df_cv_history,
+        "bond_floor": df_floor,
+        "maturity": df_maturity,
+        "volatility": df_volatility,
+        "risk_free_rate": rf_df,
+        "credit_spread": df_spread,
+    }
+    for label, frame in matrix_inputs.items():
+        prefix = frame.loc[frame.index <= cutoff].reindex(columns=active_bonds)
+        _update_frame_digest(digest, label=label, frame=prefix)
+
+    static_inputs = {
+        "basic_terms": _basic.reindex(columns=BASIC_FINGERPRINT_FIELDS),
+        "clause_terms": _clauses.reindex(
+            columns=CLAUSE_FINGERPRINT_FIELDS
+        ),
+    }
+    for label, frame in static_inputs.items():
+        relevant = frame.reindex(index=active_bonds)
+        _update_frame_digest(digest, label=label, frame=relevant)
+    return digest.hexdigest()
 
 
 def _load_csv(filename):
@@ -67,11 +199,19 @@ df_price    = df_price.loc[common_idx]
 df_cv       = df_cv.loc[common_idx]
 df_floor    = df_floor.loc[common_idx]
 df_maturity = df_maturity.loc[common_idx]
+valuation_dates = (
+    select_completed_weekly_dates(df_price.index)
+    if WEEKLY_ONLY
+    else df_price.index
+)
+if len(valuation_dates) == 0:
+    raise DataContractError("no completed weekly valuation date")
+coverage_dates = valuation_dates[-1:]
 
 # ==========================================
-# 2. 读取转债列表与 BPS 数据
+# 2. 读取转债列表
 # ==========================================
-print("2. 正在读取转债列表与 BPS 数据...")
+print("2. 正在读取转债列表...")
 
 
 def normalize_code(v):
@@ -98,25 +238,16 @@ except Exception as e:
     stock_code_to_bond = {}
     stock_name_to_bond = {}
 
-# 2.2 从 cb_bps_cache.csv 读取 BPS
-try:
-    df_bps = _load_csv('cb_bps_cache.csv')
-    df_bps = df_bps.reindex(df_price.index, method='ffill')
-    print(f"   BPS 数据加载完成（来源：cb_bps_cache.csv）")
-except Exception as e:
-    raise DataContractError(f"BPS 读取失败: {e}") from e
-
 # 确保列与 df_price 一致 (取交集)
-valid_bonds = df_price.columns.intersection(df_bps.columns)
+valid_bonds = df_price.columns.intersection(pd.Index(bond_to_stock))
 df_price    = df_price[valid_bonds]
 df_cv       = df_cv[valid_bonds]
 df_floor    = df_floor[valid_bonds]
 df_maturity = df_maturity[valid_bonds]
-df_bps      = df_bps[valid_bonds]
 
-print(f"   BPS 数据处理完成，有效对齐转债数量: {len(valid_bonds)}")
+print(f"   转债映射对齐完成，有效转债数量: {len(valid_bonds)}")
 
-# 2.3 获取真实回售/赎回条款
+# 2.2 获取真实回售/赎回条款
 # ==========================================
 _basic = pd.read_csv(os.path.join(PIPELINE_DIR, 'cb_basic_info.csv'))
 _basic = _basic.drop_duplicates('ts_code', keep='last').set_index('ts_code')
@@ -132,8 +263,6 @@ print(f"   已加载 {_clauses.shape[0]} 只转债的真实条款")
 # ==========================================
 print("3. 开始通过 Tushare 获取正股历史波动率...")
 # Tushare token 从环境变量 TUSHARE_TOKEN 或 backtest/tushare_token.txt 读取
-from token_loader import load_tushare_token
-
 try:
     # Token 仅传入当前客户端，不写入用户主目录 tk.csv。
     pro = ts.pro_api(load_tushare_token())
@@ -143,12 +272,9 @@ except Exception as e:
     pro = None
 
 # Z-L 模型缓存文件
-VOL_CACHE_FILE = os.path.join(PIPELINE_DIR, "zl_stock_volatility_cache.csv")
-PRICE_CACHE_FILE = os.path.join(PIPELINE_DIR, "zl_stock_price_cache.csv")
-
-
+VOL_CACHE_FILE = os.path.join(PIPELINE_DIR, "bs_volatility_cache.csv")
 def _fetch_bond_stock_data(bond_code):
-    """拉取单只转债正股的收盘价与 250 日滚动年化波动率（对齐 df_price.index），失败返回 None。"""
+    """拉取单只转债正股的 250 日滚动年化波动率，失败返回 None。"""
     stock_code_full = bond_to_stock.get(bond_code)
     if not stock_code_full or pro is None:
         return None
@@ -156,7 +282,13 @@ def _fetch_bond_stock_data(bond_code):
         df_price.index.min() - pd.Timedelta(days=500)
     ).strftime("%Y%m%d")
     end_dt = df_price.index.max().strftime("%Y%m%d")
-    df_k = ts.pro_bar(ts_code=stock_code_full, adj='qfq', start_date=start_dt, end_date=end_dt)
+    df_k = ts.pro_bar(
+        ts_code=stock_code_full,
+        adj='qfq',
+        start_date=start_dt,
+        end_date=end_dt,
+        api=pro,
+    )
     if df_k is None or df_k.empty:
         return None
     df_k['trade_date'] = pd.to_datetime(df_k['trade_date'])
@@ -167,26 +299,27 @@ def _fetch_bond_stock_data(bond_code):
         window=250,
         min_observations=60,
     )
-    return df_k['close'].reindex(df_price.index), vol
+    return vol
 
 
 df_volatility = load_rebuildable_matrix_cache(
     path=VOL_CACHE_FILE,
     index=df_price.index,
     columns=df_price.columns,
-    rebuild_all=REBUILD_ALL,
+    refresh_cache=REFRESH_INPUT_CACHE,
 )
-df_stock_price = load_rebuildable_matrix_cache(
-    path=PRICE_CACHE_FILE,
-    index=df_price.index,
-    columns=df_price.columns,
-    rebuild_all=REBUILD_ALL,
-)
-
-# 增量补算: 有市场价但波动率/正股价缺失的债券（新债，或缓存生成后新增的交易日）
+# 增量补算: 有市场价但波动率缺失的债券（新债，或缓存生成后新增的交易日）
 # 修复历史 bug: 旧逻辑缓存存在时直接用 NaN→0.40 兜底，新交易日永远拿不到真实波动率
 # 注意: 旧版波动率缓存曾把 0.40 兜底值写进文件，无法与真实值区分，建议删除两个 zl_*_cache.csv 重建
-pending = (df_price.notna() & (df_volatility.isna() | df_stock_price.isna())).any()
+input_check_dates = (
+    valuation_dates
+    if REBUILD_ALL or REFRESH_INPUT_CACHE
+    else coverage_dates
+)
+pending = (
+    df_price.loc[input_check_dates].notna()
+    & df_volatility.loc[input_check_dates].isna()
+).any()
 pending_bonds = pending[pending].index.tolist()
 if pending_bonds:
     print(f"   {len(pending_bonds)} 只转债的正股数据存在缺口，开始增量补算 ...")
@@ -195,19 +328,16 @@ if pending_bonds:
         try:
             fetched = _fetch_bond_stock_data(bond_code)
             if fetched is not None:
-                price_series, vol_series = fetched
-                df_stock_price[bond_code] = price_series
-                df_volatility[bond_code] = vol_series
+                df_volatility[bond_code] = fetched
                 updated_count += 1
             time.sleep(0.02)
         except Exception as e:
             print(f"   获取 {bond_code} 正股数据失败: {e}")
     if updated_count:
         df_volatility.to_csv(VOL_CACHE_FILE)
-        df_stock_price.to_csv(PRICE_CACHE_FILE)
         print(f"   缓存已更新 ({updated_count} 只)。")
 
-# 缺失波动率/正股价格保持 NaN，由定价样本门禁排除。
+# 缺失波动率保持 NaN，由定价样本门禁排除。
 
 print("   股票数据准备完成。")
 
@@ -250,6 +380,21 @@ yield_table = _load_tenor_yield_table()
 if yield_table is None or yield_table.empty:
     raise DataContractError("无可用 AkShare 国债收益率曲线")
 else:
+    df_cv_history = df_cv.copy()
+    if WEEKLY_ONLY:
+        curve_start = yield_table.dropna(how="all").index.min()
+        valuation_dates = valuation_dates[valuation_dates >= curve_start]
+        if len(valuation_dates) == 0:
+            raise DataContractError(
+                "weekly dates are earlier than the yield curve"
+            )
+        supported_dates = df_price.index[df_price.index >= curve_start]
+        df_price = df_price.loc[supported_dates]
+        df_cv = df_cv.loc[supported_dates]
+        df_floor = df_floor.loc[supported_dates]
+        df_maturity = df_maturity.loc[supported_dates]
+        df_volatility = df_volatility.loc[supported_dates]
+        coverage_dates = valuation_dates[-1:]
     rf_df = build_risk_free_rate_matrix(
         curve=yield_table,
         maturity=df_maturity,
@@ -272,13 +417,13 @@ print(f"   隐含信用利差非空率: {df_spread.notna().mean().mean():.1%}")
 # Z-L 蒙特卡洛核心 —— GPU (CUDA) 批处理版
 # ==========================================
 # 注意: 本 kernel 的博弈逻辑与 Z-L_backtest_CPU.py 的 zl_mc_core 严格一致
-#   - 下修: new_X = max(S, BPS) (简单下修, 非 BS 二分)
+#   - 未获得逐债下修规则时，不假设自动下修
 #   - 强赎收益: 纯转股 S*(100/X) (不与赎回价取 max)
 #   - 时间步: steps = max(50, int(T*240)), dt = T/steps
 #   - 回售执行: put_count>=30 且 t > put_start_idx (严格大于)
 # 仅把执行设备从 CPU(njit) 换成 GPU(cuda.jit), 模型设定不变。
 @cuda.jit
-def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
+def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr,
                        maturity_redem_arr, call_price_arr,
                        put_price_arr, put_barrier_arr, put_window_arr,
                        put_years_arr, redeem_ratio_arr, redeem_window_arr,
@@ -298,7 +443,6 @@ def zl_mc_kernel_batch(S0_arr, X0_arr, r_arr, cs_arr, sigma_arr, T_arr, BPS_arr,
     credit_spread = cs_arr[bond_idx]
     sigma = sigma_arr[bond_idx]
     T = T_arr[bond_idx]
-    BPS = BPS_arr[bond_idx]
     redemption_price = maturity_redem_arr[bond_idx]
     call_price = call_price_arr[bond_idx]
     put_price = put_price_arr[bond_idx]
@@ -380,7 +524,7 @@ def zl_mc_pricing_batch(params, N=10000, seed=42, threads_per_block=256):
     GPU 批量定价: 一次 kernel 启动算完当日所有待定价债券。
 
     params: dict of np.float64 一维数组, 键为
-        S0, X0, r, cs, sigma, T, BPS, maturity_redem, call_price,
+        S0, X0, r, cs, sigma, T, maturity_redem, call_price,
         put_price, put_barrier, put_window, put_years, redeem_ratio,
         redeem_window, redeem_required
         initial_put_count, initial_redeem_count, initial_redeem_flags
@@ -398,7 +542,7 @@ def zl_mc_pricing_batch(params, N=10000, seed=42, threads_per_block=256):
         cuda.to_device(params["S0"]), cuda.to_device(params["X0"]),
         cuda.to_device(params["r"]), cuda.to_device(params["cs"]),
         cuda.to_device(params["sigma"]), cuda.to_device(params["T"]),
-        cuda.to_device(params["BPS"]), cuda.to_device(params["maturity_redem"]),
+        cuda.to_device(params["maturity_redem"]),
         cuda.to_device(params["call_price"]), cuda.to_device(params["put_price"]),
         cuda.to_device(params["put_barrier"]), cuda.to_device(params["put_window"]),
         cuda.to_device(params["put_years"]), cuda.to_device(params["redeem_ratio"]),
@@ -414,7 +558,7 @@ def zl_mc_pricing_batch(params, N=10000, seed=42, threads_per_block=256):
 # 结果存储
 results = []
 
-calc_dates = df_price.index # 全历史回测
+calc_dates = valuation_dates
 
 print(f"即将开始计算：共 {len(calc_dates)} 个交易日，{len(df_price.columns)} 只转债")
 
@@ -425,7 +569,23 @@ df_diff_pct = pd.DataFrame(index=df_price.index, columns=df_price.columns)
 
 # 增量计算逻辑
 SUMMARY_FILE = os.path.join(PIPELINE_DIR, "ZL_Model_Summary.xlsx")
-if os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:
+if (
+    manifest_contract_matches
+    and verified_dates
+    and os.path.exists(SUMMARY_FILE)
+):
+    verified_cutoff = max(verified_dates)
+    current_input_fingerprint = _build_input_fingerprint(verified_cutoff)
+    can_reuse_history = (
+        verified_manifest.get("input_cutoff")
+        == verified_cutoff.date().isoformat()
+        and verified_manifest.get("model_parameters") == MODEL_PARAMETERS
+        and verified_manifest.get("input_fingerprint")
+        == current_input_fingerprint
+        and verified_manifest.get("output_sha256")
+        == _sha256_file(SUMMARY_FILE)
+    )
+if os.path.exists(SUMMARY_FILE) and not REBUILD_ALL and can_reuse_history:
     print(f"   发现已存在的汇总文件：{SUMMARY_FILE}")
     print("   读取历史结果并执行增量计算...")
     try:
@@ -433,27 +593,25 @@ if os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:
         df_zl_model_hist.index = pd.to_datetime(df_zl_model_hist.index, errors='coerce')
         df_zl_model_hist = df_zl_model_hist[df_zl_model_hist.index.notnull()]
         df_zl_model_hist = df_zl_model_hist.apply(pd.to_numeric, errors='coerce')
+        df_zl_model_hist = df_zl_model_hist.loc[
+            df_zl_model_hist.index.isin(verified_dates)
+        ]
         df_zl_model_hist = df_zl_model_hist.reindex(index=df_price.index, columns=df_price.columns)
         df_zl_model.update(df_zl_model_hist)
 
-        df_price_loaded = pd.read_excel(SUMMARY_FILE, sheet_name="市场价格", index_col=0, engine='openpyxl')
-        df_price_loaded.index = pd.to_datetime(df_price_loaded.index, errors='coerce')
-
-        df_diff_hist = pd.read_excel(SUMMARY_FILE, sheet_name="绝对偏差", index_col=0, engine='openpyxl')
-        df_diff_hist.index = pd.to_datetime(df_diff_hist.index, errors='coerce')
-        df_diff_hist = df_diff_hist[df_diff_hist.index.notnull()]
-        df_diff_hist = df_diff_hist.apply(pd.to_numeric, errors='coerce')
-        df_diff_hist = df_diff_hist.reindex(index=df_price.index, columns=df_price.columns)
-        df_zl_error.update(df_diff_hist)
-
-        df_diff_pct_hist = pd.read_excel(SUMMARY_FILE, sheet_name="相对偏差", index_col=0, engine='openpyxl')
-        df_diff_pct_hist.index = pd.to_datetime(df_diff_pct_hist.index, errors='coerce')
-        df_diff_pct_hist = df_diff_pct_hist[df_diff_pct_hist.index.notnull()]
-        df_diff_pct_hist = df_diff_pct_hist.apply(pd.to_numeric, errors='coerce')
-        df_diff_pct_hist = df_diff_pct_hist.reindex(index=df_price.index, columns=df_price.columns)
-        df_diff_pct.update(df_diff_pct_hist)
     except Exception as e:
         print(f"   历史结果读取失败，改为全量计算：{e}")
+elif os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:
+    print(
+        "   Existing ZL history ignored: no current-contract verification "
+        "manifest"
+    )
+
+if WEEKLY_ONLY:
+    # Recalculate the latest completed week under the current input contract.
+    df_zl_model.loc[coverage_dates] = np.nan
+    df_zl_error.loc[coverage_dates] = np.nan
+    df_diff_pct.loc[coverage_dates] = np.nan
 
 pending_mask = df_price.notna() & df_zl_model.isna()
 pending_dates = pending_mask.any(axis=1)
@@ -474,26 +632,14 @@ if not cuda.is_available():
     )
 print(f"   GPU: {cuda.get_current_device().name.decode() if isinstance(cuda.get_current_device().name, bytes) else cuda.get_current_device().name}")
 
-MC_N_PATHS = 10000   # 每只债券蒙特卡洛路径数 (与 CPU 版一致)
-
-
 def _observed_clause_inputs(bond_code, date):
     if bond_code not in _basic.index or bond_code not in _clauses.index:
         return None
     basic_row = _basic.loc[bond_code]
     clause_row = _clauses.loc[bond_code]
-    required_clause_fields = [
-        'put_trigger_ratio',
-        'put_window_days',
-        'put_eligible_years',
-        'redeem_trigger_ratio',
-        'redeem_window_days',
-        'redeem_required_days',
-        'maturity_redemption_price',
-    ]
     values = {
         field: pd.to_numeric(clause_row.get(field), errors='coerce')
-        for field in required_clause_fields
+        for field in CLAUSE_FINGERPRINT_FIELDS
     }
     if any(pd.isna(value) for value in values.values()):
         return None
@@ -512,11 +658,17 @@ def _observed_clause_inputs(bond_code, date):
     maturity_date = pd.to_datetime(
         basic_row.get('maturity_date'), errors='coerce'
     )
+    maturity_redemption = pd.to_numeric(
+        basic_row.get('maturity_call_price'),
+        errors='coerce',
+    )
     if (
         pd.isna(par)
         or par <= 0
         or pd.isna(value_date)
         or pd.isna(maturity_date)
+        or pd.isna(maturity_redemption)
+        or maturity_redemption <= 0
     ):
         return None
     try:
@@ -532,7 +684,7 @@ def _observed_clause_inputs(bond_code, date):
     exercise_price = float(par) + float(accrued)
     return {
         'par': float(par),
-        'maturity_redem': float(values['maturity_redemption_price']),
+        'maturity_redem': float(maturity_redemption),
         'call_price': exercise_price,
         'put_price': exercise_price,
         'put_barrier': float(values['put_trigger_ratio']),
@@ -554,23 +706,21 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
     try:
         row_price = df_price.loc[date]
         row_cv = df_cv.loc[date]
-        row_bps = df_bps.loc[date]
         row_rf = rf_df.loc[date]
         row_vol = df_volatility.loc[date]
         row_mat = df_maturity.loc[date]
-        row_stock_price = df_stock_price.loc[date]
         row_spread = df_spread.loc[date]
 
         # 组装当日待定价债券参数 (数据清洗与归一化逻辑与 CPU 版逐字对应)
         batch_codes = []
         (
-            p_S0, p_X0, p_r, p_cs, p_sigma, p_T, p_BPS,
+            p_S0, p_X0, p_r, p_cs, p_sigma, p_T,
             p_maturity_redem, p_call, p_put, p_barrier, p_put_window,
             p_put_years, p_redeem_ratio, p_redeem_window,
             p_redeem_required, p_initial_put_count,
             p_initial_redeem_count, p_initial_redeem_flags,
         ) = (
-            [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
+            [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
             [], [], []
         )
         batch_market = []
@@ -580,11 +730,9 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
 
             market_price = row_price[bond_code]
             cv = row_cv[bond_code]
-            bps = row_bps[bond_code]
             r = row_rf[bond_code]
             sigma = row_vol[bond_code]
             T = row_mat[bond_code]
-            s_real = row_stock_price[bond_code]
             cs = row_spread[bond_code]
 
             clause_inputs = _observed_clause_inputs(bond_code, date)
@@ -595,8 +743,6 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
                 'volatility': sigma,
                 'risk_free_rate': r,
                 'credit_spread': cs,
-                'stock_price': s_real,
-                'bps': bps,
             }
             missing_fields = [
                 name for name, value in required_values.items()
@@ -614,15 +760,12 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
             if cs < 0:
                 skip_reasons['negative_credit_spread'] += 1
                 continue
-            if s_real <= 0:
-                skip_reasons['nonpositive_stock_price'] += 1
-                continue
             if clause_inputs is None:
                 skip_reasons['missing_clause_terms'] += 1
                 continue
             try:
                 clause_history = build_clause_history_state(
-                    conversion_value=df_cv[bond_code],
+                    conversion_value=df_cv_history[bond_code],
                     valuation_date=date,
                     par_value=clause_inputs['par'],
                     put_trigger_ratio=clause_inputs['put_barrier'],
@@ -638,12 +781,15 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
 
             S0_sim = cv
             X0_sim = clause_inputs['par']
-            BPS_sim = bps * cv / s_real
 
             batch_codes.append(bond_code)
             batch_market.append(market_price)
-            p_S0.append(S0_sim); p_X0.append(X0_sim); p_r.append(r); p_cs.append(cs)
-            p_sigma.append(sigma); p_T.append(T); p_BPS.append(BPS_sim)
+            p_S0.append(S0_sim)
+            p_X0.append(X0_sim)
+            p_r.append(r)
+            p_cs.append(cs)
+            p_sigma.append(sigma)
+            p_T.append(T)
             p_maturity_redem.append(clause_inputs['maturity_redem'])
             p_call.append(clause_inputs['call_price'])
             p_put.append(clause_inputs['put_price'])
@@ -669,7 +815,6 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
             "cs": np.asarray(p_cs, dtype=np.float64),
             "sigma": np.asarray(p_sigma, dtype=np.float64),
             "T": np.asarray(p_T, dtype=np.float64),
-            "BPS": np.asarray(p_BPS, dtype=np.float64),
             "maturity_redem": np.asarray(p_maturity_redem, dtype=np.float64),
             "call_price": np.asarray(p_call, dtype=np.float64),
             "put_price": np.asarray(p_put, dtype=np.float64),
@@ -723,9 +868,11 @@ if skip_reasons:
     print(f"Skipped pricing cells by reason: {dict(skip_reasons)}")
 
 if REBUILD_ALL:
-    expected_cells = int(df_price.notna().sum().sum())
+    rebuild_market = df_price.loc[calc_dates]
+    rebuild_model = df_zl_model.loc[calc_dates]
+    expected_cells = int(rebuild_market.notna().sum().sum())
     priced_cells = int(
-        (df_price.notna() & df_zl_model.notna()).sum().sum()
+        (rebuild_market.notna() & rebuild_model.notna()).sum().sum()
     )
     rebuild_coverage = (
         priced_cells / expected_cells if expected_cells else 0.0
@@ -744,8 +891,27 @@ if REBUILD_ALL:
             f"{min_rebuild_coverage:.2%}; skips={dict(skip_reasons)}"
         )
 
-# 计算偏差 (理论价 - 实际价)
-df_diff = df_zl_error
+contract_validation_dates = (
+    valuation_dates if REBUILD_ALL and WEEKLY_ONLY else coverage_dates
+)
+validate_pricing_coverage(
+    market_price=df_price,
+    model_price=df_zl_model,
+    dates=contract_validation_dates,
+    min_coverage=float(os.environ.get("ZL_MIN_PRICING_COVERAGE", "0.98")),
+    min_count=int(os.environ.get("ZL_MIN_PRICING_COUNT", "20")),
+    label="ZL weekly" if WEEKLY_ONLY else "ZL latest",
+)
+
+if WEEKLY_ONLY:
+    # Persist only one observed valuation row per completed week. Daily source
+    # history remains in the input caches for volatility and clause state.
+    df_zl_model = df_zl_model.loc[valuation_dates]
+    df_zl_error = df_zl_error.loc[valuation_dates]
+    df_price = df_price.loc[valuation_dates]
+
+# 偏差不得复用旧工作表，始终以已认证理论价和当前市场价重新计算。
+df_diff = df_zl_model - df_price
 
 safe_price = df_price.replace(0, np.nan)
 df_diff_pct = df_diff / safe_price
@@ -769,6 +935,26 @@ with pd.ExcelWriter(SUMMARY_FILE) as writer:
     df_diff.to_excel(writer, sheet_name="绝对偏差")
     df_diff_pct.to_excel(writer, sheet_name="相对偏差")
 print(f"5. 汇总 Excel: '{SUMMARY_FILE}'")
+
+verified_output_dates = [
+    pd.Timestamp(date).date().isoformat()
+    for date in df_zl_model.index[df_zl_model.notna().any(axis=1)]
+]
+if not verified_output_dates:
+    raise DataContractError("ZL output has no verified valuation dates")
+verified_cutoff = pd.Timestamp(max(verified_output_dates))
+manifest_payload = {
+    "contract_version": ZL_INPUT_CONTRACT_VERSION,
+    "verified_dates": verified_output_dates,
+    "input_cutoff": verified_cutoff.date().isoformat(),
+    "input_fingerprint": _build_input_fingerprint(verified_cutoff),
+    "output_sha256": _sha256_file(SUMMARY_FILE),
+    "model_parameters": MODEL_PARAMETERS,
+}
+manifest_temp = f"{ZL_MANIFEST_FILE}.tmp"
+with open(manifest_temp, "w", encoding="utf-8") as manifest_file:
+    json.dump(manifest_payload, manifest_file, ensure_ascii=False, indent=2)
+os.replace(manifest_temp, ZL_MANIFEST_FILE)
 
 # 误差指标 —— 在全部有效 (交易日 × 转债) 单元上汇总 (pooled)，
 # 与真正写盘的 summary 完全一致。
@@ -835,7 +1021,7 @@ ax2.set_ylim(-30, 80)
 
 # 合并图例
 lines = [l1, l2]
-labels = [l.get_label() for l in lines]
+labels = [line.get_label() for line in lines]
 patch = mpatches.Patch(color='gray', alpha=0.5, label='定价错误')
 lines.append(patch)
 labels.append('定价错误')
@@ -990,7 +1176,7 @@ try:
                 df_bar = df_plot4.groupby('Rating', observed=True)['Mispricing_Pct'].mean().reset_index()
                 
                 sns.barplot(x='Rating', y='Mispricing_Pct', data=df_bar, palette='coolwarm')
-                plt.title(f'图 4 ZL 模型错误定价与评级的关系 (2019 年以来平均)')
+                plt.title('图 4 ZL 模型错误定价与评级的关系 (2019 年以来平均)')
                 plt.ylabel('平均错误定价 (%)')
                 plt.xlabel('信用评级')
                 plt.axhline(0, color='k', linewidth=0.8)

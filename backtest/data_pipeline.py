@@ -23,12 +23,12 @@ Output files (all in the same directory as this script):
 
 Verified Tushare field names (as of 2026):
     cb_basic:  ts_code, stk_code, pay_per_year, coupon_rate, par,
-               maturity_date, conv_price, remain_size
-    cb_daily:  ts_code, trade_date, close, vol, amount
+               maturity_date, maturity_call_price, conv_price, remain_size
+    cb_daily:  ts_code, trade_date, close, amount, cb_value, bond_value
     daily:     ts_code, trade_date, close
     daily_basic: ts_code, trade_date, total_mv
-    fina_indicator: ts_code, end_date, bps
-    rating:    ts_code, rating_date, rating
+    fina_indicator: ts_code, ann_date, end_date, bps
+    cb_rating: ts_code, ann_date, rating_date, rating
 """
 
 import argparse
@@ -57,7 +57,10 @@ from market_data_contracts import (
     extract_clause_terms,
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
+    select_completed_weekly_dates,
     validate_balance_wan_units,
+    validate_observed_source_coverage,
+    validate_pricing_coverage,
     validate_stock_market_value_wan_units,
 )
 from token_loader import load_tushare_token
@@ -90,6 +93,42 @@ OUT_CREDIT_SPREAD = os.path.join(OUT_DIR, 'cb_credit_spread_cache.csv')
 CB_DAILY_CHECKPOINT_ROOT = os.path.join(OUT_DIR, '.cb_daily_checkpoint')
 CB_DAILY_CHECKPOINT_EVERY = 50
 T = TypeVar("T")
+CB_BASIC_FIELDS = ",".join(
+    [
+        "ts_code",
+        "bond_full_name",
+        "bond_short_name",
+        "cb_code",
+        "cb_type",
+        "stk_code",
+        "stk_short_name",
+        "maturity",
+        "par",
+        "issue_price",
+        "issue_size",
+        "remain_size",
+        "value_date",
+        "maturity_date",
+        "rate_type",
+        "coupon_rate",
+        "add_rate",
+        "pay_per_year",
+        "list_date",
+        "delist_date",
+        "exchange",
+        "conv_start_date",
+        "conv_end_date",
+        "conv_stop_date",
+        "first_conv_price",
+        "conv_price",
+        "rate_clause",
+        "put_clause",
+        "maturity_call_price",
+        "call_clause",
+        "reset_clause",
+        "conv_clause",
+    ]
+)
 
 
 def call_tushare_with_retry(
@@ -191,13 +230,31 @@ def fetch_cb_basic(pro) -> pd.DataFrame:
     """
     cb_basic 实际字段（经验证）：
       ts_code, stk_code, bond_short_name, maturity_date,
-      coupon_rate, pay_per_year, par, conv_price, remain_size,
+      coupon_rate, pay_per_year, par, maturity_call_price,
+      conv_price, remain_size,
       list_date, delist_date
     """
     print("\n[Step 1] 拉取转债基础信息 cb_basic ...")
-    df = call_tushare_with_retry(pro.cb_basic)
+    df = call_tushare_with_retry(
+        pro.cb_basic,
+        fields=CB_BASIC_FIELDS,
+    )
     if df is None or df.empty:
         raise RuntimeError("cb_basic 返回空数据，请检查 Token 权限")
+    required_contract_fields = {
+        "ts_code",
+        "stk_code",
+        "maturity_date",
+        "par",
+        "pay_per_year",
+        "maturity_call_price",
+    }
+    missing_contract_fields = required_contract_fields.difference(df.columns)
+    if missing_contract_fields:
+        raise DataContractError(
+            "cb_basic missing contractual fields: "
+            f"{sorted(missing_contract_fields)}"
+        )
 
     # 日期列
     for col in ('list_date', 'delist_date', 'maturity_date'):
@@ -222,12 +279,16 @@ def fetch_cb_basic(pro) -> pd.DataFrame:
     # 面值必须来自发行条款，不能静默补 100。
     if 'par_value' in df.columns:
         df['par_value'] = pd.to_numeric(df['par_value'], errors='coerce')
+    df['maturity_call_price'] = pd.to_numeric(
+        df['maturity_call_price'], errors='coerce'
+    )
 
     # conv_price（当前转股价）
     if 'conv_price' in df.columns:
         df['conv_price'] = pd.to_numeric(df['conv_price'], errors='coerce')
 
-    # remain_size 为静态余额（万元）
+    # Tushare cb_basic.remain_size is reported in yuan. It is preserved in
+    # source units here; point-in-time balance builders convert to 万元.
     if 'remain_size' in df.columns:
         df['remain_size'] = pd.to_numeric(df['remain_size'], errors='coerce')
 
@@ -330,6 +391,9 @@ def fetch_cb_daily(pro, start: str, end: str) -> dict:
             if df is not None and not df.empty:
                 chunks.append(df)
                 pending_checkpoint_chunks.append(df)
+            else:
+                failures.append((trade_date, "empty response for open date"))
+                continue
             pending_checkpoint_dates.append(trade_date)
             if len(pending_checkpoint_dates) >= CB_DAILY_CHECKPOINT_EVERY:
                 _save_cb_daily_checkpoint(
@@ -359,6 +423,7 @@ def fetch_cb_daily(pro, start: str, end: str) -> dict:
     raw = pd.concat(chunks, ignore_index=True)
     raw['trade_date'] = pd.to_datetime(raw['trade_date'])
     raw['close']  = pd.to_numeric(raw['close'],  errors='coerce')
+    raw.loc[raw['close'] <= 0, 'close'] = np.nan
     for col in ('amount', 'cb_value', 'bond_value'):
         raw[col] = pd.to_numeric(raw[col], errors='coerce')
 
@@ -956,26 +1021,71 @@ def fetch_bps(
             print(f"   财报预筛失败 ({e})，将回退至全量正股查询。")
 
     bps_series: dict = {}
+    failures = []
+    first_report_year = max(1990, int(start[:4]) - 2)
+    last_report_year = int(end[:4])
     for stk in tqdm(stock_codes, desc='fina_indicator'):
         try:
-            df = call_tushare_with_retry(
-                pro.fina_indicator,
-                ts_code=stk,
-                start_date=start,
-                end_date=end,
-                fields='ts_code,ann_date,end_date,bps'
-            )
-            if df is None or df.empty:
+            frames = []
+            for chunk_start_year in range(
+                first_report_year,
+                last_report_year + 1,
+                2,
+            ):
+                chunk_end_year = min(
+                    chunk_start_year + 1,
+                    last_report_year,
+                )
+                frame = call_tushare_with_retry(
+                    pro.fina_indicator,
+                    ts_code=stk,
+                    start_date=f"{chunk_start_year}0101",
+                    end_date=f"{chunk_end_year}1231",
+                    fields='ts_code,ann_date,end_date,bps,update_flag',
+                )
+                if frame is not None and not frame.empty:
+                    if len(frame) >= 100:
+                        raise DataContractError(
+                            "fina_indicator report-period chunk reached "
+                            "the 100-row limit"
+                        )
+                    frames.append(frame)
+                time.sleep(0.05)
+            if not frames:
                 continue
+            df = pd.concat(frames, ignore_index=True)
             df['ann_date'] = pd.to_datetime(df['ann_date'], errors='coerce')
-            df = df.dropna(subset=['ann_date']).sort_values('ann_date')
+            df['end_date'] = pd.to_datetime(df['end_date'], errors='coerce')
+            df['_update_priority'] = (
+                pd.to_numeric(
+                    df.get('update_flag', pd.Series(index=df.index, dtype=float)),
+                    errors='coerce',
+                )
+                .fillna(0)
+                .astype(int)
+            )
+            announcement_cutoff = pd.Timestamp(end)
+            df = df.loc[df['ann_date'] <= announcement_cutoff]
+            df = df.dropna(subset=['ann_date', 'end_date']).sort_values(
+                ['ann_date', 'end_date', '_update_priority']
+            )
+            df = df.drop_duplicates(
+                subset=['ann_date', 'end_date'],
+                keep='last',
+            )
             df['bps'] = pd.to_numeric(df['bps'], errors='coerce')
             series = df.set_index('ann_date')['bps']
             series = series[~series.index.duplicated(keep='last')]
             bps_series[stk] = series
-        except Exception:
-            pass
-        time.sleep(0.05)
+        except Exception as exc:
+            failures.append((stk, str(exc)))
+    if failures:
+        sample = "; ".join(
+            f"{stock}: {error}" for stock, error in failures[:5]
+        )
+        raise DataContractError(
+            f"fina_indicator failed for {len(failures)} stocks: {sample}"
+        )
 
     stock_to_bonds: dict = {}
     for bond, stk in bond_to_stock.items():
@@ -1023,6 +1133,7 @@ def run_pipeline(
     end: str = DEFAULT_END,
     *,
     rebuild_all: bool = False,
+    weekly_validation: bool = False,
 ) -> None:
     print(f"\n{'='*55}")
     print(f"Convertible Bond Data Pipeline  {start} → {end}")
@@ -1031,13 +1142,7 @@ def run_pipeline(
     pro = init_tushare()
 
     # --- 基础信息 ---
-    try:
-        cb_basic = fetch_cb_basic(pro)
-    except Exception as ex:
-        if rebuild_all or not os.path.exists(OUT_BASIC):
-            raise
-        print(f"   警告: cb_basic 拉取失败，复用本地基础信息继续: {ex}")
-        cb_basic = pd.read_csv(OUT_BASIC)
+    cb_basic = fetch_cb_basic(pro)
     # 合并已有 cb_basic_info（保留 maturity_price 等引导数据）
     if os.path.exists(OUT_BASIC) and not rebuild_all:
         existing_basic = pd.read_csv(OUT_BASIC)   # 不用 index_col，ts_code 是普通列
@@ -1059,6 +1164,7 @@ def run_pipeline(
         if rebuild_all
         else _merge_wide(_load_existing(OUT_PRICE), df_price_new)
     )
+    df_price = df_price.where(df_price > 0)
     df_price.to_csv(OUT_PRICE)
 
     amount_new = daily['amount']
@@ -1085,6 +1191,44 @@ def run_pipeline(
     clause_terms.to_csv(OUT_CLAUSES, index=False)
     clause_coverage = clause_terms['source_ok'].fillna(False).mean()
     print(f"   条款数据覆盖率: {clause_coverage:.1%}")
+    completed_weekly_dates = select_completed_weekly_dates(
+        df_price_new.index,
+        as_of=pd.Timestamp(end),
+    )
+    if len(completed_weekly_dates) == 0:
+        raise DataContractError("no completed weekly source date")
+    latest_weekly_date = completed_weekly_dates[-1]
+    source_validation_dates = (
+        completed_weekly_dates
+        if rebuild_all and weekly_validation
+        else pd.DatetimeIndex([latest_weekly_date])
+    )
+    clause_ok = (
+        clause_terms.drop_duplicates("ts_code", keep="last")
+        .set_index("ts_code")["source_ok"]
+        .astype(str)
+        .str.lower()
+        .eq("true")
+        .reindex(df_price_new.columns, fill_value=False)
+    )
+    clause_matrix = pd.DataFrame(
+        np.tile(
+            clause_ok.where(clause_ok, np.nan).astype(float).to_numpy(),
+            (len(source_validation_dates), 1),
+        ),
+        index=source_validation_dates,
+        columns=df_price_new.columns,
+    )
+    validate_pricing_coverage(
+        market_price=df_price_new,
+        model_price=clause_matrix,
+        dates=source_validation_dates,
+        min_coverage=float(
+            os.environ.get("MIN_WEEKLY_SOURCE_COVERAGE", "0.98")
+        ),
+        min_count=int(os.environ.get("MIN_WEEKLY_SOURCE_COUNT", "20")),
+        label="clause source",
+    )
 
     observed_cv = daily['convert_value'].reindex(
         index=df_price_new.index,
@@ -1134,10 +1278,18 @@ def run_pipeline(
     df_floor.to_csv(OUT_FLOOR)
 
     # --- 由 Tushare 纯债价值 + 契约现金流 + AkShare 国债曲线反解信用利差 ---
+    clause_maturity = (
+        clause_terms.drop_duplicates("ts_code", keep="last")
+        .set_index("ts_code")["maturity_redemption_price"]
+    )
+    spread_basic = cb_basic.copy()
+    spread_basic["maturity_redemption_price"] = (
+        spread_basic["ts_code"].map(clause_maturity)
+    )
     credit_spread_new = build_implied_credit_spread_matrix(
         observed_bond_value=df_floor_new,
         maturity=df_mat_new,
-        cb_basic=cb_basic,
+        cb_basic=spread_basic,
         government_curve=yield_tbl,
     )
     credit_spread = (
@@ -1152,6 +1304,26 @@ def run_pipeline(
     print(
         f"   隐含信用利差非空率: "
         f"{credit_spread_new.notna().mean().mean():.1%}"
+    )
+    valid_curve = yield_tbl.dropna(how="all")
+    if valid_curve.empty:
+        raise DataContractError("risk-free yield curve has no valid observations")
+    credit_validation_dates = source_validation_dates[
+        source_validation_dates >= valid_curve.index.min()
+    ]
+    if len(credit_validation_dates) == 0:
+        raise DataContractError(
+            "no completed weekly source date overlaps the risk-free curve"
+        )
+    validate_pricing_coverage(
+        market_price=df_price_new,
+        model_price=credit_spread_new,
+        dates=credit_validation_dates,
+        min_coverage=float(
+            os.environ.get("MIN_WEEKLY_SOURCE_COVERAGE", "0.98")
+        ),
+        min_count=int(os.environ.get("MIN_WEEKLY_SOURCE_COUNT", "20")),
+        label="implied credit spread source",
     )
 
     # --- 正股市值 ---
@@ -1197,7 +1369,35 @@ def run_pipeline(
         if rebuild_all
         else _merge_wide(_load_existing(OUT_BPS), df_bps_new)
     )
+    # Point-in-time carry-forward across incremental weekly boundaries.
+    # Values remain unavailable before their announcement dates.
+    df_bps = df_bps.sort_index().ffill()
     df_bps.to_csv(OUT_BPS)
+
+    weekly_sources = {
+        "conversion value source": (df_cv, True),
+        "bond floor source": (df_floor, True),
+        "maturity source": (df_maturity, True),
+        "stock market value source": (df_stk_mv, True),
+        "outstanding balance source": (balance, True),
+        "turnover amount source": (amount, True),
+        "rating source": (df_rating, False),
+        "BPS source": (df_bps, True),
+    }
+    for source_label, (source_frame, numeric) in weekly_sources.items():
+        validate_observed_source_coverage(
+            market_price=df_price,
+            source=source_frame,
+            dates=source_validation_dates,
+            min_coverage=float(
+                os.environ.get("MIN_WEEKLY_SOURCE_COVERAGE", "0.98")
+            ),
+            min_count=int(
+                os.environ.get("MIN_WEEKLY_SOURCE_COUNT", "20")
+            ),
+            label=source_label,
+            require_finite_numeric=numeric,
+        )
 
     # --- 汇总 ---
     print(f"\n{'='*55}")
@@ -1230,5 +1430,15 @@ if __name__ == '__main__':
         action='store_true',
         help='忽略旧宽表并用真实历史源完整重建指定区间',
     )
+    parser.add_argument(
+        '--weekly',
+        action='store_true',
+        help='全量重建时逐一验证所有已完成周度截面的数据覆盖率',
+    )
     args = parser.parse_args()
-    run_pipeline(args.start, args.end, rebuild_all=args.rebuild_all)
+    run_pipeline(
+        args.start,
+        args.end,
+        rebuild_all=args.rebuild_all,
+        weekly_validation=args.weekly,
+    )

@@ -87,7 +87,9 @@ def _pipeline_start_date() -> str:
         idx = pd.read_csv(cache_path, index_col=0, usecols=[0]).index
         last = pd.to_datetime(idx, errors="coerce").max()
         if pd.notna(last):
-            start = (last + pd.Timedelta(days=1)).strftime("%Y%m%d")
+            # Revisit a bounded overlap so a prior empty/open trading day is
+            # repaired instead of becoming a permanent internal cache gap.
+            start = (last - pd.Timedelta(days=14)).strftime("%Y%m%d")
             return min(start, today)
     except Exception as e:
         _warn(f"读取价格缓存末日期失败，回退为只拉今天: {e}")
@@ -112,11 +114,14 @@ def run_pipeline() -> None:
 
 
 # ── 步骤 2: 增量跑模型 ────────────────────────────────────────
-def run_models() -> None:
+def run_models(*, weekly_only: bool = False) -> None:
     for name, script in [("B-S", "B-S_backtest.py"), ("Z-L", "Z-L_backtest_GPU_prod.py")]:
         print(f"[2/3] 运行 {name} 模型 ({script}) …")
+        command = [sys.executable, os.path.join(DIR, script)]
+        if weekly_only:
+            command.append("--weekly")
         result = subprocess.run(
-            [sys.executable, os.path.join(DIR, script)],
+            command,
             cwd=DIR, capture_output=True, text=True
         )
         if result.returncode != 0:
@@ -387,6 +392,11 @@ def main() -> None:
                         help="跳过模型运行（模型结果已是最新时使用）")
     parser.add_argument("--dry-run", action="store_true",
                         help="只打印结果，不发送 webhook")
+    parser.add_argument(
+        "--weekly",
+        action="store_true",
+        help="仅对完整 W-FRI 周的最后交易日运行模型",
+    )
     args = parser.parse_args()
 
     start = datetime.now()
@@ -395,13 +405,14 @@ def main() -> None:
     if not args.skip_pipeline:
         run_pipeline()
     if not args.skip_models:
-        run_models()
+        run_models(weekly_only=args.weekly)
 
     top5 = compute_signals()
 
     if top5.empty:
-        print("[WARN] 未找到符合条件的转债，请检查数据或放宽过滤条件。")
-        return
+        raise RuntimeError(
+            "未找到符合条件的转债；按失败处理，禁止周度链继续发布"
+        )
 
     date_str = top5["date"].iloc[0]
 

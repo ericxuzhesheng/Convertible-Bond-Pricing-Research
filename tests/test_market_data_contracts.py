@@ -29,7 +29,10 @@ from market_data_contracts import (  # noqa: E402
     implied_credit_spread,
     load_rebuildable_matrix_cache,
     observed_average_risk_free_rate,
+    select_completed_weekly_dates,
+    validate_pricing_coverage,
     validate_balance_wan_units,
+    validate_observed_source_coverage,
     validate_stock_market_value_wan_units,
     interpolate_observed_yield_curve,
     parse_coupon_schedule,
@@ -370,6 +373,7 @@ def test_implied_spread_matrix_uses_contractual_cashflows() -> None:
             "interest_freq": [1],
             "value_date": ["20240102"],
             "maturity_date": ["20250102"],
+            "maturity_call_price": [100.0],
             "rate_clause": [
                 "20240102-20250101,票面利率:0.00%"
             ],
@@ -431,7 +435,7 @@ def test_clause_history_state_does_not_carry_put_days_before_eligibility() -> No
     assert state.put_consecutive_days == 3
 
 
-def test_full_rebuild_bypasses_persisted_model_input_cache(
+def test_model_rebuild_preserves_observed_input_cache_unless_refresh_requested(
     tmp_path: Path,
 ) -> None:
     cache_path = tmp_path / "legacy_volatility.csv"
@@ -444,10 +448,110 @@ def test_full_rebuild_bypasses_persisted_model_input_cache(
         path=cache_path,
         index=pd.DatetimeIndex(["2024-01-02"]),
         columns=pd.Index(["123001.SZ"]),
-        rebuild_all=True,
+        refresh_cache=False,
     )
 
-    assert loaded.isna().all().all()
+    assert loaded.iloc[0, 0] == pytest.approx(0.40)
+
+    refreshed = load_rebuildable_matrix_cache(
+        path=cache_path,
+        index=pd.DatetimeIndex(["2024-01-02"]),
+        columns=pd.Index(["123001.SZ"]),
+        refresh_cache=True,
+    )
+    assert refreshed.isna().all().all()
+
+
+def test_completed_weekly_dates_exclude_partial_current_week() -> None:
+    dates = pd.to_datetime(
+        ["2024-01-05", "2024-01-12", "2024-01-15", "2024-01-16"]
+    )
+
+    selected = select_completed_weekly_dates(
+        dates,
+        as_of=pd.Timestamp("2024-01-16"),
+    )
+
+    assert selected.tolist() == [
+        pd.Timestamp("2024-01-05"),
+        pd.Timestamp("2024-01-12"),
+    ]
+
+
+def test_pricing_coverage_fails_closed_on_tiny_weekly_sample() -> None:
+    date = pd.Timestamp("2024-01-12")
+    market = pd.DataFrame(
+        {"A": [100.0], "B": [101.0], "C": [102.0]},
+        index=[date],
+    )
+    model = pd.DataFrame(
+        {"A": [110.0], "B": [np.nan], "C": [np.nan]},
+        index=[date],
+    )
+
+    with pytest.raises(DataContractError, match="coverage"):
+        validate_pricing_coverage(
+            market_price=market,
+            model_price=model,
+            dates=[date],
+            min_coverage=0.90,
+            min_count=2,
+            label="weekly test",
+        )
+
+
+def test_text_source_coverage_fails_closed_on_missing_ratings() -> None:
+    date = pd.Timestamp("2024-01-12")
+    market = pd.DataFrame(
+        {"A": [100.0], "B": [101.0], "C": [102.0]},
+        index=[date],
+    )
+    ratings = pd.DataFrame(
+        {"A": ["AA"], "B": [None], "C": [""]},
+        index=[date],
+    )
+
+    with pytest.raises(DataContractError, match="rating source coverage"):
+        validate_observed_source_coverage(
+            market_price=market,
+            source=ratings,
+            dates=[date],
+            min_coverage=0.90,
+            min_count=2,
+            label="rating source",
+        )
+
+
+def test_maturity_redemption_price_is_used_as_final_contractual_cashflow() -> None:
+    date = pd.Timestamp("2024-01-02")
+    maturity = pd.DataFrame({"123001.SZ": [1.0]}, index=[date])
+    observed_floor = pd.DataFrame({"123001.SZ": [103.0]}, index=[date])
+    basic = pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ"],
+            "par_value": [100.0],
+            "interest_freq": [1],
+            "value_date": ["20240102"],
+            "maturity_date": ["20250102"],
+            "maturity_call_price": [110.0],
+            "rate_clause": [
+                "20240102-20250101,票面利率:0.00%"
+            ],
+        }
+    )
+    curve = pd.DataFrame({1.0: [0.02]}, index=[date])
+
+    spread = build_implied_credit_spread_matrix(
+        observed_bond_value=observed_floor,
+        maturity=maturity,
+        cb_basic=basic,
+        government_curve=curve,
+    )
+
+    actual_365_time = 366.0 / 365.0
+    assert spread.loc[date, "123001.SZ"] == pytest.approx(
+        -np.log(103.0 / 110.0) / actual_365_time - 0.02
+    )
 
 
 def test_average_risk_free_rate_uses_observed_curve_window() -> None:

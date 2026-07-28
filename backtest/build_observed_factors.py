@@ -168,11 +168,11 @@ def main() -> None:
             "amount": "backtest/cb_amount_cache.csv (Tushare cb_daily)",
             "conversion_value": (
                 "backtest/cb_convert_val_cache.csv "
-                "(Tushare cb_daily bond_value)"
+                "(Tushare cb_daily cb_value)"
             ),
             "bond_floor": (
                 "backtest/cb_bond_floor_cache.csv "
-                "(Tushare cb_daily cb_value)"
+                "(Tushare cb_daily bond_value)"
             ),
         },
         "lookback_trading_days": args.lookback,

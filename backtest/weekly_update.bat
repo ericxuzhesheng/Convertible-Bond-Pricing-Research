@@ -37,7 +37,7 @@ echo ==============================================================
 
 :: ── Step 1: 全量更新（数据 + 模型 + 信号推送） ──────────────────────────────
 echo [1/4] 运行 daily_signal.py ... >> "%LOG_FILE%"
-"%PYTHON%" "%BACKTEST_DIR%daily_signal.py" >> "%LOG_FILE%" 2>&1
+"%PYTHON%" "%BACKTEST_DIR%daily_signal.py" --weekly >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo [错误] daily_signal.py 失败，停止本次周更新 >> "%LOG_FILE%"
     goto :fail

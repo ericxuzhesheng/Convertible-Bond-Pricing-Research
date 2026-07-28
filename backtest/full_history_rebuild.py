@@ -31,12 +31,25 @@ def run_full_rebuild(
         )
 
     steps = [
-        [python_executable, str(BACKTEST_DIR / "data_pipeline.py"), "--rebuild-all"],
-        [python_executable, str(BACKTEST_DIR / "B-S_backtest.py"), "--rebuild-all"],
+        [
+            python_executable,
+            str(BACKTEST_DIR / "data_pipeline.py"),
+            "--rebuild-all",
+            "--weekly",
+        ],
+        [
+            python_executable,
+            str(BACKTEST_DIR / "B-S_backtest.py"),
+            "--rebuild-all",
+            "--weekly",
+            "--refresh-input-cache",
+        ],
         [
             python_executable,
             str(BACKTEST_DIR / "Z-L_backtest_GPU_prod.py"),
             "--rebuild-all",
+            "--weekly",
+            "--refresh-input-cache",
         ],
         [
             python_executable,

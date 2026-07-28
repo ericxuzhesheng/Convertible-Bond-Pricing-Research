@@ -19,6 +19,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from market_data_contracts import select_completed_weekly_dates
 
 
 BACKTEST_DIR = Path(__file__).resolve().parent
@@ -38,6 +39,45 @@ RESULT_PATTERNS = (
     "long-short strategy/*.csv",
     "long-short strategy/*.png",
 )
+CPU_HANDOFF_FILES = {
+    "backtest/cb_price_cache.csv": BACKTEST_DIR / "cb_price_cache.csv",
+    "backtest/cb_convert_val_cache.csv": (
+        BACKTEST_DIR / "cb_convert_val_cache.csv"
+    ),
+    "backtest/cb_bond_floor_cache.csv": (
+        BACKTEST_DIR / "cb_bond_floor_cache.csv"
+    ),
+    "backtest/cb_maturity_cache.csv": BACKTEST_DIR / "cb_maturity_cache.csv",
+    "backtest/cb_credit_spread_cache.csv": (
+        BACKTEST_DIR / "cb_credit_spread_cache.csv"
+    ),
+    "backtest/cb_amount_cache.csv": BACKTEST_DIR / "cb_amount_cache.csv",
+    "backtest/cb_balance_cache.csv": BACKTEST_DIR / "cb_balance_cache.csv",
+    "backtest/cb_rating_cache.csv": BACKTEST_DIR / "cb_rating_cache.csv",
+    "backtest/cb_stock_mv_cache.csv": BACKTEST_DIR / "cb_stock_mv_cache.csv",
+    "backtest/cb_bps_cache.csv": BACKTEST_DIR / "cb_bps_cache.csv",
+    "backtest/cb_conversion_price_cache.csv": (
+        BACKTEST_DIR / "cb_conversion_price_cache.csv"
+    ),
+    "backtest/cb_basic_info.csv": BACKTEST_DIR / "cb_basic_info.csv",
+    "backtest/cb_clause_terms.csv": BACKTEST_DIR / "cb_clause_terms.csv",
+    "backtest/rf_yield_cache.csv": BACKTEST_DIR / "rf_yield_cache.csv",
+    "backtest/bs_volatility_cache.csv": (
+        BACKTEST_DIR / "bs_volatility_cache.csv"
+    ),
+    "backtest/BS_Model_Prices.csv": BACKTEST_DIR / "BS_Model_Prices.csv",
+    "backtest/BS_Model_Deviation_Abs.csv": (
+        BACKTEST_DIR / "BS_Model_Deviation_Abs.csv"
+    ),
+    "backtest/BS_Model_Deviation_Pct.csv": (
+        BACKTEST_DIR / "BS_Model_Deviation_Pct.csv"
+    ),
+    "backtest/BS_Model_Summary.xlsx": BACKTEST_DIR / "BS_Model_Summary.xlsx",
+    "backtest/Market_Prices.csv": BACKTEST_DIR / "Market_Prices.csv",
+    "long-short strategy/000832_CSI_close_price.csv": (
+        REPO_ROOT / "long-short strategy" / "000832_CSI_close_price.csv"
+    ),
+}
 
 
 def _cuda_available() -> bool:
@@ -60,6 +100,63 @@ def _run_script(
         )
 
 
+def validate_cpu_stage_handoff(
+    *,
+    manifest_path: Path = BACKTEST_DIR / "remote_cpu_stage_manifest.json",
+    required_files: dict[str, Path] | None = None,
+    expected_run_id: str | None = None,
+    expected_source_sha: str | None = None,
+    expected_branch: str | None = None,
+) -> dict:
+    if required_files is None:
+        required_files = CPU_HANDOFF_FILES
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError) as exc:
+        raise RuntimeError(
+            f"CPU-stage handoff manifest unavailable: {manifest_path}"
+        ) from exc
+    expectations = {
+        "workflow_run_id": (
+            expected_run_id or os.environ.get("EXPECTED_CPU_RUN_ID")
+        ),
+        "workflow_source_sha": (
+            expected_source_sha
+            or os.environ.get("EXPECTED_WORKFLOW_SOURCE_SHA")
+        ),
+        "branch": expected_branch or os.environ.get("EXPECTED_CPU_BRANCH"),
+    }
+    for field, expected_value in expectations.items():
+        if not expected_value:
+            raise RuntimeError(
+                f"CPU-stage handoff requires expected {field}"
+            )
+        if str(manifest.get(field)) != str(expected_value):
+            raise RuntimeError(
+                f"CPU-stage handoff {field} mismatch: "
+                f"{manifest.get(field)!r} != {expected_value!r}"
+            )
+    recorded = manifest.get("files")
+    if not isinstance(recorded, dict):
+        raise RuntimeError("CPU-stage handoff manifest has no file hashes")
+    for relative_path, path in required_files.items():
+        expected = recorded.get(relative_path)
+        if not isinstance(expected, str):
+            raise RuntimeError(
+                f"CPU-stage handoff missing hash for {relative_path}"
+            )
+        if not path.is_file():
+            raise RuntimeError(
+                f"CPU-stage handoff file missing: {relative_path}"
+            )
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        if actual != expected:
+            raise RuntimeError(
+                f"CPU-stage handoff hash mismatch for {relative_path}"
+            )
+    return manifest
+
+
 def validate_zl_coverage(
     *,
     market_path: Path = BACKTEST_DIR / "cb_price_cache.csv",
@@ -68,6 +165,10 @@ def validate_zl_coverage(
 ) -> float:
     market = pd.read_csv(market_path, index_col=0)
     model = pd.read_csv(model_path, index_col=0)
+    market.index = pd.to_datetime(market.index, errors="coerce")
+    model.index = pd.to_datetime(model.index, errors="coerce")
+    weekly_dates = select_completed_weekly_dates(market.index)
+    market = market.reindex(index=weekly_dates)
     model = model.reindex(index=market.index, columns=market.columns)
 
     expected = market.notna()
@@ -174,9 +275,11 @@ def run_remote_gpu_stage(
             "CUDA is unavailable; remote GPU stage stopped before mutation"
         )
 
+    validate_cpu_stage_handoff()
     _run_script(
         BACKTEST_DIR / "Z-L_backtest_GPU_prod.py",
         "--rebuild-all",
+        "--weekly",
         python_executable=python_executable,
     )
     coverage = validate_zl_coverage()

@@ -9,6 +9,10 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BACKTEST_DIR = REPO_ROOT / "backtest"
+DATA_PIPELINE_SOURCE = (
+    BACKTEST_DIR / "data_pipeline.py"
+).read_text(encoding="utf-8")
+BS_SOURCE = (BACKTEST_DIR / "B-S_backtest.py").read_text(encoding="utf-8")
 sys.path.insert(0, str(BACKTEST_DIR))
 
 import rebuild_research_outputs  # noqa: E402
@@ -105,3 +109,13 @@ def test_full_history_rebuild_uses_real_data_rebuild_flags(
     assert "--rebuild-all" in calls[0]
     assert "--rebuild-all" in calls[1]
     assert "--rebuild-all" in calls[2]
+    assert "--weekly" in calls[1]
+    assert "--weekly" in calls[2]
+    assert "--refresh-input-cache" in calls[1]
+    assert "--refresh-input-cache" in calls[2]
+    assert "--weekly" in calls[0]
+
+
+def test_full_weekly_rebuild_validates_every_completed_week() -> None:
+    assert "source_validation_dates" in DATA_PIPELINE_SOURCE
+    assert "contract_validation_dates" in BS_SOURCE

@@ -77,7 +77,7 @@ def step2_get_credentials(hint: str) -> tuple:
     print("  步骤 2/4  输入发件账号 & 授权码")
     print("=" * 55)
     if hint:
-        print(f"\n  授权码获取方式:")
+        print("\n  授权码获取方式:")
         print(f"    {hint}")
     print("  注意: 填写授权码，不是登录密码！\n")
 

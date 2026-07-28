@@ -1,4 +1,4 @@
-name: Full backtest CPU stage
+name: Full weekly backtest CPU stages
 
 on:
   workflow_dispatch:
@@ -15,18 +15,104 @@ concurrency:
   group: full-backtest-cpu-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
+  PYTHONUNBUFFERED: "1"
+
 jobs:
-  rebuild-bs-and-benchmark:
+  rebuild-data:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
-    env:
-      TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
-      PYTHONUNBUFFERED: "1"
+    timeout-minutes: 360
 
     steps:
       - name: Check out execution branch
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install data dependencies
+        run: >-
+          python -m pip install
+          akshare==1.18.46
+          tushare==1.4.29
+          pandas==2.3.3
+          numpy==2.2.6
+          scipy==1.16.3
+          matplotlib==3.10.6
+          seaborn==0.13.2
+          requests==2.32.5
+          tqdm==4.67.1
+          openpyxl==3.1.5
+          pytest
+
+      - name: Require the repository Tushare secret
+        shell: bash
+        run: |
+          if [[ -z "${TUSHARE_TOKEN}" ]]; then
+            echo "::error::Repository Actions secret TUSHARE_TOKEN is missing."
+            exit 1
+          fi
+
+      - name: Verify execution contracts
+        run: python -m pytest -q
+
+      - name: Restore an interrupted cb_daily checkpoint
+        uses: actions/cache@v4
+        with:
+          path: backtest/.cb_daily_checkpoint
+          key: cb-daily-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            cb-daily-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Rebuild all observed weekly market-data caches
+        run: python -u backtest/data_pipeline.py --rebuild-all --weekly
+
+      - name: Upload rebuilt data for the BS stage
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-backtest-data-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            backtest/cb_*_cache.csv
+            backtest/cb_*_events.csv
+            backtest/cb_basic_info.csv
+            backtest/cb_clause_terms.csv
+            backtest/rf_yield_cache.csv
+
+      - name: Commit rebuilt data caches
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            backtest/cb_*_cache.csv \
+            backtest/cb_*_events.csv \
+            backtest/cb_basic_info.csv \
+            backtest/cb_clause_terms.csv \
+            backtest/rf_yield_cache.csv
+          if git diff --cached --quiet; then
+            echo "No rebuilt data changes to commit."
+          else
+            git commit -m "data: rebuild complete weekly source history"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+  rebuild-bs-and-benchmark:
+    needs: rebuild-data
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out latest execution branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -47,28 +133,25 @@ jobs:
           requests==2.32.5
           tqdm==4.67.1
           openpyxl==3.1.5
-          huggingface-hub
           pytest
 
-      - name: Require the repository Tushare secret
-        shell: bash
-        run: |
-          if [[ -z "${TUSHARE_TOKEN}" ]]; then
-            echo "::error::Repository Actions secret TUSHARE_TOKEN is missing."
-            exit 1
-          fi
+      - name: Download exact rebuilt data from this workflow run
+        uses: actions/download-artifact@v4
+        with:
+          name: full-backtest-data-${{ github.run_id }}
+          path: backtest
 
       - name: Verify execution contracts
         run: python -m pytest -q
 
-      - name: Rebuild Black-Scholes history
-        run: python -u backtest/B-S_backtest.py --rebuild-all
+      - name: Rebuild Black-Scholes weekly history
+        run: python -u backtest/B-S_backtest.py --rebuild-all --weekly --refresh-input-cache
 
-      - name: Resolve the latest rebuilt market date
+      - name: Resolve the latest completed weekly market date
         shell: bash
         run: |
           MARKET_END="$(
-            python -c "import pandas as pd; print(pd.read_csv('backtest/cb_price_cache.csv', index_col=0).index.max().replace('-', ''))"
+            python -c "import sys; sys.path.insert(0, 'backtest'); import pandas as pd; from market_data_contracts import select_completed_weekly_dates; idx=pd.to_datetime(pd.read_csv('backtest/cb_price_cache.csv', index_col=0).index); print(select_completed_weekly_dates(idx)[-1].strftime('%Y%m%d'))"
           )"
           echo "MARKET_END=${MARKET_END}" >> "${GITHUB_ENV}"
 
@@ -78,19 +161,29 @@ jobs:
           "long-short strategy/update_benchmark.py"
           --end "${MARKET_END}"
 
-      - name: Validate BS coverage and benchmark freshness
+      - name: Validate BS coverage and create the CPU handoff manifest
         shell: bash
         run: |
           python - <<'PY'
+          import hashlib
           import json
+          import os
+          import sys
           from datetime import datetime, timezone
           from pathlib import Path
 
           import numpy as np
           import pandas as pd
 
+          sys.path.insert(0, "backtest")
+          from market_data_contracts import select_completed_weekly_dates
+
           market = pd.read_csv("backtest/cb_price_cache.csv", index_col=0)
           model = pd.read_csv("backtest/BS_Model_Prices.csv", index_col=0)
+          market.index = pd.to_datetime(market.index, errors="coerce")
+          model.index = pd.to_datetime(model.index, errors="coerce")
+          weekly_dates = select_completed_weekly_dates(market.index)
+          market = market.reindex(index=weekly_dates)
           model = model.reindex(index=market.index, columns=market.columns)
           expected = market.notna()
           priced = expected & np.isfinite(model)
@@ -102,25 +195,57 @@ jobs:
                   f"BS coverage {coverage:.2%} is below required 90.00%"
               )
 
-          benchmark = pd.read_csv(
+          benchmark_path = Path(
               "long-short strategy/000832_CSI_close_price.csv"
           )
+          benchmark = pd.read_csv(benchmark_path)
           benchmark_end = pd.to_datetime(
               benchmark["Date"], errors="coerce"
           ).max()
-          market_end = pd.to_datetime(market.index).max()
+          market_end = market.index.max()
           if pd.isna(benchmark_end) or benchmark_end < market_end:
               raise SystemExit(
                   f"benchmark ends {benchmark_end}, before market {market_end}"
               )
 
+          handoff_paths = [
+              Path("backtest/cb_price_cache.csv"),
+              Path("backtest/cb_convert_val_cache.csv"),
+              Path("backtest/cb_bond_floor_cache.csv"),
+              Path("backtest/cb_maturity_cache.csv"),
+              Path("backtest/cb_credit_spread_cache.csv"),
+              Path("backtest/cb_amount_cache.csv"),
+              Path("backtest/cb_balance_cache.csv"),
+              Path("backtest/cb_rating_cache.csv"),
+              Path("backtest/cb_stock_mv_cache.csv"),
+              Path("backtest/cb_bps_cache.csv"),
+              Path("backtest/cb_conversion_price_cache.csv"),
+              Path("backtest/cb_basic_info.csv"),
+              Path("backtest/cb_clause_terms.csv"),
+              Path("backtest/rf_yield_cache.csv"),
+              Path("backtest/bs_volatility_cache.csv"),
+              Path("backtest/BS_Model_Prices.csv"),
+              Path("backtest/BS_Model_Deviation_Abs.csv"),
+              Path("backtest/BS_Model_Deviation_Pct.csv"),
+              Path("backtest/BS_Model_Summary.xlsx"),
+              Path("backtest/Market_Prices.csv"),
+              benchmark_path,
+          ]
+          file_hashes = {
+              path.as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+              for path in handoff_paths
+          }
           manifest = {
               "created_at": datetime.now(timezone.utc).isoformat(),
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "workflow_source_sha": os.environ["GITHUB_SHA"],
+              "branch": os.environ["GITHUB_REF_NAME"],
               "market_end": market_end.date().isoformat(),
               "benchmark_end": benchmark_end.date().isoformat(),
               "bs_coverage": coverage,
               "priced_cells": priced_cells,
               "expected_cells": expected_cells,
+              "files": file_hashes,
           }
           Path("backtest/remote_cpu_stage_manifest.json").write_text(
               json.dumps(manifest, indent=2),
@@ -129,13 +254,19 @@ jobs:
           print(json.dumps(manifest, indent=2))
           PY
 
-      - name: Upload CPU-stage outputs
+      - name: Upload complete CPU-stage handoff
         uses: actions/upload-artifact@v4
         with:
           name: full-backtest-cpu-${{ github.run_id }}
           retention-days: 14
           if-no-files-found: error
           path: |
+            backtest/cb_*_cache.csv
+            backtest/cb_*_events.csv
+            backtest/cb_basic_info.csv
+            backtest/cb_clause_terms.csv
+            backtest/rf_yield_cache.csv
+            backtest/bs_volatility_cache.csv
             backtest/BS_Model_*.csv
             backtest/BS_Model_Summary.xlsx
             backtest/Market_Prices.csv
@@ -149,6 +280,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- \
+            backtest/cb_*_cache.csv \
+            backtest/cb_*_events.csv \
+            backtest/cb_basic_info.csv \
+            backtest/cb_clause_terms.csv \
+            backtest/rf_yield_cache.csv \
+            backtest/bs_volatility_cache.csv \
             backtest/BS_Model_Deviation_Abs.csv \
             backtest/BS_Model_Deviation_Pct.csv \
             backtest/BS_Model_Prices.csv \
@@ -163,6 +300,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No CPU-stage changes to commit."
           else
-            git commit -m "results: rebuild full BS history and benchmark"
+            git commit -m "results: rebuild complete weekly BS history"
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
