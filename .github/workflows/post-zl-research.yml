@@ -1,0 +1,154 @@
+name: Rebuild research outputs after local ZL
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/full-backtest-remote-20260728
+    paths:
+      - backtest/ZL_Model_Prices.csv
+      - backtest/ZL_Model_Deviation_Abs.csv
+      - backtest/ZL_Model_Deviation_Pct.csv
+      - backtest/ZL_Model_Summary.xlsx
+      - backtest/ZL_Model_Manifest.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: post-zl-research-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  rebuild-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out latest execution branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install research dependencies
+        run: >-
+          python -m pip install
+          pandas==2.3.3
+          numpy==2.2.6
+          scipy==1.16.3
+          matplotlib==3.10.6
+          seaborn==0.13.2
+          openpyxl==3.1.5
+          akshare==1.18.46
+          tushare==1.4.29
+          requests==2.32.5
+          tqdm==4.67.1
+          pytest
+
+      - name: Verify execution contracts
+        run: python -m pytest -q
+
+      - name: Verify complete weekly ZL handoff
+        shell: python
+        run: |
+          import hashlib
+          import json
+          import sys
+          from pathlib import Path
+
+          import pandas as pd
+
+          sys.path.insert(0, "backtest")
+          from market_data_contracts import validate_pricing_coverage
+
+          root = Path("backtest")
+          manifest_path = root / "ZL_Model_Manifest.json"
+          if not manifest_path.exists():
+              raise SystemExit("ZL_Model_Manifest.json is missing")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if manifest.get("contract_version") != "weekly-observed-v2":
+              raise SystemExit("unexpected ZL input contract version")
+          if manifest.get("model_parameters", {}).get("weekly_only") is not True:
+              raise SystemExit("ZL manifest is not weekly-only")
+
+          summary_path = root / "ZL_Model_Summary.xlsx"
+          actual_summary_hash = hashlib.sha256(
+              summary_path.read_bytes()
+          ).hexdigest()
+          if manifest.get("output_sha256") != actual_summary_hash:
+              raise SystemExit("ZL summary hash does not match its manifest")
+
+          market = pd.read_csv(
+              root / "ZL_Market_Prices.csv", index_col=0, parse_dates=True
+          )
+          model = pd.read_csv(
+              root / "ZL_Model_Prices.csv", index_col=0, parse_dates=True
+          )
+          if not market.index.equals(model.index):
+              raise SystemExit("ZL market/model dates do not align")
+          if not market.columns.equals(model.columns):
+              raise SystemExit("ZL market/model bond columns do not align")
+          verified_dates = [
+              date.date().isoformat()
+              for date in model.index[model.notna().any(axis=1)]
+          ]
+          if manifest.get("verified_dates") != verified_dates:
+              raise SystemExit("ZL manifest dates do not match model output")
+
+          workbook = pd.read_excel(
+              summary_path, sheet_name=None, index_col=0
+          )
+          if len(workbook) < 2:
+              raise SystemExit("ZL summary workbook is missing required sheets")
+          workbook_model, workbook_market = list(workbook.values())[:2]
+          workbook_model.index = pd.to_datetime(workbook_model.index)
+          workbook_market.index = pd.to_datetime(workbook_market.index)
+          pd.testing.assert_frame_equal(
+              workbook_model,
+              model,
+              check_dtype=False,
+              check_exact=False,
+              rtol=1e-12,
+              atol=1e-12,
+          )
+          pd.testing.assert_frame_equal(
+              workbook_market,
+              market,
+              check_dtype=False,
+              check_exact=False,
+              rtol=1e-12,
+              atol=1e-12,
+          )
+          validate_pricing_coverage(
+              market_price=market,
+              model_price=model,
+              dates=market.index,
+              min_coverage=0.98,
+              min_count=20,
+              label="ZL weekly handoff",
+          )
+
+      - name: Rebuild factors strategies and figures
+        run: python -u backtest/rebuild_research_outputs.py
+
+      - name: Commit rebuilt research outputs
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u
+          if git diff --cached --quiet; then
+            echo "No research-output changes to commit."
+          else
+            git commit -m "results: rebuild weekly research outputs"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

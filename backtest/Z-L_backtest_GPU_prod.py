@@ -45,6 +45,7 @@ PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
 REBUILD_ALL = '--rebuild-all' in sys.argv
 REFRESH_INPUT_CACHE = '--refresh-input-cache' in sys.argv
 WEEKLY_ONLY = '--weekly' in sys.argv
+OFFLINE_INPUTS = '--offline-inputs' in sys.argv
 MC_N_PATHS = 10000
 ZL_INPUT_CONTRACT_VERSION = "weekly-observed-v2"
 ZL_MANIFEST_FILE = os.path.join(PIPELINE_DIR, "ZL_Model_Manifest.json")
@@ -321,7 +322,12 @@ pending = (
     & df_volatility.loc[input_check_dates].isna()
 ).any()
 pending_bonds = pending[pending].index.tolist()
-if pending_bonds:
+if pending_bonds and OFFLINE_INPUTS:
+    print(
+        f"   {len(pending_bonds)} 只转债的波动率存在空值；"
+        "离线输入模式下不发起 Tushare 请求，将由定价覆盖率契约校验。"
+    )
+elif pending_bonds:
     print(f"   {len(pending_bonds)} 只转债的正股数据存在缺口，开始增量补算 ...")
     updated_count = 0
     for bond_code in tqdm(pending_bonds, desc="Fetching Stock Data"):
