@@ -40,6 +40,7 @@ import warnings
 from collections.abc import Callable
 from datetime import datetime
 from typing import TypeVar
+from zoneinfo import ZoneInfo
 
 import akshare as ak
 import numpy as np
@@ -70,8 +71,9 @@ warnings.filterwarnings('ignore')
 # ==========================================
 # 1. 配置
 # ==========================================
+CHINA_MARKET_TIMEZONE = ZoneInfo("Asia/Shanghai")
 DEFAULT_START = '20170101'
-DEFAULT_END   = datetime.today().strftime('%Y%m%d')
+DEFAULT_END = datetime.now(CHINA_MARKET_TIMEZONE).strftime('%Y%m%d')
 OUT_DIR       = os.path.dirname(os.path.abspath(__file__))
 
 OUT_PRICE     = os.path.join(OUT_DIR, 'cb_price_cache.csv')
@@ -221,6 +223,42 @@ def fetch_trade_dates(pro, start: str, end: str) -> list[str]:
     if not dates:
         raise DataContractError(f"no open trading dates for {start}..{end}")
     return dates
+
+
+def resolve_completed_weekly_end(
+    pro,
+    *,
+    start: str,
+    requested_end: str,
+    as_of: pd.Timestamp | None = None,
+) -> str:
+    """Cap a weekly rebuild at the latest fully published W-FRI week."""
+
+    open_dates = pd.to_datetime(fetch_trade_dates(pro, start, requested_end))
+    market_as_of = (
+        pd.Timestamp(datetime.now(CHINA_MARKET_TIMEZONE)).tz_localize(None)
+        if as_of is None
+        else pd.Timestamp(as_of)
+    )
+    if market_as_of.tzinfo is not None:
+        market_as_of = market_as_of.tz_convert(
+            CHINA_MARKET_TIMEZONE
+        ).tz_localize(None)
+    requested_end_cutoff = (
+        pd.Timestamp(requested_end).normalize()
+        + pd.Timedelta(days=1)
+        - pd.Timedelta(nanoseconds=1)
+    )
+    effective_as_of = min(market_as_of, requested_end_cutoff)
+    completed_dates = select_completed_weekly_dates(
+        open_dates,
+        as_of=effective_as_of,
+    )
+    if len(completed_dates) == 0:
+        raise DataContractError(
+            f"no completed weekly trading date for {start}..{requested_end}"
+        )
+    return completed_dates[-1].strftime("%Y%m%d")
 
 
 # ==========================================
@@ -1135,11 +1173,23 @@ def run_pipeline(
     rebuild_all: bool = False,
     weekly_validation: bool = False,
 ) -> None:
+    pro = init_tushare()
+    requested_end = end
+    if weekly_validation:
+        end = resolve_completed_weekly_end(
+            pro,
+            start=start,
+            requested_end=requested_end,
+        )
+        if end != requested_end:
+            print(
+                "Weekly rebuild excludes the incomplete current week: "
+                f"{requested_end} -> {end}"
+            )
+
     print(f"\n{'='*55}")
     print(f"Convertible Bond Data Pipeline  {start} → {end}")
     print(f"{'='*55}")
-
-    pro = init_tushare()
 
     # --- 基础信息 ---
     cb_basic = fetch_cb_basic(pro)

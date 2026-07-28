@@ -9,12 +9,18 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from os import PathLike
 from typing import Iterable, Sequence
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
 from scipy.optimize import brentq
+
+
+CHINA_MARKET_TIMEZONE = ZoneInfo("Asia/Shanghai")
+WEEKLY_DATA_READY_HOUR = 16
 
 
 class DataContractError(RuntimeError):
@@ -172,17 +178,29 @@ def select_completed_weekly_dates(
     """Return the last observed trading date in each completed W-FRI week."""
 
     observed = pd.DatetimeIndex(pd.to_datetime(dates, errors="coerce"))
+    if observed.tz is not None:
+        observed = observed.tz_convert(CHINA_MARKET_TIMEZONE).tz_localize(None)
+    observed = observed.normalize()
     observed = observed[observed.notna()].sort_values().unique()
     if len(observed) == 0:
         return pd.DatetimeIndex([])
     cutoff = (
-        pd.Timestamp.now().normalize()
+        pd.Timestamp(datetime.now(CHINA_MARKET_TIMEZONE)).tz_localize(None)
         if as_of is None
-        else pd.Timestamp(as_of).normalize()
+        else pd.Timestamp(as_of)
     )
+    if cutoff.tzinfo is not None:
+        cutoff = cutoff.tz_convert(CHINA_MARKET_TIMEZONE).tz_localize(None)
     periods = observed.to_period("W-FRI")
     complete = np.asarray(
-        [period.end_time.normalize() <= cutoff for period in periods],
+        [
+            (
+                period.end_time.normalize()
+                + pd.Timedelta(hours=WEEKLY_DATA_READY_HOUR)
+            )
+            <= cutoff
+            for period in periods
+        ],
         dtype=bool,
     )
     completed_dates = observed[complete]
