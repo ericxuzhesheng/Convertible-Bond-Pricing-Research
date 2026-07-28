@@ -501,7 +501,7 @@ Key characteristics
 
 Lower MAE/MAPE/SMAPE indicates better pricing fit.
 
-> **Scope & vintage**: theoretical and market prices are strictly aligned on identical (trading-day × bond) cells before aggregation (BS n=152,208; ZL n=59,113); zero-market-price cells are excluded from MAPE. Data are refreshed through **2026-06-23**. ZL prices are produced by `backtest/Z-L_backtest_GPU_prod.py` with batched CUDA. The legacy CPU and experimental GPU entrypoints are disabled because they contained untraceable constant fallbacks. Run `python backtest/full_history_rebuild.py` for a fail-closed rebuild that stops before replacing outputs when CUDA or point-in-time source data are unavailable.
+> **Scope & vintage**: theoretical and market prices are strictly aligned on identical (trading-day × bond) cells before aggregation (BS n=152,208; ZL n=59,113); zero-market-price cells are excluded from MAPE. Data are refreshed through **2026-06-23**. ZL prices are produced by `backtest/Z-L_backtest_GPU_prod.py` with batched CUDA. The invalid legacy CPU entrypoint has been removed; the experimental GPU entrypoint remains disabled because it contained untraceable constant fallbacks. Run `python backtest/full_history_rebuild.py` for a fail-closed rebuild that stops before replacing outputs when CUDA or point-in-time source data are unavailable.
 
 ---
 

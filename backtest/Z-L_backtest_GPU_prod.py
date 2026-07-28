@@ -422,7 +422,7 @@ print(f"   隐含信用利差非空率: {df_spread.notna().mean().mean():.1%}")
 # ==========================================
 # Z-L 蒙特卡洛核心 —— GPU (CUDA) 批处理版
 # ==========================================
-# 注意: 本 kernel 的博弈逻辑与 Z-L_backtest_CPU.py 的 zl_mc_core 严格一致
+# 注意: 本 kernel 保持项目既定的 ZL 条款博弈逻辑
 #   - 未获得逐债下修规则时，不假设自动下修
 #   - 强赎收益: 纯转股 S*(100/X) (不与赎回价取 max)
 #   - 时间步: steps = max(50, int(T*240)), dt = T/steps
@@ -630,11 +630,11 @@ print(f"增量待计算交易日：{len(calc_dates_to_run)}")
 _dates_since_checkpoint = 0
 _CHECKPOINT_EVERY = 10  # 每处理 10 个交易日保存一次中间结果
 
-# GPU 可用性检查 (本脚本仅支持 GPU; 无 CUDA 请改用 Z-L_backtest_CPU.py)
+# GPU 可用性检查（本脚本仅支持 CUDA）
 if not cuda.is_available():
     raise SystemExit(
         "未检测到可用 CUDA 设备。本脚本是 GPU 版, 请在配好 numba CUDA 的环境运行,\n"
-        "或改用 CPU 版: python Z-L_backtest_CPU.py"
+        "当前生产 ZL 后端需要可用的 CUDA 设备。"
     )
 print(f"   GPU: {cuda.get_current_device().name.decode() if isinstance(cuda.get_current_device().name, bytes) else cuda.get_current_device().name}")
 

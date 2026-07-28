@@ -23,8 +23,8 @@ Convertible-Bond-Pricing-Research/
 ├── backtest/                          ← PRIMARY working directory
 │   ├── data_pipeline.py               ← Tushare data ingestion (run first)
 │   ├── B-S_backtest.py                ← BS model pricing + output
-│   ├── Z-L_backtest_CPU.py            ← ZL model (CPU, production)
-│   ├── Z-L_backtest_GPU.py            ← ZL model (GPU/Numba, experimental)
+│   ├── Z-L_backtest_GPU_prod.py       ← ZL model (CUDA, production)
+│   ├── Z-L_backtest_GPU.py            ← disabled legacy entrypoint
 │   ├── daily_signal.py                ← daily Top-5 signal + email push
 │   ├── regenerate_plots.py            ← 一键重生成 README 全部图表（无需重跑模型）
 │   ├── setup_notification.py          ← one-click email config wizard
@@ -63,8 +63,8 @@ python backtest/data_pipeline.py --start 20190101 --end 20260515
 # 2. Run BS model
 python backtest/B-S_backtest.py
 
-# 3. Run ZL model (CPU)
-python backtest/Z-L_backtest_CPU.py
+# 3. Run production ZL model (CUDA)
+python backtest/Z-L_backtest_GPU_prod.py
 
 # 4. Check today's top-5 signal (dry-run, no email)
 python backtest/daily_signal.py --skip-pipeline --skip-models --dry-run
@@ -141,7 +141,7 @@ bond-column shape; instead interpolate by tenor at call time.
 
 ### ZL incremental logic
 
-`Z-L_backtest_CPU.py` loads `ZL_Model_Summary.xlsx` and computes a `pending_mask`
+`Z-L_backtest_GPU_prod.py` loads `ZL_Model_Summary.xlsx` and computes a `pending_mask`
 (date × bond pairs where price is non-NaN but ZL model price is NaN). Monte Carlo
 runs only for pending cells. When reindexing old cache DataFrames to match the
 current `df_price` shape, always use:
@@ -241,7 +241,7 @@ Higher score = more undervalued by models = ranked higher.
 18:00 Friday
   │
   ├─ daily_signal.py          ← 数据拉取 + BS/ZL 模型增量计算 + Top-5 推送
-  │     (subprocess calls data_pipeline.py, B-S_backtest.py, Z-L_backtest_CPU.py)
+  │     (subprocess calls data_pipeline.py, B-S_backtest.py, Z-L_backtest_GPU_prod.py)
   │
   ├─ update_benchmark.py      ← 增量补 000832.CSI（中证转债指数）收盘价到基准 xlsx
   │     (Tushare index_daily; 幂等只追加; 保留 Wind 格式供 skiprows=5 读取)

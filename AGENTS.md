@@ -24,7 +24,6 @@ Convertible-Bond-Pricing-Research/
 │   ├── data_pipeline.py               ← Tushare data ingestion (run first)
 │   ├── B-S_backtest.py                ← BS model pricing + output
 │   ├── Z-L_backtest_GPU_prod.py       ← ZL model (CUDA, production)
-│   ├── Z-L_backtest_CPU.py            ← disabled legacy entrypoint
 │   ├── Z-L_backtest_GPU.py            ← disabled legacy entrypoint
 │   ├── full_history_rebuild.py        ← fail-closed full-history rebuild
 │   ├── daily_signal.py                ← daily Top-5 signal + email push
@@ -221,7 +220,7 @@ Higher score = more undervalued by models = ranked higher.
 
 ## Files NOT to Modify Without Care
 
-- `backtest/Z-L_backtest_CPU.py` and `backtest/Z-L_backtest_GPU.py` — disabled legacy entrypoints; do not use for research output
+- `backtest/Z-L_backtest_GPU.py` — disabled legacy entrypoint; do not use for research output
 - `【浙商固收】转债资产端特征数据库【周更新外发】.xlsx` — legacy Excel source, kept for historical comparison
 - `backtest/rf_yield_cache.csv` — tenor-format yield curve cache; format differs from other caches
 
