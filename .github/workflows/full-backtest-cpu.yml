@@ -1,0 +1,168 @@
+name: Full backtest CPU stage
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/full-backtest-remote-20260728
+    paths:
+      - .github/workflows/full-backtest-cpu.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: full-backtest-cpu-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  rebuild-bs-and-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Check out execution branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install backtest dependencies
+        run: >-
+          python -m pip install
+          akshare==1.18.46
+          tushare==1.4.29
+          pandas==2.3.3
+          numpy==2.2.6
+          scipy==1.16.3
+          matplotlib==3.10.6
+          seaborn==0.13.2
+          requests==2.32.5
+          tqdm==4.67.1
+          openpyxl==3.1.5
+          huggingface-hub
+          pytest
+
+      - name: Require the repository Tushare secret
+        shell: bash
+        run: |
+          if [[ -z "${TUSHARE_TOKEN}" ]]; then
+            echo "::error::Repository Actions secret TUSHARE_TOKEN is missing."
+            exit 1
+          fi
+
+      - name: Verify execution contracts
+        run: python -m pytest -q
+
+      - name: Rebuild Black-Scholes history
+        run: python -u backtest/B-S_backtest.py --rebuild-all
+
+      - name: Resolve the latest rebuilt market date
+        shell: bash
+        run: |
+          MARKET_END="$(
+            python -c "import pandas as pd; print(pd.read_csv('backtest/cb_price_cache.csv', index_col=0).index.max().replace('-', ''))"
+          )"
+          echo "MARKET_END=${MARKET_END}" >> "${GITHUB_ENV}"
+
+      - name: Update benchmark through the rebuilt market date
+        run: >-
+          python -u
+          "long-short strategy/update_benchmark.py"
+          --end "${MARKET_END}"
+
+      - name: Validate BS coverage and benchmark freshness
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          import numpy as np
+          import pandas as pd
+
+          market = pd.read_csv("backtest/cb_price_cache.csv", index_col=0)
+          model = pd.read_csv("backtest/BS_Model_Prices.csv", index_col=0)
+          model = model.reindex(index=market.index, columns=market.columns)
+          expected = market.notna()
+          priced = expected & np.isfinite(model)
+          expected_cells = int(expected.sum().sum())
+          priced_cells = int(priced.sum().sum())
+          coverage = priced_cells / expected_cells if expected_cells else 0.0
+          if coverage < 0.90:
+              raise SystemExit(
+                  f"BS coverage {coverage:.2%} is below required 90.00%"
+              )
+
+          benchmark = pd.read_csv(
+              "long-short strategy/000832_CSI_close_price.csv"
+          )
+          benchmark_end = pd.to_datetime(
+              benchmark["Date"], errors="coerce"
+          ).max()
+          market_end = pd.to_datetime(market.index).max()
+          if pd.isna(benchmark_end) or benchmark_end < market_end:
+              raise SystemExit(
+                  f"benchmark ends {benchmark_end}, before market {market_end}"
+              )
+
+          manifest = {
+              "created_at": datetime.now(timezone.utc).isoformat(),
+              "market_end": market_end.date().isoformat(),
+              "benchmark_end": benchmark_end.date().isoformat(),
+              "bs_coverage": coverage,
+              "priced_cells": priced_cells,
+              "expected_cells": expected_cells,
+          }
+          Path("backtest/remote_cpu_stage_manifest.json").write_text(
+              json.dumps(manifest, indent=2),
+              encoding="utf-8",
+          )
+          print(json.dumps(manifest, indent=2))
+          PY
+
+      - name: Upload CPU-stage outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-backtest-cpu-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            backtest/BS_Model_*.csv
+            backtest/BS_Model_Summary.xlsx
+            backtest/Market_Prices.csv
+            backtest/Fig*_BS_*.png
+            backtest/remote_cpu_stage_manifest.json
+            long-short strategy/000832_CSI_close_price.csv
+
+      - name: Commit CPU-stage outputs to the execution branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            backtest/BS_Model_Deviation_Abs.csv \
+            backtest/BS_Model_Deviation_Pct.csv \
+            backtest/BS_Model_Prices.csv \
+            backtest/BS_Model_Summary.xlsx \
+            backtest/Market_Prices.csv \
+            backtest/Fig1_BS_Price_Time_Series.png \
+            backtest/Fig2_BS_Moneyness.png \
+            backtest/Fig3_BS_Maturity.png \
+            backtest/Fig4_BS_Rating.png \
+            backtest/remote_cpu_stage_manifest.json \
+            "long-short strategy/000832_CSI_close_price.csv"
+          if git diff --cached --quiet; then
+            echo "No CPU-stage changes to commit."
+          else
+            git commit -m "results: rebuild full BS history and benchmark"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
