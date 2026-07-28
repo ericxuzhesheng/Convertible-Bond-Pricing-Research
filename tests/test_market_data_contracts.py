@@ -497,6 +497,18 @@ def test_completed_weekly_dates_wait_for_friday_market_close() -> None:
     ]
 
 
+def test_completed_weekly_dates_convert_utc_to_china_market_day() -> None:
+    dates = pd.DatetimeIndex(["2026-07-23 16:30:00"], tz="UTC")
+
+    selected = select_completed_weekly_dates(
+        dates,
+        as_of=pd.Timestamp("2026-07-24 18:00:00"),
+    )
+
+    assert selected.tz is None
+    assert selected.tolist() == [pd.Timestamp("2026-07-24")]
+
+
 def test_pricing_coverage_fails_closed_on_tiny_weekly_sample() -> None:
     date = pd.Timestamp("2024-01-12")
     market = pd.DataFrame(

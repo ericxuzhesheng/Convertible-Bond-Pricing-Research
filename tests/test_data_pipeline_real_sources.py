@@ -208,6 +208,102 @@ def test_weekly_rebuild_caps_end_at_last_completed_week() -> None:
     assert resolved == "20260724"
 
 
+def test_historical_midweek_end_rolls_back_to_prior_completed_week() -> None:
+    class HistoricalMidweekPro(FakePro):
+        def trade_cal(self, **kwargs):
+            return pd.DataFrame(
+                {
+                    "cal_date": [
+                        "20240105",
+                        "20240108",
+                        "20240109",
+                        "20240110",
+                    ],
+                    "is_open": [1, 1, 1, 1],
+                }
+            )
+
+    resolved = data_pipeline.resolve_completed_weekly_end(
+        HistoricalMidweekPro(),
+        start="20240105",
+        requested_end="20240110",
+        as_of=pd.Timestamp("2026-07-28 12:00:00"),
+    )
+
+    assert resolved == "20240105"
+
+
+def test_holiday_friday_uses_last_open_date_in_completed_week() -> None:
+    class HolidayFridayPro(FakePro):
+        def trade_cal(self, **kwargs):
+            return pd.DataFrame(
+                {
+                    "cal_date": [
+                        "20260619",
+                        "20260622",
+                        "20260623",
+                        "20260624",
+                        "20260625",
+                        "20260626",
+                    ],
+                    "is_open": [1, 1, 1, 1, 1, 0],
+                }
+            )
+
+    resolved = data_pipeline.resolve_completed_weekly_end(
+        HolidayFridayPro(),
+        start="20260619",
+        requested_end="20260626",
+        as_of=pd.Timestamp("2026-07-28 12:00:00"),
+    )
+
+    assert resolved == "20260625"
+
+
+def test_weekly_pipeline_uses_completed_week_end_for_cb_daily(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    pro = FakePro()
+    observed_end: list[str] = []
+
+    monkeypatch.setattr(data_pipeline, "init_tushare", lambda: pro)
+    monkeypatch.setattr(
+        data_pipeline,
+        "resolve_completed_weekly_end",
+        lambda *args, **kwargs: "20260724",
+    )
+    monkeypatch.setattr(
+        data_pipeline,
+        "fetch_cb_basic",
+        lambda _: pd.DataFrame({"ts_code": ["123001.SZ"]}),
+    )
+    monkeypatch.setattr(
+        data_pipeline,
+        "OUT_BASIC",
+        str(tmp_path / "cb_basic_info.csv"),
+    )
+
+    class PipelineStopped(Exception):
+        pass
+
+    def capture_cb_daily(_, start: str, end: str):
+        observed_end.append(end)
+        raise PipelineStopped
+
+    monkeypatch.setattr(data_pipeline, "fetch_cb_daily", capture_cb_daily)
+
+    with pytest.raises(PipelineStopped):
+        data_pipeline.run_pipeline(
+            start="20170101",
+            end="20260728",
+            rebuild_all=True,
+            weekly_validation=True,
+        )
+
+    assert observed_end == ["20260724"]
+
+
 def test_cb_daily_treats_nonpositive_close_as_missing(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
