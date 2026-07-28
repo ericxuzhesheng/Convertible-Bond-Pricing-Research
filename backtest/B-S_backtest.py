@@ -13,6 +13,7 @@ import seaborn as sns
 
 from market_data_contracts import (
     DataContractError,
+    PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
     build_active_market_mask,
     build_contractual_par_matrix,
     build_observed_volatility,
@@ -312,6 +313,7 @@ validate_pricing_coverage(
     min_coverage=float(os.environ.get("BS_MIN_PRICING_COVERAGE", "0.98")),
     min_count=int(os.environ.get("BS_MIN_PRICING_COUNT", "20")),
     label="BS weekly" if WEEKLY_ONLY else "BS latest",
+    min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
 )
 
 # 计算偏差 (理论价 - 实际价)

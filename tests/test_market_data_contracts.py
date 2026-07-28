@@ -531,6 +531,65 @@ def test_pricing_coverage_fails_closed_on_tiny_weekly_sample() -> None:
         )
 
 
+def test_pricing_coverage_accepts_complete_market_smaller_than_count_floor() -> None:
+    date = pd.Timestamp("2017-01-06")
+    market = pd.DataFrame(
+        {f"B{i:02d}": [100.0 + i] for i in range(16)},
+        index=[date],
+    )
+
+    validate_pricing_coverage(
+        market_price=market,
+        model_price=market.copy(),
+        dates=[date],
+        min_coverage=0.98,
+        min_count=20,
+        label="early weekly universe",
+        min_count_enforced_from=pd.Timestamp("2017-06-30"),
+    )
+
+
+def test_observed_coverage_accepts_complete_market_smaller_than_count_floor() -> None:
+    date = pd.Timestamp("2017-01-06")
+    market = pd.DataFrame(
+        {f"B{i:02d}": [100.0 + i] for i in range(16)},
+        index=[date],
+    )
+    ratings = pd.DataFrame(
+        {column: ["AA"] for column in market.columns},
+        index=[date],
+    )
+
+    validate_observed_source_coverage(
+        market_price=market,
+        source=ratings,
+        dates=[date],
+        min_coverage=0.98,
+        min_count=20,
+        label="early rating source",
+        min_count_enforced_from=pd.Timestamp("2017-06-30"),
+    )
+
+
+def test_pricing_coverage_rejects_modern_market_smaller_than_count_floor() -> None:
+    date = pd.Timestamp("2024-01-12")
+    market = pd.DataFrame(
+        {f"B{i:02d}": [100.0 + i] for i in range(16)},
+        index=[date],
+    )
+
+    with pytest.raises(DataContractError, match="16/16"):
+        validate_pricing_coverage(
+            market_price=market,
+            model_price=market.copy(),
+            dates=[date],
+            min_coverage=0.98,
+            min_count=20,
+            label="truncated modern universe",
+            min_count_enforced_from=pd.Timestamp("2017-06-30"),
+        )
+
+
 def test_text_source_coverage_fails_closed_on_missing_ratings() -> None:
     date = pd.Timestamp("2024-01-12")
     market = pd.DataFrame(

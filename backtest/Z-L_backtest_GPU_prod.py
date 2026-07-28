@@ -20,6 +20,7 @@ from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_normal_
 
 from market_data_contracts import (
     DataContractError,
+    PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
     build_clause_history_state,
     build_observed_volatility,
     build_risk_free_rate_matrix,
@@ -907,6 +908,7 @@ validate_pricing_coverage(
     min_coverage=float(os.environ.get("ZL_MIN_PRICING_COVERAGE", "0.98")),
     min_count=int(os.environ.get("ZL_MIN_PRICING_COUNT", "20")),
     label="ZL weekly" if WEEKLY_ONLY else "ZL latest",
+    min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
 )
 
 if WEEKLY_ONLY:

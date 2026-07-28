@@ -21,6 +21,7 @@ from scipy.optimize import brentq
 
 CHINA_MARKET_TIMEZONE = ZoneInfo("Asia/Shanghai")
 WEEKLY_DATA_READY_HOUR = 16
+PUBLIC_CB_MIN_COUNT_ENFORCED_FROM = pd.Timestamp("2017-06-30")
 
 
 class DataContractError(RuntimeError):
@@ -223,6 +224,7 @@ def validate_pricing_coverage(
     min_coverage: float,
     min_count: int,
     label: str,
+    min_count_enforced_from: pd.Timestamp | None = None,
 ) -> None:
     """Fail when a published pricing date has too few observed model values."""
 
@@ -255,9 +257,15 @@ def validate_pricing_coverage(
             ).sum()
         )
         coverage = priced / expected if expected else 0.0
+        required_count = int(min_count)
+        if (
+            min_count_enforced_from is not None
+            and date < pd.Timestamp(min_count_enforced_from)
+        ):
+            required_count = min(required_count, expected)
         if (
             expected == 0
-            or priced < int(min_count)
+            or priced < required_count
             or coverage < float(min_coverage)
         ):
             failures.append(
@@ -278,6 +286,7 @@ def validate_observed_source_coverage(
     min_count: int,
     label: str,
     require_finite_numeric: bool = False,
+    min_count_enforced_from: pd.Timestamp | None = None,
 ) -> None:
     """Fail when an observed weekly source does not cover the active market."""
 
@@ -316,9 +325,15 @@ def validate_observed_source_coverage(
         expected = int(active.sum())
         available = int((active & observed.loc[date]).sum())
         coverage = available / expected if expected else 0.0
+        required_count = int(min_count)
+        if (
+            min_count_enforced_from is not None
+            and date < pd.Timestamp(min_count_enforced_from)
+        ):
+            required_count = min(required_count, expected)
         if (
             expected == 0
-            or available < int(min_count)
+            or available < required_count
             or coverage < float(min_coverage)
         ):
             failures.append(

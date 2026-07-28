@@ -51,6 +51,7 @@ from tqdm import tqdm
 
 from market_data_contracts import (
     DataContractError,
+    PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
     build_conversion_price_matrix,
     build_implied_credit_spread_matrix,
     build_point_in_time_balance_matrix,
@@ -1337,6 +1338,7 @@ def run_pipeline(
         ),
         min_count=int(os.environ.get("MIN_WEEKLY_SOURCE_COUNT", "20")),
         label="clause source",
+        min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
     )
 
     observed_cv = daily['convert_value'].reindex(
@@ -1446,6 +1448,7 @@ def run_pipeline(
         ),
         min_count=int(os.environ.get("MIN_WEEKLY_SOURCE_COUNT", "20")),
         label="implied credit spread source",
+        min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
     )
 
     # --- 正股市值 ---
@@ -1535,6 +1538,7 @@ def run_pipeline(
             ),
             label=source_label,
             require_finite_numeric=numeric,
+            min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
         )
 
     # --- 汇总 ---
