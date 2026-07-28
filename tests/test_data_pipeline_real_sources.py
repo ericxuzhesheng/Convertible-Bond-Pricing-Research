@@ -143,6 +143,68 @@ def test_cb_basic_explicitly_requests_nondefault_maturity_price() -> None:
     assert result.loc[0, "maturity_call_price"] == pytest.approx(110.0)
 
 
+def test_exchangeable_bonds_are_excluded_from_research_universe() -> None:
+    basic = pd.DataFrame(
+        {
+            "ts_code": [
+                "110001.SH",
+                "120001.SZ",
+                "132001.SH",
+                "123999.SZ",
+                "123998.SZ",
+                "124017.SZ",
+            ],
+            "bond_short_name": [
+                "普通转债",
+                "16以岭EB",
+                "14宝钢EB",
+                "名称识别债",
+                "后缀识别EB",
+                "TCL定转2",
+            ],
+            "bond_full_name": [
+                "公开发行可转换公司债券",
+                "普通名称",
+                "普通名称",
+                "某集团公开发行可交换公司债券",
+                "普通名称",
+                "非公开发行可转换公司债券",
+            ],
+        }
+    )
+
+    result = data_pipeline.filter_exchangeable_bonds(basic)
+
+    assert result["ts_code"].tolist() == [
+        "110001.SH",
+        "124017.SZ",
+    ]
+
+
+def test_bond_cache_merge_cannot_reintroduce_exchangeable_columns() -> None:
+    dates = pd.to_datetime(["2024-01-05", "2024-01-12"])
+    existing = pd.DataFrame(
+        {
+            "110001.SH": [100.0, 101.0],
+            "132001.SH": [90.0, 91.0],
+        },
+        index=dates,
+    )
+    new = pd.DataFrame(
+        {"110001.SH": [102.0]},
+        index=pd.to_datetime(["2024-01-12"]),
+    )
+
+    result = data_pipeline._merge_bond_wide(
+        existing,
+        new,
+        bond_codes=pd.Index(["110001.SH"]),
+    )
+
+    assert result.columns.tolist() == ["110001.SH"]
+    assert result.loc[pd.Timestamp("2024-01-12"), "110001.SH"] == 102.0
+
+
 def test_cb_daily_queries_each_open_date_to_avoid_row_limit_truncation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
