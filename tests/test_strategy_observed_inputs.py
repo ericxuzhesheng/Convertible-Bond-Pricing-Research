@@ -71,3 +71,24 @@ def test_strategy_does_not_encode_missing_periods_as_zero_returns() -> None:
     source = STRATEGY_PATH.read_text(encoding="utf-8")
     assert "strategy_ret = 0" not in source
     assert "benchmark return unavailable" in source
+
+
+def test_strategy_marks_missing_exit_to_last_observed_daily_close() -> None:
+    code = "110040.SH"
+    start = pd.Timestamp("2019-08-30")
+    end = pd.Timestamp("2019-09-30")
+    daily_prices = pd.DataFrame(
+        {code: [120.0, 123.0, 999.0]},
+        index=pd.to_datetime(["2019-08-30", "2019-09-20", "2019-10-08"]),
+    )
+    end_prices = pd.Series({code: np.nan})
+
+    marked = MODULE.mark_missing_exit_prices(
+        end_prices=end_prices,
+        observed_daily_prices=daily_prices,
+        held_codes=[code],
+        start_date=start,
+        end_date=end,
+    )
+
+    assert marked.loc[code] == 123.0
