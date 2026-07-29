@@ -35,12 +35,16 @@ def test_delisted_holding_exits_at_last_observed_price() -> None:
     assert result == (176.09 - 141.76) / 141.76
 
 
-def test_suspended_holding_without_delisting_stays_unavailable() -> None:
+def test_suspended_holding_is_marked_to_last_observed_price() -> None:
     dates = pd.to_datetime(["2024-01-31", "2024-02-28"])
     backtest = MODULE.MultiFactorBacktest(model="BS")
     backtest.prices = pd.DataFrame(
         {"123001.SZ": [110.0, np.nan]},
         index=dates,
+    )
+    backtest.observed_daily_prices = pd.DataFrame(
+        {"123001.SZ": [110.0]},
+        index=dates[:1],
     )
     backtest.delist_dates = pd.Series(dtype="datetime64[ns]")
 
@@ -50,7 +54,7 @@ def test_suspended_holding_without_delisting_stays_unavailable() -> None:
         ["123001.SZ"],
     )
 
-    assert pd.isna(result)
+    assert result == 0.0
 
 
 def test_delisted_holding_uses_daily_exit_between_weekly_dates() -> None:
