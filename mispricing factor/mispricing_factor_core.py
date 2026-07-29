@@ -65,6 +65,7 @@ class MultiFactorBacktest:
         self.model_deviation = None
         self.rebalance_dates = None
         self.bond_filters_data = None  # 转债筛选数据
+        self.delist_dates = pd.Series(dtype="datetime64[ns]")
         self.ic_history_df = None  # IC 历史数据
         self.risk_free_curve = None
         self.aligned_factors = {}  # 对齐后的原始因子
@@ -325,6 +326,21 @@ class MultiFactorBacktest:
                         listing_check[code] = first_date + timedelta(days=28)
 
             self.bond_filters_data["listing_check"] = listing_check
+
+            basic_path = self.resolve("cb_basic_info.csv")
+            if basic_path.exists():
+                basic = pd.read_csv(
+                    basic_path,
+                    usecols=["ts_code", "delist_date"],
+                )
+                basic["delist_date"] = pd.to_datetime(
+                    basic["delist_date"],
+                    errors="coerce",
+                )
+                self.delist_dates = basic.drop_duplicates(
+                    "ts_code",
+                    keep="last",
+                ).set_index("ts_code")["delist_date"]
 
             print("  数据加载完成")
 
@@ -663,7 +679,26 @@ class MultiFactorBacktest:
             return np.nan
 
         price_t0 = self.prices.loc[date, available_holdings]
-        price_t1 = self.prices.loc[next_date, available_holdings]
+        price_t1 = self.prices.loc[next_date, available_holdings].copy()
+
+        # A bond delisted during the holding period is exited at its final
+        # observed market price. Suspensions without a confirmed delisting
+        # remain unavailable and still fail closed below.
+        for bond_code in price_t1.index[price_t1.isna()]:
+            delist_date = self.delist_dates.get(bond_code, pd.NaT)
+            if (
+                pd.isna(delist_date)
+                or pd.Timestamp(delist_date) <= pd.Timestamp(date)
+                or pd.Timestamp(delist_date) > pd.Timestamp(next_date)
+            ):
+                continue
+            observed = self.prices.loc[
+                (self.prices.index > date)
+                & (self.prices.index <= pd.Timestamp(delist_date)),
+                bond_code,
+            ].dropna()
+            if not observed.empty:
+                price_t1.loc[bond_code] = observed.iloc[-1]
 
         # 计算收益率
         returns = (price_t1 - price_t0) / price_t0
