@@ -1414,6 +1414,7 @@ def run_pipeline(
         maturity=df_mat_new,
         cb_basic=spread_basic,
         government_curve=yield_tbl,
+        backend=os.environ.get("CREDIT_SPREAD_BACKEND", "auto"),
     )
     credit_spread = (
         credit_spread_new
@@ -1424,7 +1425,9 @@ def run_pipeline(
             bond_codes=bond_codes,
         )
     )
-    credit_spread.to_csv(OUT_CREDIT_SPREAD)
+    credit_spread_temp = f"{OUT_CREDIT_SPREAD}.tmp"
+    credit_spread.to_csv(credit_spread_temp)
+    os.replace(credit_spread_temp, OUT_CREDIT_SPREAD)
     print(
         f"   隐含信用利差非空率: "
         f"{credit_spread_new.notna().mean().mean():.1%}"

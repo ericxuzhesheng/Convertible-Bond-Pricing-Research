@@ -79,6 +79,52 @@ def test_batched_solver_preserves_existing_boundary_rules() -> None:
     ]
 
 
+def test_batched_solver_handles_zero_spread_and_invalid_problem() -> None:
+    observed = np.asarray([100.0 * np.exp(-0.02), np.nan])
+    offsets = np.asarray([0, 1, 2])
+    times = np.asarray([1.0, 1.0])
+    amounts = np.asarray([100.0, 100.0])
+    rates = np.asarray([0.02, 0.02])
+
+    spreads, statuses = solve_credit_spreads_bisection(
+        observed,
+        offsets,
+        times,
+        amounts,
+        rates,
+    )
+
+    assert spreads[0] == 0.0
+    assert statuses[0] == STATUS_OK
+    assert np.isnan(spreads[1])
+
+
+@pytest.mark.parametrize(
+    ("offsets", "times", "amounts", "rates", "message"),
+    [
+        ([0], [], [], [], "one entry per problem"),
+        ([1, 1], [], [], [], "do not span"),
+        ([0, 2], [1.0], [100.0], [0.02], "do not span"),
+        ([0, 1], [1.0], [], [0.02], "equal lengths"),
+    ],
+)
+def test_batched_solver_rejects_malformed_ragged_inputs(
+    offsets: list[int],
+    times: list[float],
+    amounts: list[float],
+    rates: list[float],
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        solve_credit_spreads_bisection(
+            np.asarray([95.0]),
+            np.asarray(offsets),
+            np.asarray(times),
+            np.asarray(amounts),
+            np.asarray(rates),
+        )
+
+
 @pytest.mark.skipif(not cuda_is_available(), reason="CUDA device unavailable")
 def test_cuda_solver_matches_cpu_bisection() -> None:
     observed, offsets, times, amounts, rates = _ragged_problems()

@@ -1078,6 +1078,25 @@ def _future_contractual_cashflows(
     row: pd.Series,
     valuation_date: pd.Timestamp,
 ) -> tuple[np.ndarray, np.ndarray]:
+    payment_dates, payment_amounts = _contractual_cashflow_schedule(row=row)
+    future = payment_dates > pd.Timestamp(valuation_date)
+    if not future.any():
+        raise DataContractError("no future contractual cash flows")
+    if not np.isfinite(payment_amounts[future]).all():
+        raise DataContractError("coupon unavailable for a future payment")
+    times = (
+        (payment_dates[future] - pd.Timestamp(valuation_date)).days.to_numpy()
+        / 365.0
+    )
+    return np.asarray(times, dtype=float), payment_amounts[future]
+
+
+def _contractual_cashflow_schedule(
+    *,
+    row: pd.Series,
+) -> tuple[pd.DatetimeIndex, np.ndarray]:
+    """Parse one bond's dated contractual cash flows once."""
+
     par = pd.to_numeric(row.get("par_value"), errors="coerce")
     frequency = pd.to_numeric(row.get("interest_freq"), errors="coerce")
     value_date = pd.to_datetime(row.get("value_date"), errors="coerce")
@@ -1114,31 +1133,23 @@ def _future_contractual_cashflows(
         payment += pd.DateOffset(months=months)
     payment_dates.append(pd.Timestamp(maturity_date))
 
-    times = []
     amounts = []
     for payment_date in payment_dates:
-        if payment_date <= valuation_date:
-            continue
         rate_date = min(
             payment_date - pd.Timedelta(days=1),
             coupon_schedule.index.max(),
         )
         eligible = coupon_schedule.loc[coupon_schedule.index <= rate_date]
         if eligible.empty:
-            raise DataContractError(
-                f"coupon unavailable for payment {payment_date.date()}"
-            )
-        coupon = float(par) * float(eligible.iloc[-1]) / frequency
-        amount = coupon
-        if payment_date == pd.Timestamp(maturity_date):
+            amount = np.nan
+        else:
+            amount = float(par) * float(eligible.iloc[-1]) / frequency
+        if payment_date == pd.Timestamp(maturity_date) and np.isfinite(amount):
             # Tushare defines maturity_call_price as the contractual maturity
             # redemption amount including the final interest payment.
             amount = float(maturity_redemption)
-        times.append((payment_date - valuation_date).days / 365.0)
         amounts.append(amount)
-    if not times:
-        raise DataContractError("no future contractual cash flows")
-    return np.asarray(times, dtype=float), np.asarray(amounts, dtype=float)
+    return pd.DatetimeIndex(payment_dates), np.asarray(amounts, dtype=float)
 
 
 def build_implied_credit_spread_matrix(
@@ -1148,9 +1159,20 @@ def build_implied_credit_spread_matrix(
     cb_basic: pd.DataFrame,
     government_curve: pd.DataFrame,
     max_staleness_days: int = 7,
+    backend: str = "auto",
 ) -> pd.DataFrame:
     """Calibrate each bond-date spread to Tushare's daily pure-bond value."""
 
+    from credit_spread_cuda import (
+        STATUS_OK,
+        cuda_is_available,
+        solve_credit_spreads_bisection,
+        solve_credit_spreads_cuda,
+    )
+
+    selected_backend = str(backend).lower()
+    if selected_backend not in {"auto", "cpu", "cuda"}:
+        raise ValueError("backend must be one of: auto, cpu, cuda")
     values = observed_bond_value.reindex(
         index=maturity.index, columns=maturity.columns
     )
@@ -1160,40 +1182,169 @@ def build_implied_credit_spread_matrix(
     result = pd.DataFrame(
         np.nan, index=maturity.index, columns=maturity.columns, dtype=float
     )
-    for bond in maturity.columns:
+    normalized_curve = government_curve.copy()
+    normalized_curve.index = pd.to_datetime(
+        normalized_curve.index,
+        errors="coerce",
+    )
+    normalized_curve = normalized_curve.loc[
+        normalized_curve.index.notna()
+    ].sort_index()
+    if normalized_curve.empty:
+        return result
+    curve_tenors = pd.to_numeric(
+        pd.Index(normalized_curve.columns),
+        errors="coerce",
+    ).to_numpy(dtype=float)
+    tenor_order = np.argsort(curve_tenors)
+    curve_tenors = curve_tenors[tenor_order]
+    curve_values = (
+        normalized_curve.apply(pd.to_numeric, errors="coerce")
+        .to_numpy(dtype=float)[:, tenor_order]
+    )
+    valuation_dates = pd.DatetimeIndex(
+        pd.to_datetime(maturity.index, errors="coerce")
+    )
+    curve_positions = normalized_curve.index.searchsorted(
+        valuation_dates,
+        side="right",
+    ) - 1
+    observed_array = values.apply(pd.to_numeric, errors="coerce").to_numpy(
+        dtype=float
+    )
+    maturity_array = maturity.apply(
+        pd.to_numeric,
+        errors="coerce",
+    ).to_numpy(dtype=float)
+
+    problem_values: list[float] = []
+    problem_offsets = [0]
+    cashflow_time_chunks: list[np.ndarray] = []
+    cashflow_amount_chunks: list[np.ndarray] = []
+    risk_free_rate_chunks: list[np.ndarray] = []
+    row_positions: list[int] = []
+    column_positions: list[int] = []
+
+    for column_position, bond in enumerate(maturity.columns):
         if bond not in basic.index:
             continue
         row = basic.loc[bond]
-        for date in maturity.index:
-            observed = pd.to_numeric(values.at[date, bond], errors="coerce")
-            term = pd.to_numeric(maturity.at[date, bond], errors="coerce")
-            if pd.isna(observed) or observed <= 0 or pd.isna(term) or term <= 0:
+        try:
+            payment_dates, payment_amounts = _contractual_cashflow_schedule(
+                row=row
+            )
+        except DataContractError:
+            continue
+        bond_time_values: list[float] = []
+        bond_amount_values: list[float] = []
+        bond_rate_values: list[float] = []
+        valid_rows = np.flatnonzero(
+            np.isfinite(observed_array[:, column_position])
+            & (observed_array[:, column_position] > 0)
+            & np.isfinite(maturity_array[:, column_position])
+            & (maturity_array[:, column_position] > 0)
+        )
+        for row_position in valid_rows:
+            date = valuation_dates[row_position]
+            if pd.isna(date):
                 continue
-            try:
-                times, amounts = _future_contractual_cashflows(
-                    row=row,
-                    valuation_date=pd.Timestamp(date),
-                )
-                risk_free_rates = np.asarray(
-                    [
-                        interpolate_observed_yield_curve(
-                            government_curve,
-                            pd.Timestamp(date),
-                            float(cashflow_time),
-                            max_staleness_days=max_staleness_days,
-                        )
-                        for cashflow_time in times
-                    ],
-                    dtype=float,
-                )
-                result.at[date, bond] = implied_credit_spread(
-                    observed_bond_value=float(observed),
-                    cashflow_times=times,
-                    cashflow_amounts=amounts,
-                    risk_free_rates=risk_free_rates,
-                )
-            except DataContractError:
+            curve_position = int(curve_positions[row_position])
+            if curve_position < 0:
                 continue
+            curve_date = normalized_curve.index[curve_position]
+            if (date - curve_date).days > max_staleness_days:
+                continue
+            available_tenors = (
+                np.isfinite(curve_tenors)
+                & np.isfinite(curve_values[curve_position])
+            )
+            if not available_tenors.any():
+                continue
+            future_start = int(payment_dates.searchsorted(date, side="right"))
+            if future_start >= len(payment_dates):
+                continue
+            times = (
+                (payment_dates[future_start:] - date).days.to_numpy(dtype=float)
+                / 365.0
+            )
+            amounts = payment_amounts[future_start:]
+            if not np.isfinite(amounts).all():
+                continue
+            rates = np.interp(
+                times,
+                curve_tenors[available_tenors],
+                curve_values[curve_position, available_tenors],
+            )
+            problem_values.append(
+                float(observed_array[row_position, column_position])
+            )
+            row_positions.append(int(row_position))
+            column_positions.append(int(column_position))
+            bond_time_values.extend(times.tolist())
+            bond_amount_values.extend(amounts.tolist())
+            bond_rate_values.extend(rates.tolist())
+            problem_offsets.append(problem_offsets[-1] + len(times))
+        if bond_time_values:
+            cashflow_time_chunks.append(
+                np.asarray(bond_time_values, dtype=np.float64)
+            )
+            cashflow_amount_chunks.append(
+                np.asarray(bond_amount_values, dtype=np.float64)
+            )
+            risk_free_rate_chunks.append(
+                np.asarray(bond_rate_values, dtype=np.float64)
+            )
+
+    if not problem_values:
+        return result
+    problem_values_array = np.asarray(problem_values, dtype=np.float64)
+    problem_offsets_array = np.asarray(problem_offsets, dtype=np.int64)
+    cashflow_times = np.concatenate(cashflow_time_chunks)
+    cashflow_amounts = np.concatenate(cashflow_amount_chunks)
+    risk_free_rates = np.concatenate(risk_free_rate_chunks)
+
+    actual_backend = selected_backend
+    if actual_backend == "auto":
+        actual_backend = "cuda" if cuda_is_available() else "cpu"
+    try:
+        if actual_backend == "cuda":
+            spreads, statuses = solve_credit_spreads_cuda(
+                problem_values_array,
+                problem_offsets_array,
+                cashflow_times,
+                cashflow_amounts,
+                risk_free_rates,
+            )
+        else:
+            spreads, statuses = solve_credit_spreads_bisection(
+                problem_values_array,
+                problem_offsets_array,
+                cashflow_times,
+                cashflow_amounts,
+                risk_free_rates,
+            )
+    except Exception as exc:
+        if selected_backend != "auto":
+            raise
+        print(f"   CUDA credit spread failed; falling back to CPU: {exc}")
+        actual_backend = "cpu"
+        spreads, statuses = solve_credit_spreads_bisection(
+            problem_values_array,
+            problem_offsets_array,
+            cashflow_times,
+            cashflow_amounts,
+            risk_free_rates,
+        )
+    successful = (statuses == STATUS_OK) & np.isfinite(spreads)
+    result_values = result.to_numpy()
+    result_values[
+        np.asarray(row_positions, dtype=np.int64)[successful],
+        np.asarray(column_positions, dtype=np.int64)[successful],
+    ] = spreads[successful]
+    print(
+        f"   Credit spread backend: {actual_backend}; "
+        f"problems: {len(problem_values_array):,}"
+    )
     return result
 
 
