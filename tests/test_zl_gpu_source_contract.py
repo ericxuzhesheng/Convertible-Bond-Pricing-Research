@@ -47,11 +47,8 @@ def test_gpu_production_source_requires_real_clause_and_spread_caches() -> None:
 
 def test_full_rebuild_ignores_historical_model_workbook() -> None:
     assert "REBUILD_ALL = '--rebuild-all' in sys.argv" in GPU_SOURCE
-    assert (
-        "if os.path.exists(SUMMARY_FILE) and not REBUILD_ALL "
-        "and can_reuse_history:"
-        in GPU_SOURCE
-    )
+    assert "(not REBUILD_ALL and can_reuse_history)" in GPU_SOURCE
+    assert "or (REBUILD_ALL and RESUME_CHECKPOINT)" in GPU_SOURCE
     assert "load_rebuildable_matrix_cache" in GPU_SOURCE
     assert "refresh_cache=REFRESH_INPUT_CACHE" in GPU_SOURCE
 

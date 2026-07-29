@@ -693,12 +693,26 @@ class MultiFactorBacktest:
         # keeps the original holding in the portfolio without survivorship
         # filtering or inventing a future price.
         for bond_code in price_t1.index[price_t1.isna()]:
-            exit_prices = (
-                self.observed_daily_prices
-                if self.observed_daily_prices is not None
-                and bond_code in self.observed_daily_prices.columns
-                else self.prices
+            observed_daily_prices = getattr(
+                self, "observed_daily_prices", None
             )
+            delist_dates = getattr(self, "delist_dates", None)
+            known_delist_date = (
+                delist_dates.get(bond_code)
+                if delist_dates is not None
+                else None
+            )
+            exit_prices = (
+                observed_daily_prices
+                if observed_daily_prices is not None
+                and bond_code in observed_daily_prices.columns
+                else self.prices
+                if pd.notna(known_delist_date)
+                and known_delist_date <= next_date
+                else None
+            )
+            if exit_prices is None:
+                continue
             observed = exit_prices.loc[
                 (exit_prices.index >= date)
                 & (exit_prices.index <= next_date),
