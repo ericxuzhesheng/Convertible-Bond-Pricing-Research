@@ -61,6 +61,43 @@ def align_observed_strategy_inputs(
     }
 
 
+def mark_missing_exit_prices(
+    *,
+    end_prices,
+    observed_daily_prices,
+    held_codes,
+    start_date,
+    end_date,
+):
+    """Mark missing holding exits to the last observed close in the period."""
+
+    marked = end_prices.copy()
+    missing_codes = [
+        code
+        for code in held_codes
+        if code in marked.index and pd.isna(marked.loc[code])
+    ]
+    if not missing_codes or observed_daily_prices is None:
+        return marked
+
+    available_codes = [
+        code for code in missing_codes if code in observed_daily_prices.columns
+    ]
+    if not available_codes:
+        return marked
+
+    period = observed_daily_prices.loc[
+        (observed_daily_prices.index >= start_date)
+        & (observed_daily_prices.index <= end_date),
+        available_codes,
+    ]
+    for code in available_codes:
+        observed = period[code].dropna()
+        if not observed.empty:
+            marked.loc[code] = observed.iloc[-1]
+    return marked
+
+
 class CBStrategy:
     def __init__(self, data_dir=None):
         # data_dir 显式给定时沿用旧行为；默认在仓库内解析（模型/特征在 backtest/，基准在本目录）
@@ -81,6 +118,7 @@ class CBStrategy:
         self.balance = None
         self.turnover = None
         self.prices = None
+        self.observed_daily_prices = None
         self.listing_dates = None
         self.returns_data = None
         self.benchmark_prices = None
@@ -140,6 +178,7 @@ class CBStrategy:
         self.balance = _load_csv_cache("cb_balance_cache.csv", "可转债余额")
         self.turnover = _load_csv_cache("cb_amount_cache.csv", "可转债交易额")
         self.prices = _load_csv_cache("cb_price_cache.csv", "可转债价格")
+        self.observed_daily_prices = self.prices.copy()
         risk_free_path = _resolve(
             "rf_yield_cache.csv", self.model_dir, BACKTEST_DIR
         )
@@ -349,6 +388,13 @@ class CBStrategy:
                     else:
                         p_start = self.prices.loc[date]
                         p_end = self.prices.loc[next_date]
+                        p_end = mark_missing_exit_prices(
+                            end_prices=p_end,
+                            observed_daily_prices=self.observed_daily_prices,
+                            held_codes=current_long + current_short,
+                            start_date=date,
+                            end_date=next_date,
+                        )
                         valid_long = [c for c in current_long if pd.notnull(p_start[c]) and pd.notnull(p_end[c])]
                         valid_short = [c for c in current_short if pd.notnull(p_start[c]) and pd.notnull(p_end[c])]
                         if (
