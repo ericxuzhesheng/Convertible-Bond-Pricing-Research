@@ -62,6 +62,7 @@ class MultiFactorBacktest:
         self.search_dirs = [self.data_dir, BACKTEST_DIR, LS_DIR]
         self.factors = {}
         self.prices = None
+        self.observed_daily_prices = None
         self.model_deviation = None
         self.rebalance_dates = None
         self.bond_filters_data = None  # 转债筛选数据
@@ -158,6 +159,28 @@ class MultiFactorBacktest:
         prices = prices[prices.index.notna()]
         prices.index.name = "date"
         self.prices = prices
+
+        daily_price_path = self.resolve("cb_price_cache.csv")
+        if not daily_price_path.exists():
+            raise FileNotFoundError(
+                f"缺少可转债日频市场价格缓存: {daily_price_path}"
+            )
+        observed_daily_prices = pd.read_csv(
+            daily_price_path,
+            index_col=0,
+            parse_dates=True,
+        )
+        observed_daily_prices.index = pd.to_datetime(
+            observed_daily_prices.index,
+            errors="coerce",
+        )
+        observed_daily_prices = observed_daily_prices.loc[
+            observed_daily_prices.index.notna()
+        ]
+        self.observed_daily_prices = observed_daily_prices.apply(
+            pd.to_numeric,
+            errors="coerce",
+        )
 
         risk_free_path = self.resolve("rf_yield_cache.csv")
         if not risk_free_path.exists():
@@ -692,9 +715,15 @@ class MultiFactorBacktest:
                 or pd.Timestamp(delist_date) > pd.Timestamp(next_date)
             ):
                 continue
-            observed = self.prices.loc[
-                (self.prices.index > date)
-                & (self.prices.index <= pd.Timestamp(delist_date)),
+            exit_prices = (
+                self.observed_daily_prices
+                if self.observed_daily_prices is not None
+                and bond_code in self.observed_daily_prices.columns
+                else self.prices
+            )
+            observed = exit_prices.loc[
+                (exit_prices.index > date)
+                & (exit_prices.index <= pd.Timestamp(delist_date)),
                 bond_code,
             ].dropna()
             if not observed.empty:
