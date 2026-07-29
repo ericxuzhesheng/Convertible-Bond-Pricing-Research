@@ -14,6 +14,9 @@ sys.path.insert(0, str(BACKTEST_DIR))
 
 from market_data_contracts import (  # noqa: E402
     DataContractError,
+    ZL_HISTORICAL_MIN_COVERAGE,
+    ZL_MIN_COVERAGE_ENFORCED_FROM,
+    ZL_MIN_PRICING_COVERAGE,
     build_active_market_mask,
     build_credit_spread_matrix,
     build_implied_credit_spread_matrix,
@@ -687,6 +690,38 @@ def test_pricing_coverage_allows_bounded_historical_threshold_only() -> None:
             label="modern",
             historical_min_coverage=0.975,
             min_coverage_enforced_from=pd.Timestamp("2020-01-01"),
+        )
+
+
+def test_zl_coverage_policy_is_bounded_and_modern_fail_closed() -> None:
+    columns = [f"B{index:03d}" for index in range(100)]
+    dates = pd.to_datetime(["2020-01-03", "2024-01-05"])
+    market = pd.DataFrame(100.0, index=dates, columns=columns)
+    model = market.copy()
+    model.loc[dates[0], columns[84:]] = np.nan
+    model.loc[dates[1], columns[89:]] = np.nan
+
+    validate_pricing_coverage(
+        market_price=market,
+        model_price=model,
+        dates=[dates[0]],
+        min_coverage=ZL_MIN_PRICING_COVERAGE,
+        min_count=20,
+        label="historical ZL",
+        historical_min_coverage=ZL_HISTORICAL_MIN_COVERAGE,
+        min_coverage_enforced_from=ZL_MIN_COVERAGE_ENFORCED_FROM,
+    )
+
+    with pytest.raises(DataContractError, match="89/100"):
+        validate_pricing_coverage(
+            market_price=market,
+            model_price=model,
+            dates=[dates[1]],
+            min_coverage=ZL_MIN_PRICING_COVERAGE,
+            min_count=20,
+            label="modern ZL",
+            historical_min_coverage=ZL_HISTORICAL_MIN_COVERAGE,
+            min_coverage_enforced_from=ZL_MIN_COVERAGE_ENFORCED_FROM,
         )
 
 
