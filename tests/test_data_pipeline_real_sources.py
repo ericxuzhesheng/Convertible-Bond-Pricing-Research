@@ -651,6 +651,33 @@ def test_clause_cache_uses_akshare_contract_text(
     assert row["maturity_redemption_price"] == pytest.approx(108.0)
 
 
+def test_load_clause_terms_reuses_valid_retry_cache(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache = tmp_path / "cb_clause_terms.csv"
+    pd.DataFrame(
+        {
+            "ts_code": ["123001.SZ", "123002.SZ"],
+            "source_ok": [True, True],
+            "maturity_redemption_price": [110.0, 108.0],
+        }
+    ).to_csv(cache, index=False)
+    monkeypatch.setattr(data_pipeline, "OUT_CLAUSES", str(cache))
+    monkeypatch.setattr(
+        data_pipeline,
+        "fetch_clause_terms_akshare",
+        lambda _: pytest.fail("valid retry cache should be reused"),
+    )
+
+    result = data_pipeline.load_clause_terms(
+        ["123001.SZ", "123002.SZ"],
+        reuse_cache=True,
+    )
+
+    assert result["ts_code"].tolist() == ["123001.SZ", "123002.SZ"]
+
+
 def test_yield_curve_download_is_split_into_subannual_requests(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
