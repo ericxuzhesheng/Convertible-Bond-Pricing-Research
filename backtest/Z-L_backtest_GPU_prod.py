@@ -31,6 +31,7 @@ from market_data_contracts import (
     load_rebuildable_matrix_cache,
     parse_coupon_schedule,
     select_completed_weekly_dates,
+    select_dates_after_checkpoint,
     select_input_refresh_dates,
     select_pending_calculation_dates,
     validate_pricing_coverage,
@@ -582,6 +583,7 @@ df_diff_pct = pd.DataFrame(index=df_price.index, columns=df_price.columns)
 
 # 增量计算逻辑
 SUMMARY_FILE = os.path.join(PIPELINE_DIR, "ZL_Model_Summary.xlsx")
+resume_checkpoint_cutoff = None
 if (
     manifest_contract_matches
     and verified_dates
@@ -612,7 +614,12 @@ if os.path.exists(SUMMARY_FILE) and (
         df_zl_model_hist.index = pd.to_datetime(df_zl_model_hist.index, errors='coerce')
         df_zl_model_hist = df_zl_model_hist[df_zl_model_hist.index.notnull()]
         df_zl_model_hist = df_zl_model_hist.apply(pd.to_numeric, errors='coerce')
-        if not (REBUILD_ALL and RESUME_CHECKPOINT):
+        if REBUILD_ALL and RESUME_CHECKPOINT:
+            saved_rows = df_zl_model_hist.dropna(how="all")
+            if saved_rows.empty:
+                raise DataContractError("local ZL checkpoint has no saved rows")
+            resume_checkpoint_cutoff = saved_rows.index.max()
+        else:
             df_zl_model_hist = df_zl_model_hist.loc[
                 df_zl_model_hist.index.isin(verified_dates)
             ]
@@ -642,6 +649,11 @@ calc_dates_to_run = select_pending_calculation_dates(
     calculation_dates=calc_dates,
     pending_mask=pending_mask,
 )
+if resume_checkpoint_cutoff is not None:
+    calc_dates_to_run = select_dates_after_checkpoint(
+        calculation_dates=calc_dates_to_run,
+        checkpoint_cutoff=resume_checkpoint_cutoff,
+    )
 calc_dates_to_run = calc_dates_to_run[calc_dates_to_run.notnull()]
 
 print(f"增量待计算交易日：{len(calc_dates_to_run)}")

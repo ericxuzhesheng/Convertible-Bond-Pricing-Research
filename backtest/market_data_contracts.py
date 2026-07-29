@@ -199,6 +199,18 @@ def select_pending_calculation_dates(
     return normalized_dates[aligned_pending.any(axis=1).to_numpy()]
 
 
+def select_dates_after_checkpoint(
+    *,
+    calculation_dates: pd.Index,
+    checkpoint_cutoff: pd.Timestamp,
+) -> pd.DatetimeIndex:
+    """Limit an explicit checkpoint resume to dates after its last saved row."""
+
+    normalized_dates = pd.DatetimeIndex(pd.to_datetime(calculation_dates))
+    cutoff = pd.Timestamp(checkpoint_cutoff)
+    return normalized_dates[normalized_dates > cutoff]
+
+
 def select_completed_weekly_dates(
     dates: Sequence[pd.Timestamp],
     *,
