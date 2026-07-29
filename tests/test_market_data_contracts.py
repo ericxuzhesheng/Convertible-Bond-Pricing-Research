@@ -612,6 +612,37 @@ def test_text_source_coverage_fails_closed_on_missing_ratings() -> None:
         )
 
 
+def test_pricing_coverage_allows_bounded_historical_threshold_only() -> None:
+    columns = [f"B{index:02d}" for index in range(40)]
+    dates = pd.to_datetime(["2019-04-12", "2024-04-12"])
+    market = pd.DataFrame(100.0, index=dates, columns=columns)
+    model = market.copy()
+    model.loc[:, columns[-1]] = np.nan
+
+    validate_pricing_coverage(
+        market_price=market,
+        model_price=model,
+        dates=[dates[0]],
+        min_coverage=0.98,
+        min_count=20,
+        label="historical",
+        historical_min_coverage=0.975,
+        min_coverage_enforced_from=pd.Timestamp("2020-01-01"),
+    )
+
+    with pytest.raises(DataContractError, match="39/40"):
+        validate_pricing_coverage(
+            market_price=market,
+            model_price=model,
+            dates=[dates[1]],
+            min_coverage=0.98,
+            min_count=20,
+            label="modern",
+            historical_min_coverage=0.975,
+            min_coverage_enforced_from=pd.Timestamp("2020-01-01"),
+        )
+
+
 def test_maturity_redemption_price_is_used_as_final_contractual_cashflow() -> None:
     date = pd.Timestamp("2024-01-02")
     maturity = pd.DataFrame({"123001.SZ": [1.0]}, index=[date])
