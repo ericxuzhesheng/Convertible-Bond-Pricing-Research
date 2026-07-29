@@ -171,6 +171,19 @@ def load_rebuildable_matrix_cache(
     )
 
 
+def select_input_refresh_dates(
+    *,
+    all_dates: pd.Index,
+    coverage_dates: pd.Index,
+    refresh_cache: bool,
+) -> pd.DatetimeIndex:
+    """Keep model rebuild scope independent from observed-input refresh scope."""
+
+    normalized_all_dates = pd.DatetimeIndex(pd.to_datetime(all_dates))
+    normalized_coverage_dates = pd.DatetimeIndex(pd.to_datetime(coverage_dates))
+    return normalized_all_dates if refresh_cache else normalized_coverage_dates
+
+
 def select_completed_weekly_dates(
     dates: Sequence[pd.Timestamp],
     *,

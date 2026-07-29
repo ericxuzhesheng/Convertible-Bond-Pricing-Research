@@ -20,6 +20,7 @@ from market_data_contracts import (
     build_risk_free_rate_matrix,
     load_rebuildable_matrix_cache,
     select_completed_weekly_dates,
+    select_input_refresh_dates,
     validate_pricing_coverage,
 )
 from token_loader import load_tushare_token
@@ -157,10 +158,10 @@ df_volatility = load_rebuildable_matrix_cache(
 
 # 增量补算: 有市场价但波动率缺失的债券（新债，或缓存生成后新增的交易日）
 # 修复历史 bug: 旧逻辑缓存存在时直接 fillna(0.40)，导致所有新交易日永远用 40% 兜底波动率
-input_check_dates = (
-    df_price.index
-    if REBUILD_ALL or REFRESH_INPUT_CACHE
-    else coverage_dates
+input_check_dates = select_input_refresh_dates(
+    all_dates=df_price.index,
+    coverage_dates=coverage_dates,
+    refresh_cache=REFRESH_INPUT_CACHE,
 )
 pending_vol = (
     df_price.loc[input_check_dates].notna()
