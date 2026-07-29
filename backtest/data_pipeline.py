@@ -615,6 +615,43 @@ def fetch_clause_terms_akshare(bonds: list[str]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def load_clause_terms(
+    bonds: list[str],
+    *,
+    reuse_cache: bool = False,
+) -> pd.DataFrame:
+    """Reuse a complete clause cache when retrying a later pipeline stage."""
+
+    requested = list(dict.fromkeys(str(bond) for bond in bonds))
+    if reuse_cache and os.path.exists(OUT_CLAUSES):
+        cached = pd.read_csv(OUT_CLAUSES, dtype={"ts_code": str})
+        required = {
+            "ts_code",
+            "source_ok",
+            "maturity_redemption_price",
+        }
+        if required.issubset(cached.columns):
+            cached = cached.drop_duplicates("ts_code", keep="last")
+            indexed = cached.set_index("ts_code")
+            missing = set(requested).difference(indexed.index)
+            if not missing:
+                selected = indexed.reindex(requested).reset_index()
+                coverage = (
+                    selected["source_ok"]
+                    .astype(str)
+                    .str.lower()
+                    .eq("true")
+                    .mean()
+                )
+                if coverage >= 0.98:
+                    print(
+                        "\n[Step 3] Reusing clause retry cache: "
+                        f"{coverage:.1%} source coverage"
+                    )
+                    return selected
+    return fetch_clause_terms_akshare(requested)
+
+
 def calc_convert_val(
     pro,
     df_price: pd.DataFrame,
@@ -1212,6 +1249,7 @@ def run_pipeline(
     *,
     rebuild_all: bool = False,
     weekly_validation: bool = False,
+    reuse_clause_cache: bool = False,
 ) -> None:
     pro = init_tushare()
     requested_end = end
@@ -1297,7 +1335,10 @@ def run_pipeline(
         change_events=conversion_events,
     )
     conversion_price.to_csv(OUT_CONV_PRICE)
-    clause_terms = fetch_clause_terms_akshare(list(df_price.columns))
+    clause_terms = load_clause_terms(
+        list(df_price.columns),
+        reuse_cache=reuse_clause_cache,
+    )
     clause_terms.to_csv(OUT_CLAUSES, index=False)
     clause_coverage = clause_terms['source_ok'].fillna(False).mean()
     print(f"   条款数据覆盖率: {clause_coverage:.1%}")
@@ -1580,10 +1621,16 @@ if __name__ == '__main__':
         action='store_true',
         help='全量重建时逐一验证所有已完成周度截面的数据覆盖率',
     )
+    parser.add_argument(
+        '--reuse-clause-cache',
+        action='store_true',
+        help='retry from a complete local clause cache instead of redownloading it',
+    )
     args = parser.parse_args()
     run_pipeline(
         args.start,
         args.end,
         rebuild_all=args.rebuild_all,
         weekly_validation=args.weekly,
+        reuse_clause_cache=args.reuse_clause_cache,
     )
