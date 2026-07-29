@@ -51,3 +51,30 @@ def test_suspended_holding_without_delisting_stays_unavailable() -> None:
     )
 
     assert pd.isna(result)
+
+
+def test_delisted_holding_uses_daily_exit_between_weekly_dates() -> None:
+    weekly_dates = pd.to_datetime(["2019-07-26", "2019-08-30"])
+    daily_dates = pd.to_datetime(
+        ["2019-07-26", "2019-07-30", "2019-07-31"]
+    )
+    backtest = MODULE.MultiFactorBacktest(model="BS")
+    backtest.prices = pd.DataFrame(
+        {"110040.SH": [152.68, np.nan]},
+        index=weekly_dates,
+    )
+    backtest.observed_daily_prices = pd.DataFrame(
+        {"110040.SH": [152.68, 166.78, 167.56]},
+        index=daily_dates,
+    )
+    backtest.delist_dates = pd.Series(
+        {"110040.SH": pd.Timestamp("2019-08-01")}
+    )
+
+    result = backtest.calculate_portfolio_return(
+        weekly_dates[0],
+        weekly_dates[1],
+        ["110040.SH"],
+    )
+
+    assert result == (167.56 - 152.68) / 152.68
