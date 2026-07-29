@@ -33,6 +33,7 @@ from market_data_contracts import (  # noqa: E402
     load_rebuildable_matrix_cache,
     observed_average_risk_free_rate,
     select_completed_weekly_dates,
+    select_dates_after_checkpoint,
     select_input_refresh_dates,
     select_pending_calculation_dates,
     validate_pricing_coverage,
@@ -72,6 +73,17 @@ def test_pending_calculation_dates_align_daily_mask_to_weekly_dates() -> None:
     )
 
     assert result.equals(pd.DatetimeIndex([daily_dates[4]]))
+
+
+def test_resume_dates_start_strictly_after_checkpoint_cutoff() -> None:
+    dates = pd.date_range("2026-06-05", periods=4, freq="7D")
+
+    result = select_dates_after_checkpoint(
+        calculation_dates=dates,
+        checkpoint_cutoff=dates[1],
+    )
+
+    assert result.equals(pd.DatetimeIndex(dates[2:]))
 
 
 def test_conversion_price_matrix_uses_effective_historical_changes() -> None:
