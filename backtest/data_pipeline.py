@@ -52,6 +52,7 @@ from tqdm import tqdm
 from market_data_contracts import (
     DataContractError,
     PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
+    WEEKLY_DATA_READY_HOUR,
     build_conversion_price_matrix,
     build_implied_credit_spread_matrix,
     build_point_in_time_balance_matrix,
@@ -299,6 +300,14 @@ def resolve_completed_weekly_end(
             f"no completed weekly trading date for {start}..{requested_end}"
         )
     return completed_dates[-1].strftime("%Y%m%d")
+
+
+def weekly_validation_cutoff(end: str) -> pd.Timestamp:
+    """Return the publication cutoff for an already-resolved weekly end."""
+
+    return pd.Timestamp(end).normalize() + pd.Timedelta(
+        hours=WEEKLY_DATA_READY_HOUR
+    )
 
 
 # ==========================================
@@ -1344,7 +1353,7 @@ def run_pipeline(
     print(f"   条款数据覆盖率: {clause_coverage:.1%}")
     completed_weekly_dates = select_completed_weekly_dates(
         df_price_new.index,
-        as_of=pd.Timestamp(end),
+        as_of=weekly_validation_cutoff(end),
     )
     if len(completed_weekly_dates) == 0:
         raise DataContractError("no completed weekly source date")
