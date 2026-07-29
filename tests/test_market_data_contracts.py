@@ -31,6 +31,7 @@ from market_data_contracts import (  # noqa: E402
     observed_average_risk_free_rate,
     select_completed_weekly_dates,
     select_input_refresh_dates,
+    select_pending_calculation_dates,
     validate_pricing_coverage,
     validate_balance_wan_units,
     validate_observed_source_coverage,
@@ -39,6 +40,35 @@ from market_data_contracts import (  # noqa: E402
     parse_coupon_schedule,
     point_in_time_fundamental_matrix,
 )
+
+
+def test_pending_calculation_dates_align_daily_mask_to_weekly_dates() -> None:
+    daily_dates = pd.date_range("2024-01-01", periods=10, freq="D")
+    weekly_dates = pd.DatetimeIndex([daily_dates[4], daily_dates[9]])
+    pending_mask = pd.DataFrame(
+        {
+            "123001.SZ": [
+                False,
+                False,
+                False,
+                False,
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ]
+        },
+        index=daily_dates,
+    )
+
+    result = select_pending_calculation_dates(
+        calculation_dates=weekly_dates,
+        pending_mask=pending_mask,
+    )
+
+    assert result.equals(pd.DatetimeIndex([daily_dates[4]]))
 
 
 def test_conversion_price_matrix_uses_effective_historical_changes() -> None:
