@@ -30,6 +30,7 @@ from market_data_contracts import (  # noqa: E402
     load_rebuildable_matrix_cache,
     observed_average_risk_free_rate,
     select_completed_weekly_dates,
+    select_input_refresh_dates,
     validate_pricing_coverage,
     validate_balance_wan_units,
     validate_observed_source_coverage,
@@ -476,6 +477,22 @@ def test_completed_weekly_dates_exclude_partial_current_week() -> None:
         pd.Timestamp("2024-01-05"),
         pd.Timestamp("2024-01-12"),
     ]
+
+
+def test_model_rebuild_reuses_inputs_unless_refresh_is_explicit() -> None:
+    all_dates = pd.date_range("2024-01-01", periods=5)
+    coverage_dates = pd.DatetimeIndex([all_dates[-1]])
+
+    assert select_input_refresh_dates(
+        all_dates=all_dates,
+        coverage_dates=coverage_dates,
+        refresh_cache=False,
+    ).equals(coverage_dates)
+    assert select_input_refresh_dates(
+        all_dates=all_dates,
+        coverage_dates=coverage_dates,
+        refresh_cache=True,
+    ).equals(all_dates)
 
 
 def test_completed_weekly_dates_wait_for_friday_market_close() -> None:
