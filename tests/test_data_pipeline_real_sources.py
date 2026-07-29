@@ -368,6 +368,12 @@ def test_weekly_pipeline_uses_completed_week_end_for_cb_daily(
     assert observed_end == ["20260724"]
 
 
+def test_resolved_weekly_end_is_validated_after_data_ready_cutoff() -> None:
+    cutoff = data_pipeline.weekly_validation_cutoff("20260724")
+
+    assert cutoff == pd.Timestamp("2026-07-24 16:00:00")
+
+
 def test_cb_daily_treats_nonpositive_close_as_missing(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
