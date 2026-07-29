@@ -1,0 +1,19 @@
+{
+  "generated_at_utc": "2026-07-29T17:51:06.703783+00:00",
+  "source": {
+    "price": "backtest/cb_price_cache.csv (Tushare cb_daily)",
+    "amount": "backtest/cb_amount_cache.csv (Tushare cb_daily)",
+    "conversion_value": "backtest/cb_convert_val_cache.csv (Tushare cb_daily cb_value)",
+    "bond_floor": "backtest/cb_bond_floor_cache.csv (Tushare cb_daily bond_value)"
+  },
+  "lookback_trading_days": 20,
+  "min_observations": 10,
+  "formulas": {
+    "liquidity": "log1p(rolling mean amount)",
+    "volatility": "rolling std of daily price returns * sqrt(252)",
+    "price_volume": "rolling correlation of price return and log amount change",
+    "valuation": "mean of conversion premium and pure-bond premium",
+    "momentum": "lookback price return"
+  },
+  "missing_data_policy": "no forward fill and no constant fallback"
+}
