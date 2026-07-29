@@ -225,11 +225,20 @@ def validate_pricing_coverage(
     min_count: int,
     label: str,
     min_count_enforced_from: pd.Timestamp | None = None,
+    historical_min_coverage: float | None = None,
+    min_coverage_enforced_from: pd.Timestamp | None = None,
 ) -> None:
     """Fail when a published pricing date has too few observed model values."""
 
     if not 0.0 < float(min_coverage) <= 1.0:
         raise ValueError("min_coverage must be in (0, 1]")
+    if (
+        historical_min_coverage is not None
+        and not 0.0 < float(historical_min_coverage) <= float(min_coverage)
+    ):
+        raise ValueError(
+            "historical_min_coverage must be in (0, min_coverage]"
+        )
     if int(min_count) < 1:
         raise ValueError("min_count must be positive")
     aligned_model = model_price.reindex(
@@ -257,6 +266,13 @@ def validate_pricing_coverage(
             ).sum()
         )
         coverage = priced / expected if expected else 0.0
+        required_coverage = float(min_coverage)
+        if (
+            historical_min_coverage is not None
+            and min_coverage_enforced_from is not None
+            and date < pd.Timestamp(min_coverage_enforced_from)
+        ):
+            required_coverage = float(historical_min_coverage)
         required_count = int(min_count)
         if (
             min_count_enforced_from is not None
@@ -266,7 +282,7 @@ def validate_pricing_coverage(
         if (
             expected == 0
             or priced < required_count
-            or coverage < float(min_coverage)
+            or coverage < required_coverage
         ):
             failures.append(
                 f"{date.date()}: {priced}/{expected} ({coverage:.2%})"

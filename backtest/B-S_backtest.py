@@ -314,6 +314,15 @@ validate_pricing_coverage(
     min_count=int(os.environ.get("BS_MIN_PRICING_COUNT", "20")),
     label="BS weekly" if WEEKLY_ONLY else "BS latest",
     min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
+    historical_min_coverage=float(
+        os.environ.get("BS_HISTORICAL_MIN_PRICING_COVERAGE", "0.975")
+    ),
+    min_coverage_enforced_from=pd.Timestamp(
+        os.environ.get(
+            "BS_MIN_PRICING_COVERAGE_ENFORCED_FROM",
+            "2020-01-01",
+        )
+    ),
 )
 
 # 计算偏差 (理论价 - 实际价)
