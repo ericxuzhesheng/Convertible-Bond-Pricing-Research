@@ -22,6 +22,9 @@ from scipy.optimize import brentq
 CHINA_MARKET_TIMEZONE = ZoneInfo("Asia/Shanghai")
 WEEKLY_DATA_READY_HOUR = 16
 PUBLIC_CB_MIN_COUNT_ENFORCED_FROM = pd.Timestamp("2017-06-30")
+ZL_MIN_PRICING_COVERAGE = 0.90
+ZL_HISTORICAL_MIN_COVERAGE = 0.84
+ZL_MIN_COVERAGE_ENFORCED_FROM = pd.Timestamp("2021-01-01")
 
 
 class DataContractError(RuntimeError):

@@ -21,6 +21,9 @@ from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_normal_
 from market_data_contracts import (
     DataContractError,
     PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
+    ZL_HISTORICAL_MIN_COVERAGE,
+    ZL_MIN_COVERAGE_ENFORCED_FROM,
+    ZL_MIN_PRICING_COVERAGE,
     build_clause_history_state,
     build_observed_volatility,
     build_risk_free_rate_matrix,
@@ -49,6 +52,7 @@ REBUILD_ALL = '--rebuild-all' in sys.argv
 REFRESH_INPUT_CACHE = '--refresh-input-cache' in sys.argv
 WEEKLY_ONLY = '--weekly' in sys.argv
 OFFLINE_INPUTS = '--offline-inputs' in sys.argv
+RESUME_CHECKPOINT = '--resume-checkpoint' in sys.argv
 MC_N_PATHS = 10000
 ZL_INPUT_CONTRACT_VERSION = "weekly-observed-v2"
 ZL_MANIFEST_FILE = os.path.join(PIPELINE_DIR, "ZL_Model_Manifest.json")
@@ -594,21 +598,32 @@ if (
         and verified_manifest.get("output_sha256")
         == _sha256_file(SUMMARY_FILE)
     )
-if os.path.exists(SUMMARY_FILE) and not REBUILD_ALL and can_reuse_history:
+if os.path.exists(SUMMARY_FILE) and (
+    (not REBUILD_ALL and can_reuse_history)
+    or (REBUILD_ALL and RESUME_CHECKPOINT)
+):
     print(f"   发现已存在的汇总文件：{SUMMARY_FILE}")
-    print("   读取历史结果并执行增量计算...")
+    if REBUILD_ALL and RESUME_CHECKPOINT:
+        print("   Resuming explicitly from the local rebuild checkpoint...")
+    else:
+        print("   读取历史结果并执行增量计算...")
     try:
         df_zl_model_hist = pd.read_excel(SUMMARY_FILE, sheet_name="理论价格", index_col=0, engine='openpyxl')
         df_zl_model_hist.index = pd.to_datetime(df_zl_model_hist.index, errors='coerce')
         df_zl_model_hist = df_zl_model_hist[df_zl_model_hist.index.notnull()]
         df_zl_model_hist = df_zl_model_hist.apply(pd.to_numeric, errors='coerce')
-        df_zl_model_hist = df_zl_model_hist.loc[
-            df_zl_model_hist.index.isin(verified_dates)
-        ]
+        if not (REBUILD_ALL and RESUME_CHECKPOINT):
+            df_zl_model_hist = df_zl_model_hist.loc[
+                df_zl_model_hist.index.isin(verified_dates)
+            ]
         df_zl_model_hist = df_zl_model_hist.reindex(index=df_price.index, columns=df_price.columns)
         df_zl_model.update(df_zl_model_hist)
 
     except Exception as e:
+        if REBUILD_ALL and RESUME_CHECKPOINT:
+            raise DataContractError(
+                f"cannot resume local ZL checkpoint: {e}"
+            ) from e
         print(f"   历史结果读取失败，改为全量计算：{e}")
 elif os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:
     print(
@@ -909,10 +924,17 @@ validate_pricing_coverage(
     market_price=df_price,
     model_price=df_zl_model,
     dates=contract_validation_dates,
-    min_coverage=float(os.environ.get("ZL_MIN_PRICING_COVERAGE", "0.98")),
+    min_coverage=float(
+        os.environ.get(
+            "ZL_MIN_PRICING_COVERAGE",
+            str(ZL_MIN_PRICING_COVERAGE),
+        )
+    ),
     min_count=int(os.environ.get("ZL_MIN_PRICING_COUNT", "20")),
     label="ZL weekly" if WEEKLY_ONLY else "ZL latest",
     min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
+    historical_min_coverage=ZL_HISTORICAL_MIN_COVERAGE,
+    min_coverage_enforced_from=ZL_MIN_COVERAGE_ENFORCED_FROM,
 )
 
 if WEEKLY_ONLY:
