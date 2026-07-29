@@ -29,6 +29,7 @@ from market_data_contracts import (
     parse_coupon_schedule,
     select_completed_weekly_dates,
     select_input_refresh_dates,
+    select_pending_calculation_dates,
     validate_pricing_coverage,
 )
 from token_loader import load_tushare_token
@@ -622,8 +623,10 @@ if WEEKLY_ONLY:
     df_diff_pct.loc[coverage_dates] = np.nan
 
 pending_mask = df_price.notna() & df_zl_model.isna()
-pending_dates = pending_mask.any(axis=1)
-calc_dates_to_run = calc_dates[pending_dates]
+calc_dates_to_run = select_pending_calculation_dates(
+    calculation_dates=calc_dates,
+    pending_mask=pending_mask,
+)
 calc_dates_to_run = calc_dates_to_run[calc_dates_to_run.notnull()]
 
 print(f"增量待计算交易日：{len(calc_dates_to_run)}")

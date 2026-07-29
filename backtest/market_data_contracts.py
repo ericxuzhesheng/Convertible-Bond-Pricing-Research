@@ -184,6 +184,18 @@ def select_input_refresh_dates(
     return normalized_all_dates if refresh_cache else normalized_coverage_dates
 
 
+def select_pending_calculation_dates(
+    *,
+    calculation_dates: pd.Index,
+    pending_mask: pd.DataFrame,
+) -> pd.DatetimeIndex:
+    """Return pending dates after aligning a full-frequency mask to run dates."""
+
+    normalized_dates = pd.DatetimeIndex(pd.to_datetime(calculation_dates))
+    aligned_pending = pending_mask.reindex(index=normalized_dates, fill_value=False)
+    return normalized_dates[aligned_pending.any(axis=1).to_numpy()]
+
+
 def select_completed_weekly_dates(
     dates: Sequence[pd.Timestamp],
     *,
