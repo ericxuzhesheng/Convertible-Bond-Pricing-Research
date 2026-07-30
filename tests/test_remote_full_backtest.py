@@ -162,7 +162,11 @@ def test_cpu_workflow_runs_all_weekly_stages_before_publish() -> None:
         REPO_ROOT / ".github" / "workflows" / "full-backtest-cpu.yml"
     ).read_text(encoding="utf-8")
 
-    assert "data_pipeline.py --weekly" in workflow
+    assert "PIPELINE_START=" in workflow
+    assert (
+        'data_pipeline.py --start "${PIPELINE_START}" --weekly'
+        in workflow
+    )
     assert "B-S_backtest.py --weekly" in workflow
     assert "Z-L_backtest_CPU_prod.py --weekly --offline-inputs" in workflow
     assert "rebuild_research_outputs.py" in workflow

@@ -87,7 +87,11 @@ def test_github_cron_runs_complete_incremental_pipeline_on_cpu() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     assert 'cron: "30 9 * * 5"' in workflow
-    assert "data_pipeline.py --weekly" in workflow
+    assert "PIPELINE_START=" in workflow
+    assert (
+        'data_pipeline.py --start "${PIPELINE_START}" --weekly'
+        in workflow
+    )
     assert "B-S_backtest.py --weekly" in workflow
     assert (
         "Z-L_backtest_CPU_prod.py --weekly --offline-inputs"
