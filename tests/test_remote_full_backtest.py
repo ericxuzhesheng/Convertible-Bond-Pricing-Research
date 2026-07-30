@@ -164,7 +164,8 @@ def test_cpu_workflow_runs_all_weekly_stages_before_publish() -> None:
 
     assert "PIPELINE_START=" in workflow
     assert (
-        'data_pipeline.py --start "${PIPELINE_START}" --weekly'
+        'data_pipeline.py --start "${PIPELINE_START}" --weekly '
+        "--reuse-clause-cache"
         in workflow
     )
     assert "B-S_backtest.py --weekly" in workflow

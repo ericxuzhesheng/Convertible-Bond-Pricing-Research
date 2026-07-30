@@ -89,7 +89,8 @@ def test_github_cron_runs_complete_incremental_pipeline_on_cpu() -> None:
     assert 'cron: "30 9 * * 5"' in workflow
     assert "PIPELINE_START=" in workflow
     assert (
-        'data_pipeline.py --start "${PIPELINE_START}" --weekly'
+        'data_pipeline.py --start "${PIPELINE_START}" --weekly '
+        "--reuse-clause-cache"
         in workflow
     )
     assert "B-S_backtest.py --weekly" in workflow
