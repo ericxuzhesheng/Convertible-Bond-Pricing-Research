@@ -45,7 +45,6 @@ jobs:
           numpy==2.2.6
           scipy==1.16.3
           numba==0.62.1
-          numba-cuda==0.30.4
           matplotlib==3.10.6
           seaborn==0.13.2
           requests==2.32.5

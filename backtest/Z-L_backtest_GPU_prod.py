@@ -15,9 +15,6 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
-from numba import cuda, int8
-from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_normal_float64
-
 from market_data_contracts import (
     DataContractError,
     PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
@@ -70,6 +67,26 @@ ZL_INPUT_CONTRACT_VERSION = "weekly-observed-v2"
 ZL_MODEL_IMPLEMENTATION_VERSION = (
     "4d28dd36326b3e69a45197b0458695d407e7d38d774075a5f208610db23f4431"
 )
+if EXECUTION_BACKEND == "cuda":
+    from zl_cuda_backend import (
+        cuda_device_name,
+        cuda_is_available,
+        price_batch_cuda,
+    )
+    from zl_cuda_backend import (
+        cuda,
+        int8,
+        create_xoroshiro128p_states,
+        xoroshiro128p_normal_float64,
+    )
+else:
+    class _CpuOnlyCudaStub:
+        @staticmethod
+        def jit(function):
+            return function
+
+    cuda = _CpuOnlyCudaStub()
+
 ZL_MANIFEST_FILE = os.path.join(PIPELINE_DIR, "ZL_Model_Manifest.json")
 MODEL_PARAMETERS = {
     "mc_paths": MC_N_PATHS,
@@ -678,14 +695,11 @@ _CHECKPOINT_EVERY = 10  # 每处理 10 个交易日保存一次中间结果
 
 # GPU 可用性检查（本脚本仅支持 CUDA）
 if EXECUTION_BACKEND == "cuda":
-    if not cuda.is_available():
+    if not cuda_is_available():
         raise SystemExit(
             "CUDA is unavailable. Use --backend cpu on a CPU-only runner."
         )
-    device_name = cuda.get_current_device().name
-    if isinstance(device_name, bytes):
-        device_name = device_name.decode()
-    print(f"   ZL execution backend: CUDA ({device_name})")
+    print(f"   ZL execution backend: CUDA ({cuda_device_name()})")
 else:
     print("   ZL execution backend: CPU (Numba parallel)")
 
@@ -894,9 +908,9 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
         # 按交易日派生确定性种子: 可复现, 且各债券/路径随机流互相独立 (tid 偏移)
         day_seed = zlib.crc32(str(date).encode()) & 0x7FFFFFFF
         if EXECUTION_BACKEND == "cuda":
-            model_prices = zl_mc_pricing_batch(
+            model_prices = price_batch_cuda(
                 params,
-                N=MC_N_PATHS,
+                paths=MC_N_PATHS,
                 seed=day_seed,
             )
         else:
