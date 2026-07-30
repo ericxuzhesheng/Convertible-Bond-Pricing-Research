@@ -157,31 +157,28 @@ def test_validate_zl_coverage_rejects_incomplete_rebuild(
         )
 
 
-def test_cpu_workflow_rebuilds_bs_and_benchmark_before_publish() -> None:
+def test_cpu_workflow_runs_all_weekly_stages_before_publish() -> None:
     workflow = (
         REPO_ROOT / ".github" / "workflows" / "full-backtest-cpu.yml"
     ).read_text(encoding="utf-8")
 
-    assert "data_pipeline.py --rebuild-all --weekly" in workflow
-    assert (
-        "B-S_backtest.py --rebuild-all --weekly --refresh-input-cache"
-        in workflow
-    )
+    assert "data_pipeline.py --weekly" in workflow
+    assert "B-S_backtest.py --weekly" in workflow
+    assert "Z-L_backtest_CPU_prod.py --weekly --offline-inputs" in workflow
+    assert "rebuild_research_outputs.py" in workflow
+    assert "--rebuild-all" not in workflow
     assert "select_completed_weekly_dates" in workflow
-    assert "needs: rebuild-data" in workflow
-    assert "actions/download-artifact" in workflow
-    assert "path: backtest" in workflow
-    assert '"files": file_hashes' in workflow
     for required in (
         "cb_amount_cache.csv",
         "cb_balance_cache.csv",
         "cb_rating_cache.csv",
         "BS_Model_Summary.xlsx",
+        "ZL_Model_Summary.xlsx",
+        "ZL_Model_Manifest.json",
     ):
         assert required in workflow
     assert "update_benchmark.py" in workflow
     assert "python -m pytest -q" in workflow
-    assert "actions/upload-artifact" in workflow
     assert "git push origin" in workflow
 
 
