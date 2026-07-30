@@ -83,7 +83,7 @@ jobs:
           echo "PIPELINE_START=${PIPELINE_START}" >> "${GITHUB_ENV}"
 
       - name: Update weekly market-data caches incrementally
-        run: python -u backtest/data_pipeline.py --start "${PIPELINE_START}" --weekly
+        run: python -u backtest/data_pipeline.py --start "${PIPELINE_START}" --weekly --reuse-clause-cache
 
       - name: Update Black-Scholes weekly results
         run: python -u backtest/B-S_backtest.py --weekly
