@@ -193,5 +193,6 @@ def test_cpu_workflow_has_weekly_remote_schedule() -> None:
     assert "schedule:" in workflow
     assert 'cron: "30 9 * * 5"' in workflow
     assert "workflow_dispatch:" in workflow
+    assert "\n  push:" not in workflow
     assert "TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}" in workflow
     assert "contents: write" in workflow

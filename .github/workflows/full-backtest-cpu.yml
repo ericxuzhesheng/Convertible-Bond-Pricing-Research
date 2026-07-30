@@ -6,15 +6,6 @@ on:
     # Friday 17:30 Asia/Shanghai (09:30 UTC), after the 16:00 data-ready gate.
     # Holiday weeks naturally retain the final observed trading date in W-FRI.
     - cron: "30 9 * * 5"
-  push:
-    branches:
-      - codex/full-backtest-remote-20260728
-    paths:
-      - .github/workflows/full-backtest-cpu.yml
-      - backtest/data_pipeline.py
-      - backtest/market_data_contracts.py
-      - tests/test_data_pipeline_real_sources.py
-      - tests/test_market_data_contracts.py
 
 permissions:
   contents: write
