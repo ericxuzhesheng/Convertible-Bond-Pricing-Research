@@ -7,9 +7,6 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 GPU_SOURCE = (
     REPO_ROOT / "backtest" / "Z-L_backtest_GPU_prod.py"
 ).read_text(encoding="utf-8")
-DAILY_SOURCE = (
-    REPO_ROOT / "backtest" / "daily_signal.py"
-).read_text(encoding="utf-8")
 LEGACY_CPU_PATH = REPO_ROOT / "backtest" / "Z-L_backtest_CPU.py"
 EXPERIMENTAL_GPU_SOURCE = (
     REPO_ROOT / "backtest" / "Z-L_backtest_GPU.py"
@@ -56,10 +53,6 @@ def test_full_rebuild_ignores_historical_model_workbook() -> None:
 def test_full_rebuild_has_an_explicit_pricing_coverage_gate() -> None:
     assert "ZL_MIN_REBUILD_COVERAGE" in GPU_SOURCE
     assert "rebuild coverage" in GPU_SOURCE
-
-
-def test_daily_signal_never_invokes_cpu_fallback() -> None:
-    assert "Z-L_backtest_CPU.py" not in DAILY_SOURCE
 
 
 def test_legacy_cpu_entrypoint_is_removed() -> None:

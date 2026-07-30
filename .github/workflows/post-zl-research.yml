@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - codex/full-backtest-remote-20260728
+      - main
     paths:
       - backtest/ZL_Model_Prices.csv
       - backtest/ZL_Model_Deviation_Abs.csv

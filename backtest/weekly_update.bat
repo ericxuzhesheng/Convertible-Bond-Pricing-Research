@@ -1,13 +1,9 @@
 @echo off
-:: ============================================================
-:: 可转债周更新 — 每周最后一个交易日（通常周五）18:00 运行
-:: 流程：数据拉取 → 模型定价 → 信号推送 → 基准更新 → 重生成图表 → Git 提交推送
-:: 在任务计划程序中通过 setup_weekly_task.ps1 一键注册
-:: ============================================================
+:: Convertible-bond weekly update:
+:: market data -> BS -> ZL -> benchmark -> research outputs -> Git publish
 
 setlocal EnableDelayedExpansion
 
-:: ── 路径设置 ─────────────────────────────────────────────────────────────────
 set "BACKTEST_DIR=%~dp0"
 set "REPO_DIR=%BACKTEST_DIR%.."
 set "LOG_DIR=%BACKTEST_DIR%logs"
@@ -18,10 +14,6 @@ if exist "%TORCH_PYTHON%" (
     set "PYTHON=python"
 )
 
-:: 激活 conda 环境（如需要，取消注释并修改环境名）
-:: call conda activate base
-
-:: ── 日志文件 ──────────────────────────────────────────────────────────────────
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
 for /f "tokens=2 delims==" %%i in ('wmic os get localdatetime /value') do set DT=%%i
@@ -31,72 +23,70 @@ set "LOG_FILE=%LOG_DIR%\weekly_update_%DATESTAMP%.log"
 (
 echo.
 echo ==============================================================
-echo 周更新开始: %DATE% %TIME%
+echo Weekly update started: %DATE% %TIME%
 echo ==============================================================
 ) >> "%LOG_FILE%"
 
-:: ── Step 1: 全量更新（数据 + 模型 + 信号推送） ──────────────────────────────
-echo [1/4] 运行 daily_signal.py ... >> "%LOG_FILE%"
-"%PYTHON%" "%BACKTEST_DIR%daily_signal.py" --weekly >> "%LOG_FILE%" 2>&1
+echo [1/6] Running data_pipeline.py ... >> "%LOG_FILE%"
+"%PYTHON%" "%BACKTEST_DIR%data_pipeline.py" --weekly >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
-    echo [错误] daily_signal.py 失败，停止本次周更新 >> "%LOG_FILE%"
+    echo [ERROR] data_pipeline.py failed. Stopping. >> "%LOG_FILE%"
     goto :fail
-) else (
-    echo [完成] daily_signal.py 执行成功 >> "%LOG_FILE%"
 )
 
-:: ── Step 2: 更新中证转债指数基准（000832.CSI → xlsx） ────────────────────────
-echo [2/4] 运行 update_benchmark.py ... >> "%LOG_FILE%"
+echo [2/6] Running B-S_backtest.py ... >> "%LOG_FILE%"
+"%PYTHON%" "%BACKTEST_DIR%B-S_backtest.py" --weekly >> "%LOG_FILE%" 2>&1
+if errorlevel 1 (
+    echo [ERROR] B-S_backtest.py failed. Stopping. >> "%LOG_FILE%"
+    goto :fail
+)
+
+echo [3/6] Running Z-L_backtest_GPU_prod.py ... >> "%LOG_FILE%"
+"%PYTHON%" "%BACKTEST_DIR%Z-L_backtest_GPU_prod.py" --weekly >> "%LOG_FILE%" 2>&1
+if errorlevel 1 (
+    echo [ERROR] Z-L_backtest_GPU_prod.py failed. Stopping. >> "%LOG_FILE%"
+    goto :fail
+)
+
+echo [4/6] Running update_benchmark.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%REPO_DIR%\long-short strategy\update_benchmark.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
-    echo [错误] update_benchmark.py 失败，停止本次周更新 >> "%LOG_FILE%"
+    echo [ERROR] update_benchmark.py failed. Stopping. >> "%LOG_FILE%"
     goto :fail
-) else (
-    echo [完成] update_benchmark.py 执行成功 >> "%LOG_FILE%"
 )
 
-:: ── Step 3: 重建真实因子、策略和 README 全部图表 ─────────────────────────────
-echo [3/4] 运行 rebuild_research_outputs.py ... >> "%LOG_FILE%"
+echo [5/6] Running rebuild_research_outputs.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%rebuild_research_outputs.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
-    echo [错误] 下游研究结果重建失败，停止 Git 发布 >> "%LOG_FILE%"
+    echo [ERROR] rebuild_research_outputs.py failed. Stopping. >> "%LOG_FILE%"
     goto :fail
-) else (
-    echo [完成] 因子、策略和图表重建成功 >> "%LOG_FILE%"
 )
 
-:: ── Step 4: Git 提交并推送 ────────────────────────────────────────────────────
-echo [4/4] 提交更新到 GitHub ... >> "%LOG_FILE%"
+echo [6/6] Publishing verified outputs ... >> "%LOG_FILE%"
 cd /d "%REPO_DIR%"
 
-:: 暂存所有已追踪的变更文件
 git add -u >> "%LOG_FILE%" 2>&1
-
-:: 追加暂存本次新增的文件（首次运行或新文件）
 git add "backtest\regenerate_plots.py" >> "%LOG_FILE%" 2>&1
 git add "backtest\weekly_update.bat" >> "%LOG_FILE%" 2>&1
 git add "backtest\setup_weekly_task.ps1" >> "%LOG_FILE%" 2>&1
-git add "backtest\top5_*.csv" >> "%LOG_FILE%" 2>&1
 git add "long-short strategy\update_benchmark.py" >> "%LOG_FILE%" 2>&1
 git add "long-short strategy\000832_CSI_close_price.csv" >> "%LOG_FILE%" 2>&1
 
-:: 检查是否有实际变更
 git diff --cached --quiet
 if errorlevel 1 (
     git commit -m "chore: weekly update %DATESTAMP%" >> "%LOG_FILE%" 2>&1
     git push origin main >> "%LOG_FILE%" 2>&1
     if errorlevel 1 (
-        echo [错误] git push 失败，请检查网络或认证配置 >> "%LOG_FILE%"
-    ) else (
-        echo [完成] 推送成功 >> "%LOG_FILE%"
+        echo [ERROR] git push failed. Check network and credentials. >> "%LOG_FILE%"
+        goto :fail
     )
 ) else (
-    echo [跳过] 无新变更，跳过本次提交 >> "%LOG_FILE%"
+    echo [SKIP] No changes to publish. >> "%LOG_FILE%"
 )
 
 (
 echo ==============================================================
-echo 周更新完成: %DATE% %TIME%
+echo Weekly update completed: %DATE% %TIME%
 echo ==============================================================
 echo.
 ) >> "%LOG_FILE%"
@@ -105,8 +95,8 @@ exit /b 0
 :fail
 (
 echo ==============================================================
-echo 周更新失败: %DATE% %TIME%
-echo 未执行后续发布；请检查上述首个错误。
+echo Weekly update failed: %DATE% %TIME%
+echo No later stages were published.
 echo ==============================================================
 echo.
 ) >> "%LOG_FILE%"

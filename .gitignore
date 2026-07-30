@@ -1,5 +1,4 @@
 # Credentials & secrets — never commit
-backtest/signal_config.json
 backtest/tushare_token.txt
 
 # Python cache

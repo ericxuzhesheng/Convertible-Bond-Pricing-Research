@@ -49,13 +49,11 @@
 ```text
 Convertible-Bond-Pricing-Research/
 ├─ .github/workflows/       #  远端周度数据与研究产物更新
-├─ backtest/                #  BS 与 ZL 定价回测主程序 + 数据管道 + 信号
+├─ backtest/                #  BS 与 ZL 定价回测主程序 + 数据管道
 │   ├─ data_pipeline.py     #  Tushare 全量/增量数据管道
 │   ├─ B-S_backtest.py      #  Black-Scholes 周度定价
 │   ├─ Z-L_backtest_GPU_prod.py # 郑-林 Monte Carlo 定价（CUDA 生产版）
-│   ├─ full_history_rebuild.py  # GPU 门控的一键全历史重建
-│   ├─ daily_signal.py      #  Top-5 低估转债信号 + 邮件推送
-│   └─ setup_notification.py#  一键配置邮件推送向导
+│   └─ full_history_rebuild.py  # GPU 门控的一键全历史重建
 ├─ mispricing factor/       #  错误定价因子与相关性分析
 ├─ long-short strategy/     #  横截面多空策略与绩效输出
 ├─ summary/                 #  面试优先阅读精简总结
@@ -205,34 +203,6 @@ MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 
 ---
 
-## 每日信号系统
-
-`backtest/daily_signal.py` 输出最新可用交易日最值得关注的 5 只低估转债。它可独立用于本地日频监控；仓库公开研究产物按上述周度口径更新。
-
-### 过滤条件
-
-| 维度 | 阈值 |
-|------|------|
-| 剩余期限 | > 0.5 年 |
-| 转股溢价率 | < 30% |
-| 正股总市值 | > 50 亿元 |
-| 信用评级 | ≥ AA- |
-
-### 评分逻辑
-
-$$
-Score = \frac{Dev_{BS} + Dev_{ZL}}{2}, \quad Dev = \frac{V_{model} - V_{market}}{V_{market}}
-$$
-
-分数越高代表模型认为该债越被低估，两个模型共同背书的信号更可靠。
-
-### 自动推送
-
-运行 `python backtest/setup_notification.py` 完成一键邮件配置，
-之后每个交易日 15:30 由 Windows 任务计划程序自动触发推送。
-
----
-
 ## 错误定价因子
 
 $$
@@ -378,13 +348,11 @@ This repository is organized by research workflow from model pricing to factor c
 ```text
 Convertible-Bond-Pricing-Research/
 ├─ .github/workflows/       # Remote weekly data and research-output updates
-├─ backtest/                # BS and ZL pricing engines + data pipeline + signal
+├─ backtest/                # BS and ZL pricing engines + data pipeline
 │   ├─ data_pipeline.py     # Full/incremental Tushare data pipeline
 │   ├─ B-S_backtest.py      # Weekly Black-Scholes pricing
 │   ├─ Z-L_backtest_GPU_prod.py # Zheng-Lin Monte Carlo pricing (CUDA production)
-│   ├─ full_history_rebuild.py  # GPU-gated full-history rebuild
-│   ├─ daily_signal.py      # Top-5 undervalued bond signal + email push
-│   └─ setup_notification.py# One-click email configuration wizard
+│   └─ full_history_rebuild.py  # GPU-gated full-history rebuild
 ├─ mispricing factor/       # Mispricing factor and correlation analysis
 ├─ long-short strategy/     # Cross-sectional long-short strategy outputs
 ├─ summary/                 # Concise summary for interview reading
@@ -531,33 +499,6 @@ Remote weekly update plan:
 | Publication boundary | Commit only validated outputs; do not cancel an active run, and retain the previous release on failure |
 
 > Scheduled GitHub workflows run only from the default branch. Activation therefore requires merging the workflow into the default branch and configuring the repository `TUSHARE_TOKEN` secret; the ZL handoff still requires a CUDA-capable remote environment.
-
----
-
-## 📡 Daily Signal System
-
-`backtest/daily_signal.py` ranks the five most undervalued bonds for the latest usable trading date. It can support local daily monitoring, while published research outputs follow the weekly schedule above.
-
-### Filters Applied
-
-| Dimension | Threshold |
-|-----------|-----------|
-| Remaining maturity | > 0.5 years |
-| Conversion premium | < 30% |
-| Stock market cap | > 50B CNY |
-| Credit rating | ≥ AA- |
-
-### Scoring Logic
-
-$$
-Score = \frac{Dev_{BS} + Dev_{ZL}}{2}, \quad Dev = \frac{V_{model} - V_{market}}{V_{market}}
-$$
-
-Higher score = more undervalued per model. Bonds backed by both models carry stronger signal.
-
-### Automated Delivery
-
-Run `python backtest/setup_notification.py` once to configure your email provider (Gmail / QQ / 163 / Outlook). After that, Windows Task Scheduler pushes results at 15:30 every weekday with no further intervention.
 
 ---
 
