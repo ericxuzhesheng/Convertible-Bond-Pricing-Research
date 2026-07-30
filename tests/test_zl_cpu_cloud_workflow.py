@@ -99,6 +99,12 @@ def test_github_cron_runs_complete_incremental_pipeline_on_cpu() -> None:
     assert "git push origin" in workflow
 
 
+def test_python_setup_does_not_require_a_missing_dependency_manifest() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "cache: pip" not in workflow
+
+
 def test_cpu_backend_preserves_existing_verified_history_fingerprint() -> None:
     source = (
         BACKTEST_DIR / "Z-L_backtest_GPU_prod.py"
