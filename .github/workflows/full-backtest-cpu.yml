@@ -63,8 +63,27 @@ jobs:
       - name: Verify execution contracts
         run: python -m pytest -q
 
+      - name: Resolve the bounded incremental data start
+        shell: bash
+        run: |
+          PIPELINE_START="$(
+            python - <<'PY'
+          import json
+          from datetime import date, timedelta
+          from pathlib import Path
+
+          manifest_path = Path("backtest/ZL_Model_Manifest.json")
+          if not manifest_path.exists():
+              raise SystemExit("ZL manifest is required for incremental start")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          cutoff = date.fromisoformat(manifest["input_cutoff"])
+          print((cutoff - timedelta(days=7)).strftime("%Y%m%d"))
+          PY
+          )"
+          echo "PIPELINE_START=${PIPELINE_START}" >> "${GITHUB_ENV}"
+
       - name: Update weekly market-data caches incrementally
-        run: python -u backtest/data_pipeline.py --weekly
+        run: python -u backtest/data_pipeline.py --start "${PIPELINE_START}" --weekly
 
       - name: Update Black-Scholes weekly results
         run: python -u backtest/B-S_backtest.py --weekly
