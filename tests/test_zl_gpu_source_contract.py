@@ -100,6 +100,11 @@ def test_zl_reuses_only_history_with_current_contract_manifest() -> None:
     assert '"model_parameters"' in GPU_SOURCE
 
 
+def test_weekly_zl_refuses_to_fall_back_to_full_history() -> None:
+    assert "weekly incremental ZL history verification failed" in GPU_SOURCE
+    assert "refusing full rebuild" in GPU_SOURCE
+
+
 def test_zl_uses_official_maturity_call_price_for_terminal_redemption() -> None:
     assert "basic_row.get('maturity_call_price')" in GPU_SOURCE
 

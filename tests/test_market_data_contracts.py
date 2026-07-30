@@ -31,6 +31,7 @@ from market_data_contracts import (  # noqa: E402
     extract_clause_terms,
     implied_credit_spread,
     load_rebuildable_matrix_cache,
+    merge_incremental_history,
     observed_average_risk_free_rate,
     select_completed_weekly_dates,
     select_dates_after_checkpoint,
@@ -44,6 +45,43 @@ from market_data_contracts import (  # noqa: E402
     parse_coupon_schedule,
     point_in_time_fundamental_matrix,
 )
+
+
+def test_merge_incremental_history_preserves_old_rows_and_adds_new_columns() -> None:
+    old = pd.DataFrame(
+        {"A": [1.0, 2.0]},
+        index=pd.to_datetime(["2026-07-17", "2026-07-24"]),
+    )
+    increment = pd.DataFrame(
+        {"A": [3.0], "B": [4.0]},
+        index=pd.to_datetime(["2026-07-31"]),
+    )
+
+    merged = merge_incremental_history(old, increment)
+
+    assert merged.index.tolist() == pd.to_datetime(
+        ["2026-07-17", "2026-07-24", "2026-07-31"]
+    ).tolist()
+    assert merged.columns.tolist() == ["A", "B"]
+    assert merged.loc[pd.Timestamp("2026-07-24"), "A"] == 2.0
+    assert pd.isna(merged.loc[pd.Timestamp("2026-07-24"), "B"])
+    assert merged.loc[pd.Timestamp("2026-07-31"), "B"] == 4.0
+
+
+def test_merge_incremental_history_replaces_only_increment_rows() -> None:
+    old = pd.DataFrame(
+        {"A": [1.0, 2.0]},
+        index=pd.to_datetime(["2026-07-17", "2026-07-24"]),
+    )
+    increment = pd.DataFrame(
+        {"A": [20.0]},
+        index=pd.to_datetime(["2026-07-24"]),
+    )
+
+    merged = merge_incremental_history(old, increment)
+
+    assert merged.loc[pd.Timestamp("2026-07-17"), "A"] == 1.0
+    assert merged.loc[pd.Timestamp("2026-07-24"), "A"] == 20.0
 
 
 def test_pending_calculation_dates_align_daily_mask_to_weekly_dates() -> None:

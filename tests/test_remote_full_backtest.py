@@ -163,12 +163,18 @@ def test_cpu_workflow_runs_all_weekly_stages_before_publish() -> None:
     ).read_text(encoding="utf-8")
 
     assert "PIPELINE_START=" in workflow
+    assert "MODEL_CUTOFF=" in workflow
+    assert "cutoff + timedelta(days=1)" in workflow
+    assert "cutoff - timedelta" not in workflow
     assert (
         'data_pipeline.py --start "${PIPELINE_START}" --weekly '
         "--reuse-clause-cache"
         in workflow
     )
-    assert "B-S_backtest.py --weekly" in workflow
+    assert (
+        'B-S_backtest.py --weekly --incremental-after "${MODEL_CUTOFF}"'
+        in workflow
+    )
     assert "Z-L_backtest_CPU_prod.py --weekly --offline-inputs" in workflow
     assert "rebuild_research_outputs.py" in workflow
     assert "--rebuild-all" not in workflow
