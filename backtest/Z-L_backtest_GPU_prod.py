@@ -37,6 +37,7 @@ from market_data_contracts import (
     validate_pricing_coverage,
 )
 from token_loader import load_tushare_token
+from zl_cpu_backend import price_batch_cpu
 
 # 设置中文显示
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
@@ -49,13 +50,26 @@ warnings.filterwarnings('ignore')
 # 1. 配置与数据读取 (基于 Tushare Pipeline CSV 缓存)
 # ==========================================
 PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
+def _option_value(name, default):
+    try:
+        return sys.argv[sys.argv.index(name) + 1].strip().lower()
+    except (ValueError, IndexError):
+        return default
+
+
 REBUILD_ALL = '--rebuild-all' in sys.argv
 REFRESH_INPUT_CACHE = '--refresh-input-cache' in sys.argv
 WEEKLY_ONLY = '--weekly' in sys.argv
 OFFLINE_INPUTS = '--offline-inputs' in sys.argv
 RESUME_CHECKPOINT = '--resume-checkpoint' in sys.argv
+EXECUTION_BACKEND = _option_value("--backend", "cuda")
+if EXECUTION_BACKEND not in {"cpu", "cuda"}:
+    raise SystemExit("--backend must be either cpu or cuda")
 MC_N_PATHS = 10000
 ZL_INPUT_CONTRACT_VERSION = "weekly-observed-v2"
+ZL_MODEL_IMPLEMENTATION_VERSION = (
+    "4d28dd36326b3e69a45197b0458695d407e7d38d774075a5f208610db23f4431"
+)
 ZL_MANIFEST_FILE = os.path.join(PIPELINE_DIR, "ZL_Model_Manifest.json")
 MODEL_PARAMETERS = {
     "mc_paths": MC_N_PATHS,
@@ -149,7 +163,7 @@ def _build_input_fingerprint(cutoff: pd.Timestamp) -> str:
         )
 
     digest = hashlib.sha256()
-    digest.update(_sha256_file(os.path.abspath(__file__)).encode("ascii"))
+    digest.update(ZL_MODEL_IMPLEMENTATION_VERSION.encode("ascii"))
     digest.update(
         json.dumps(
             MODEL_PARAMETERS,
@@ -663,12 +677,17 @@ _dates_since_checkpoint = 0
 _CHECKPOINT_EVERY = 10  # 每处理 10 个交易日保存一次中间结果
 
 # GPU 可用性检查（本脚本仅支持 CUDA）
-if not cuda.is_available():
-    raise SystemExit(
-        "未检测到可用 CUDA 设备。本脚本是 GPU 版, 请在配好 numba CUDA 的环境运行,\n"
-        "当前生产 ZL 后端需要可用的 CUDA 设备。"
-    )
-print(f"   GPU: {cuda.get_current_device().name.decode() if isinstance(cuda.get_current_device().name, bytes) else cuda.get_current_device().name}")
+if EXECUTION_BACKEND == "cuda":
+    if not cuda.is_available():
+        raise SystemExit(
+            "CUDA is unavailable. Use --backend cpu on a CPU-only runner."
+        )
+    device_name = cuda.get_current_device().name
+    if isinstance(device_name, bytes):
+        device_name = device_name.decode()
+    print(f"   ZL execution backend: CUDA ({device_name})")
+else:
+    print("   ZL execution backend: CPU (Numba parallel)")
 
 def _observed_clause_inputs(bond_code, date):
     if bond_code not in _basic.index or bond_code not in _clauses.index:
@@ -874,7 +893,18 @@ for date in tqdm(calc_dates_to_run, desc="ZL Model Backtest (GPU)"):
         }
         # 按交易日派生确定性种子: 可复现, 且各债券/路径随机流互相独立 (tid 偏移)
         day_seed = zlib.crc32(str(date).encode()) & 0x7FFFFFFF
-        model_prices = zl_mc_pricing_batch(params, N=MC_N_PATHS, seed=day_seed)
+        if EXECUTION_BACKEND == "cuda":
+            model_prices = zl_mc_pricing_batch(
+                params,
+                N=MC_N_PATHS,
+                seed=day_seed,
+            )
+        else:
+            model_prices = price_batch_cpu(
+                params,
+                paths=MC_N_PATHS,
+                seed=day_seed,
+            )
 
         for bond_code, model_price, market_price in zip(batch_codes, model_prices, batch_market):
             df_zl_model.loc[date, bond_code] = model_price
@@ -991,6 +1021,7 @@ if not verified_output_dates:
 verified_cutoff = pd.Timestamp(max(verified_output_dates))
 manifest_payload = {
     "contract_version": ZL_INPUT_CONTRACT_VERSION,
+    "execution_backend": EXECUTION_BACKEND,
     "verified_dates": verified_output_dates,
     "input_cutoff": verified_cutoff.date().isoformat(),
     "input_fingerprint": _build_input_fingerprint(verified_cutoff),

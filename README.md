@@ -52,7 +52,8 @@ Convertible-Bond-Pricing-Research/
 ├─ backtest/                #  BS 与 ZL 定价回测主程序 + 数据管道
 │   ├─ data_pipeline.py     #  Tushare 全量/增量数据管道
 │   ├─ B-S_backtest.py      #  Black-Scholes 周度定价
-│   ├─ Z-L_backtest_GPU_prod.py # 郑-林 Monte Carlo 定价（CUDA 生产版）
+│   ├─ Z-L_backtest_GPU_prod.py # 郑-林 Monte Carlo 定价（CUDA/CPU 共用驱动）
+│   ├─ Z-L_backtest_CPU_prod.py # GitHub Actions CPU 增量入口
 │   └─ full_history_rebuild.py  # GPU 门控的一键全历史重建
 ├─ mispricing factor/       #  错误定价因子与相关性分析
 ├─ long-short strategy/     #  横截面多空策略与绩效输出
@@ -196,10 +197,12 @@ MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 | 定时触发 | GitHub Actions 每周五 17:30（北京时间）运行，也支持手动触发 |
 | 交易日口径 | 仅发布该 `W-FRI` 周内最后一个真实交易日；周五休市时自动保留此前最近交易日 |
 | 数据门控 | `TUSHARE_TOKEN`、真实源覆盖率、BS 覆盖率与基准日期任一不满足即停止 |
-| 执行链路 | 远端重建真实数据与 BS/基准 → GPU 环境重建 ZL → 远端重建因子、策略与图表 |
+| 执行链路 | GitHub 增量更新真实数据与 BS → CPU 增量更新 ZL → 更新基准、因子、策略与图表 |
 | 发布边界 | 只在验证通过后提交产物；并发运行不互相取消，失败时保留上一版结果 |
 
-> GitHub 的定时工作流只从默认分支生效。启用前需将工作流合入默认分支，并在仓库 Secrets 中配置 `TUSHARE_TOKEN`；ZL 阶段仍需可用的 CUDA 远端环境完成交接。
+> GitHub 的定时工作流只从默认分支生效。启用前需在仓库 Secrets 中配置 `TUSHARE_TOKEN`。周度 ZL 使用 CPU 增量后端，不依赖本地电脑或 CUDA；全历史重建仍建议使用 GPU。
+>
+> 本地目录无法在电脑关机时被物理写入。运行一次 `backtest/setup_main_sync_task.ps1` 后，电脑登录及在线期间会定期获取远端更新；仅当本地处于干净的 `main` 时才执行 fast-forward，避免覆盖未提交工作。
 
 ---
 
@@ -351,7 +354,8 @@ Convertible-Bond-Pricing-Research/
 ├─ backtest/                # BS and ZL pricing engines + data pipeline
 │   ├─ data_pipeline.py     # Full/incremental Tushare data pipeline
 │   ├─ B-S_backtest.py      # Weekly Black-Scholes pricing
-│   ├─ Z-L_backtest_GPU_prod.py # Zheng-Lin Monte Carlo pricing (CUDA production)
+│   ├─ Z-L_backtest_GPU_prod.py # Shared Zheng-Lin CUDA/CPU production driver
+│   ├─ Z-L_backtest_CPU_prod.py # GitHub Actions CPU incremental entrypoint
 │   └─ full_history_rebuild.py  # GPU-gated full-history rebuild
 ├─ mispricing factor/       # Mispricing factor and correlation analysis
 ├─ long-short strategy/     # Cross-sectional long-short strategy outputs
@@ -495,10 +499,12 @@ Remote weekly update plan:
 | Trigger | GitHub Actions runs every Friday at 17:30 Asia/Shanghai and remains manually dispatchable |
 | Trading-date rule | Publish only the final observed date in each `W-FRI` week; if Friday is closed, retain the most recent open date |
 | Data gates | Stop if `TUSHARE_TOKEN`, observed-source coverage, BS coverage, or benchmark freshness fails |
-| Execution chain | Remote real-data + BS/benchmark rebuild → GPU ZL rebuild → remote factors, strategies, and figures |
+| Execution chain | GitHub incremental real-data + BS update → CPU incremental ZL update → benchmark, factors, strategies, and figures |
 | Publication boundary | Commit only validated outputs; do not cancel an active run, and retain the previous release on failure |
 
-> Scheduled GitHub workflows run only from the default branch. Activation therefore requires merging the workflow into the default branch and configuring the repository `TUSHARE_TOKEN` secret; the ZL handoff still requires a CUDA-capable remote environment.
+> Scheduled GitHub workflows run only from the default branch and require the repository `TUSHARE_TOKEN` secret. Weekly ZL runs incrementally on CPU without a local computer or CUDA; full-history rebuilds should still use GPU compute.
+>
+> A powered-off computer cannot receive filesystem writes. Run `backtest/setup_main_sync_task.ps1` once to fetch updates at logon and hourly while online. The sync fast-forwards only a clean local `main`, so uncommitted work is never overwritten.
 
 ---
 

@@ -56,6 +56,33 @@ def test_cpu_backend_is_reproducible_for_the_same_seed() -> None:
     np.testing.assert_array_equal(first, second)
 
 
+def test_cpu_backend_executes_observed_put_trigger() -> None:
+    params = _single_bond_params()
+    params["S0"][:] = 60.0
+    params["r"][:] = 0.0
+    params["cs"][:] = 0.0
+    params["put_barrier"][:] = 0.7
+    params["put_window"][:] = 2
+    params["redeem_ratio"][:] = 10.0
+
+    actual = price_batch_cpu(params, paths=8, seed=11)
+
+    np.testing.assert_allclose(actual, [100.0], rtol=0.0, atol=0.0)
+
+
+def test_cpu_backend_executes_observed_redemption_trigger() -> None:
+    params = _single_bond_params()
+    params["S0"][:] = 150.0
+    params["r"][:] = 0.0
+    params["cs"][:] = 0.0
+    params["redeem_window"][:] = 3
+    params["redeem_required"][:] = 2
+
+    actual = price_batch_cpu(params, paths=8, seed=13)
+
+    np.testing.assert_allclose(actual, [150.0], rtol=0.0, atol=0.0)
+
+
 def test_github_cron_runs_complete_incremental_pipeline_on_cpu() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
@@ -68,7 +95,23 @@ def test_github_cron_runs_complete_incremental_pipeline_on_cpu() -> None:
     )
     assert "rebuild_research_outputs.py" in workflow
     assert "--rebuild-all" not in workflow
+    assert "numba-cuda==0.30.4" in workflow
     assert "git push origin" in workflow
+
+
+def test_cpu_backend_preserves_existing_verified_history_fingerprint() -> None:
+    source = (
+        BACKTEST_DIR / "Z-L_backtest_GPU_prod.py"
+    ).read_text(encoding="utf-8")
+
+    assert (
+        'ZL_MODEL_IMPLEMENTATION_VERSION = ('
+        in source
+    )
+    assert (
+        "digest.update(ZL_MODEL_IMPLEMENTATION_VERSION.encode(\"ascii\"))"
+        in source
+    )
 
 
 def test_local_sync_is_fail_closed_and_fast_forward_only() -> None:

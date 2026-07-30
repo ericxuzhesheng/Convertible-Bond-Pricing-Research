@@ -23,7 +23,8 @@ Convertible-Bond-Pricing-Research/
 ├── backtest/                          ← PRIMARY working directory
 │   ├── data_pipeline.py               ← Tushare data ingestion (run first)
 │   ├── B-S_backtest.py                ← BS model pricing + output
-│   ├── Z-L_backtest_GPU_prod.py       ← ZL model (CUDA, production)
+│   ├── Z-L_backtest_GPU_prod.py       ← shared ZL driver (CUDA/CPU)
+│   ├── Z-L_backtest_CPU_prod.py       ← GitHub CPU incremental entrypoint
 │   ├── Z-L_backtest_GPU.py            ← disabled legacy entrypoint
 │   ├── full_history_rebuild.py        ← fail-closed full-history rebuild
 │   ├── regenerate_plots.py            ← 一键重生成 README 全部图表（无需重跑模型）
@@ -64,26 +65,31 @@ python backtest/full_history_rebuild.py
 python backtest/regenerate_plots.py
 ```
 
-### Weekly automation (scheduled, with GitHub push)
+### Weekly automation (GitHub cloud, with local catch-up)
 
 ```powershell
-# 1. One-time setup: register Windows Task Scheduler task (run as Administrator)
-#    Task fires every Friday at 18:00
+# GitHub Actions runs the complete incremental pipeline every Friday at 17:30
+# Asia/Shanghai. Configure the repository TUSHARE_TOKEN secret once.
+
+# Optional one-time local setup: fetch hourly and fast-forward a clean main.
 cd backtest
-.\setup_weekly_task.ps1
+.\setup_main_sync_task.ps1
 
-# 2. Manual test run (without waiting for Friday)
-Start-ScheduledTask -TaskName "ConvertibleBond_WeeklyUpdate"
+# Manual local catch-up
+.\sync_main_from_github.ps1
 
-# 3. Check logs
-Get-Content backtest\logs\weekly_update_*.log -Tail 30
+# Check local sync logs
+Get-Content .\logs\main_sync.log -Tail 30
 ```
 
-The `weekly_update.bat` pipeline:
-1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_GPU_prod.py` — update weekly observed inputs and prices
+The GitHub `full-backtest-cpu.yml` pipeline:
+1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_CPU_prod.py` — incrementally update weekly observed inputs and prices
 2. `long-short strategy/update_benchmark.py` — updates the 000832.CSI benchmark
 3. `rebuild_research_outputs.py` — regenerates factors, strategies, and README plots
-4. `git add -u && git commit && git push origin main` — commits only if changes exist
+4. validation + `git commit && git push origin main` — publishes only complete verified changes
+
+The Windows `weekly_update.bat` remains available as a manual CUDA path, but
+the scheduled cloud update does not depend on the local computer being on.
 
 ### Incremental update (most common)
 
