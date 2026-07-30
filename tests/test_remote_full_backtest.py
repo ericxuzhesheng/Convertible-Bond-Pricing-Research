@@ -183,3 +183,15 @@ def test_cpu_workflow_rebuilds_bs_and_benchmark_before_publish() -> None:
     assert "python -m pytest -q" in workflow
     assert "actions/upload-artifact" in workflow
     assert "git push origin" in workflow
+
+
+def test_cpu_workflow_has_weekly_remote_schedule() -> None:
+    workflow = (
+        REPO_ROOT / ".github" / "workflows" / "full-backtest-cpu.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "schedule:" in workflow
+    assert 'cron: "30 9 * * 5"' in workflow
+    assert "workflow_dispatch:" in workflow
+    assert "TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}" in workflow
+    assert "contents: write" in workflow
