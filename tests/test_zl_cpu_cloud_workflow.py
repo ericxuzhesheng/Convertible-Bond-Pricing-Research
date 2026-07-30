@@ -105,6 +105,17 @@ def test_python_setup_does_not_require_a_missing_dependency_manifest() -> None:
     assert "cache: pip" not in workflow
 
 
+def test_cpu_cloud_environment_does_not_install_or_import_cuda() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    driver = (
+        BACKTEST_DIR / "Z-L_backtest_GPU_prod.py"
+    ).read_text(encoding="utf-8")
+
+    assert "numba-cuda" not in workflow
+    assert "from numba import cuda" not in driver
+    assert (BACKTEST_DIR / "zl_cuda_backend.py").exists()
+
+
 def test_cpu_backend_preserves_existing_verified_history_fingerprint() -> None:
     source = (
         BACKTEST_DIR / "Z-L_backtest_GPU_prod.py"
