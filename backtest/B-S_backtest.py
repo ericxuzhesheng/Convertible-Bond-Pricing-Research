@@ -19,6 +19,7 @@ from market_data_contracts import (
     build_observed_volatility,
     build_risk_free_rate_matrix,
     load_rebuildable_matrix_cache,
+    merge_incremental_history,
     select_completed_weekly_dates,
     select_input_refresh_dates,
     validate_pricing_coverage,
@@ -36,9 +37,17 @@ warnings.filterwarnings('ignore')
 # 1. 配置与数据读取 (基于 Tushare Pipeline CSV 缓存)
 # ==========================================
 PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))  # backtest/ 目录
+def _option_value(name, default=None):
+    try:
+        return sys.argv[sys.argv.index(name) + 1].strip()
+    except (ValueError, IndexError):
+        return default
+
+
 REBUILD_ALL = '--rebuild-all' in sys.argv
 REFRESH_INPUT_CACHE = '--refresh-input-cache' in sys.argv
 WEEKLY_ONLY = '--weekly' in sys.argv
+INCREMENTAL_AFTER = _option_value("--incremental-after")
 
 
 def _load_csv(filename):
@@ -70,6 +79,14 @@ if WEEKLY_ONLY:
     weekly_dates = select_completed_weekly_dates(df_price.index)
     if len(weekly_dates) == 0:
         raise DataContractError("no completed weekly valuation date")
+    if INCREMENTAL_AFTER is not None:
+        cutoff = pd.Timestamp(INCREMENTAL_AFTER)
+        weekly_dates = weekly_dates[weekly_dates > cutoff]
+        if len(weekly_dates) == 0:
+            raise DataContractError(
+                "no new completed weekly BS valuation date after "
+                f"{cutoff.date()}"
+            )
     df_price = df_price.loc[weekly_dates]
     df_cv = df_cv.loc[weekly_dates]
     df_floor = df_floor.loc[weekly_dates]
@@ -336,6 +353,33 @@ df_diff_pct = df_diff / df_price
 # 6. 结果输出
 # ==========================================
 # 保存结果
+if INCREMENTAL_AFTER is not None:
+    historical_model = _load_csv("BS_Model_Prices.csv")
+    historical_market = _load_csv("Market_Prices.csv")
+    df_theoretical = merge_incremental_history(
+        historical_model,
+        df_theoretical,
+    )
+    df_price = merge_incremental_history(
+        historical_market,
+        df_price,
+    )
+    combined_index = df_theoretical.index.union(df_price.index).sort_values()
+    combined_columns = df_theoretical.columns.union(
+        df_price.columns,
+        sort=False,
+    )
+    df_theoretical = df_theoretical.reindex(
+        index=combined_index,
+        columns=combined_columns,
+    )
+    df_price = df_price.reindex(
+        index=combined_index,
+        columns=combined_columns,
+    )
+    df_diff = df_theoretical - df_price
+    df_diff_pct = df_diff / df_price.replace(0, np.nan)
+
 df_theoretical.to_csv(os.path.join(PIPELINE_DIR, "BS_Model_Prices.csv"))
 df_price.to_csv(os.path.join(PIPELINE_DIR, "Market_Prices.csv"))
 df_diff.to_csv(os.path.join(PIPELINE_DIR, "BS_Model_Deviation_Abs.csv"))
@@ -377,6 +421,13 @@ print(f"RMSE (均方根误差): {rmse:.4f} 元")
 print(f"MAPE (平均绝对百分比误差): {mape:.4f} %")
 print(f"SMAPE (对称平均绝对百分比误差): {smape:.4f} %")
 print("-" * 30)
+
+if INCREMENTAL_AFTER is not None:
+    print(
+        "BS incremental update complete; historical rows were preserved "
+        "and only new completed weeks were merged."
+    )
+    raise SystemExit(0)
 
 # ==========================================
 # 7. 绘图 

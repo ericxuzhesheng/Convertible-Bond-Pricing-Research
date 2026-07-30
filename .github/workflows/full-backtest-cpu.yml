@@ -77,16 +77,20 @@ jobs:
               raise SystemExit("ZL manifest is required for incremental start")
           manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
           cutoff = date.fromisoformat(manifest["input_cutoff"])
-          print((cutoff - timedelta(days=7)).strftime("%Y%m%d"))
+          print((cutoff + timedelta(days=1)).strftime("%Y%m%d"))
           PY
           )"
+          MODEL_CUTOFF="$(
+            python -c "import json; print(json.load(open('backtest/ZL_Model_Manifest.json', encoding='utf-8'))['input_cutoff'])"
+          )"
           echo "PIPELINE_START=${PIPELINE_START}" >> "${GITHUB_ENV}"
+          echo "MODEL_CUTOFF=${MODEL_CUTOFF}" >> "${GITHUB_ENV}"
 
       - name: Update weekly market-data caches incrementally
         run: python -u backtest/data_pipeline.py --start "${PIPELINE_START}" --weekly --reuse-clause-cache
 
       - name: Update Black-Scholes weekly results
-        run: python -u backtest/B-S_backtest.py --weekly
+        run: python -u backtest/B-S_backtest.py --weekly --incremental-after "${MODEL_CUTOFF}"
 
       - name: Update ZL weekly results on CPU
         run: python -u backtest/Z-L_backtest_CPU_prod.py --weekly --offline-inputs

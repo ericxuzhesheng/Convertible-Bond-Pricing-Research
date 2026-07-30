@@ -664,6 +664,11 @@ if os.path.exists(SUMMARY_FILE) and (
             ) from e
         print(f"   历史结果读取失败，改为全量计算：{e}")
 elif os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:
+    if WEEKLY_ONLY:
+        raise DataContractError(
+            "weekly incremental ZL history verification failed; "
+            "refusing full rebuild"
+        )
     print(
         "   Existing ZL history ignored: no current-contract verification "
         "manifest"

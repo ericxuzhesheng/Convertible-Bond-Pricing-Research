@@ -174,6 +174,26 @@ def load_rebuildable_matrix_cache(
     )
 
 
+def merge_incremental_history(
+    history: pd.DataFrame,
+    increment: pd.DataFrame,
+) -> pd.DataFrame:
+    """Append or replace only increment rows while preserving prior history."""
+
+    old = history.copy()
+    new = increment.copy()
+    old.index = pd.to_datetime(old.index, errors="coerce")
+    new.index = pd.to_datetime(new.index, errors="coerce")
+    old = old.loc[old.index.notna()]
+    new = new.loc[new.index.notna()]
+    columns = old.columns.union(new.columns, sort=False)
+    preserved = old.loc[~old.index.isin(new.index)].reindex(columns=columns)
+    return pd.concat(
+        [preserved, new.reindex(columns=columns)],
+        axis=0,
+    ).sort_index()
+
+
 def select_input_refresh_dates(
     *,
     all_dates: pd.Index,
