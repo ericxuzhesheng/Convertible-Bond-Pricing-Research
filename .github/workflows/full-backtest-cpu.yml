@@ -2,6 +2,10 @@ name: Full weekly backtest CPU stages
 
 on:
   workflow_dispatch:
+  schedule:
+    # Friday 17:30 Asia/Shanghai (09:30 UTC), after the 16:00 data-ready gate.
+    # Holiday weeks naturally retain the final observed trading date in W-FRI.
+    - cron: "30 9 * * 5"
   push:
     branches:
       - codex/full-backtest-remote-20260728

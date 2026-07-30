@@ -9,8 +9,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/定价模型-BS · ZL 双锚-F2C94C?style=for-the-badge" alt="BS + ZL">
-  <img src="https://img.shields.io/badge/数据区间-2017--2026 · A股可转债-4CAF50?style=for-the-badge" alt="2017-2026">
-  <img src="https://img.shields.io/badge/BS多空-Sharpe 1.17 · MaxDD --12.78%25-9B51E0?style=for-the-badge" alt="Sharpe 1.17">
+  <img src="https://img.shields.io/badge/数据区间-2017--2026 · 更新至 2026--07--24-4CAF50?style=for-the-badge" alt="Data through 2026-07-24">
+  <img src="https://img.shields.io/badge/研究频率-周度定价 · 月度调仓-9B51E0?style=for-the-badge" alt="Weekly pricing and monthly rebalance">
 </p>
 
 ---
@@ -21,28 +21,24 @@
 
 **当前语言：中文 | [Switch to English](#english-version)**
 
-👉 面试官建议先看摘要：[summary/key_findings.md](summary/key_findings.md)
+👉 快速了解研究结论：[核心发现](summary/key_findings.md) · [完整报告](report/CB_pricing_full.pdf)
 
 ---
 
 ## 项目概述
 
-- 本项目构建了一个基于两类核心模型的**可转债绝对定价框架**。
-- 核心目标：剥离情绪驱动估值偏差，并将错误定价转化为**可交易 Alpha 信号**。
-
-核心模型：
-
-- Black-Scholes（BS）模型
-- 郑-林（ZL）模型
+- 本项目以 **Black-Scholes（BS）** 与 **郑-林（ZL）** 为双重绝对定价锚，研究中国 A 股可转债。
+- 研究链路覆盖真实市场数据、理论定价、错误定价因子、横截面组合与自动化发布。
+- 核心目标是识别市场价格相对理论价值的偏离，并检验其能否形成可解释、可交易的 Alpha。
 
 ---
 
 ## 论文来源
 
-- 主要参考论文：中国可转债定价模型比较研究（郑振龙、兰添晟、陈蓉）。
-- DOI：10.13821/j.cnki.ceq.2025.01.11。
+- 主要参考论文：《中国可转债定价模型比较研究》（郑振龙、兰添晟、陈蓉）。
+- DOI：[10.13821/j.cnki.ceq.2025.01.11](https://doi.org/10.13821/j.cnki.ceq.2025.01.11)。
 - 核心思路：同时从定价误差与多空组合 Alpha 两个维度比较多种可转债定价模型。
-- 本仓库在 report/ 目录提供完整报告，便于查看模型假设、参数设定与实证细节。
+- 本仓库在 [`report/`](report/) 提供完整报告，便于核对模型假设、参数设定与实证细节。
 
 ---
 
@@ -52,26 +48,27 @@
 
 ```text
 Convertible-Bond-Pricing-Research/
-├─ backtest/                #  BS 与 ZL 定价回测主程序 + 数据管道 + 每日信号
-│   ├─ data_pipeline.py     #  Tushare 全量数据拉取（替代手动 Excel 更新）
-│   ├─ B-S_backtest.py      #  Black-Scholes 定价回测
+├─ .github/workflows/       #  远端周度数据与研究产物更新
+├─ backtest/                #  BS 与 ZL 定价回测主程序 + 数据管道 + 信号
+│   ├─ data_pipeline.py     #  Tushare 全量/增量数据管道
+│   ├─ B-S_backtest.py      #  Black-Scholes 周度定价
 │   ├─ Z-L_backtest_GPU_prod.py # 郑-林 Monte Carlo 定价（CUDA 生产版）
 │   ├─ full_history_rebuild.py  # GPU 门控的一键全历史重建
-│   ├─ daily_signal.py      #  每日 Top-5 低估转债信号 + 邮件推送
+│   ├─ daily_signal.py      #  Top-5 低估转债信号 + 邮件推送
 │   └─ setup_notification.py#  一键配置邮件推送向导
 ├─ mispricing factor/       #  错误定价因子与相关性分析
 ├─ long-short strategy/     #  横截面多空策略与绩效输出
 ├─ summary/                 #  面试优先阅读精简总结
 ├─ report/                  #  完整研究报告（PDF）
-├─ CLAUDE.md                #  AI Agent 使用说明（代码导航与运行指南）
+├─ AGENTS.md                #  代码导航、数据契约与运行约束
 └─ README.md                #  项目总览与方法框架
 ```
 
 建议阅读顺序：
 
-1. summary/key_findings.md
-2. README.md
-3. report/CB_pricing_full.pdf
+1. [`summary/key_findings.md`](summary/key_findings.md)
+2. [`README.md`](README.md)
+3. [`report/CB_pricing_full.pdf`](report/CB_pricing_full.pdf)
 
 ---
 
@@ -94,7 +91,7 @@ Convertible-Bond-Pricing-Research/
 - 相对估值指标（如转股溢价率）失效。
 - 条款复杂且路径依赖显著。
 
--> 需要构建统一的**绝对定价锚**。
+→ 需要构建统一的**绝对定价锚**。
 
 ---
 
@@ -129,7 +126,7 @@ $$
 - 对正股价格与波动率高度敏感。
 - 无赎回约束时，上行空间不受限。
 
--> 属于**进攻型定价锚**。
+→ 属于**进攻型定价锚**。
 
 ---
 
@@ -145,15 +142,9 @@ $$
 
 模型来源与机制：
 
-- 从定价本质上看，ZL 可以理解为对经典二叉树模型（Binomial Pricing Model, BPM）的扩展与优化。二叉树模型的核心是“无套利 + 风险中性”：若能用正股与无风险借贷复制期权未来收益，则当前价格必须等于复制组合成本；进一步可写成风险中性折现形式，即先用虚拟概率 $q = \frac{(1+r)-d}{u-d}$ 对未来节点价值求期望，再以无风险利率折现。
-- 二叉树的美感在于把复杂市场压缩为每期“上涨 / 下跌”两个状态，并从到期日 payoff 出发逐层向前倒推。其成立依赖无套利边界 $d < 1+r < u$；若该关系不满足，模型中的复制与定价逻辑就会失效。
-- 从适用性上看，二叉树模型通常也比 Black-Scholes 更适合美式期权和奇异期权，尤其适合中国可转债这类可提前转股、可赎回、可回售、可下修的复杂证券，因为它可以在每一个节点逐一检查是否应当提前行权或触发条款，而不是像 B-S 那样只能在连续时间闭式框架下做静态估值。
-- ZL 并不是否定这套逻辑，而是在其之上继续前进：把简单的单一涨跌节点，升级为包含赎回、回售、下修、转股等条款触发条件的动态决策问题。因此可以把 ZL 看作“二叉树思想在可转债复杂条款场景下的优化版本”。
-- 在工程实现上，本项目采用蒙特卡洛路径模拟来承载这一优化框架，用更高维的路径信息近似替代简单树节点，从而更好处理真实可转债中显著的路径依赖和博弈特征。
-- ZL 框架建立在可赎回、可回售、可下修条款下发行人与投资者的博弈逻辑之上。
-- 模型在每条路径上显式刻画发行人的最优决策（赎回/下修）与投资者响应（转股/回售/持有）。
-- 相较静态闭式模型，ZL 更能刻画路径依赖与条款触发导致的非线性收益结构。
-- 在本项目中，ZL 被定位为偏防守的定价锚，更适合下行风险约束场景。
+- ZL 延续二叉树模型的无套利与风险中性定价思想，但将简单的“上涨/下跌”节点扩展为含赎回、回售、下修和转股的动态决策问题。
+- 本项目以蒙特卡洛路径承载发行人与投资者的条款博弈，在每条路径上评估触发条件、最优响应与折现现金流。
+- 相比 BS 的静态闭式解，ZL 更适合刻画强路径依赖和非线性条款约束，因此被定位为偏防守的定价锚。
 
 核心特征：
 
@@ -161,7 +152,7 @@ $$
 - 能刻画强赎上限与下修凸性。
 - 估值相对更保守。
 
--> 属于**防守型定价锚**。
+→ 属于**防守型定价锚**。
 
 ---
 
@@ -169,15 +160,15 @@ $$
 
 | Error Metric           | BS     | ZL     |
 | ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 0.34   | 1.74   |
-| MAE (CNY)              | 14.69  | 12.59  |
-| RMSE (CNY)             | 36.02  | 19.84  |
-| MAPE                   | 10.30% | 10.01% |
-| SMAPE                  | 10.12% | 9.58%  |
+| Mean Error (Bias, CNY) | 2.69   | -12.63 |
+| MAE (CNY)              | 14.04  | 14.27  |
+| RMSE (CNY)             | 31.09  | 33.50  |
+| MAPE                   | 9.77%  | 9.39%  |
+| SMAPE                  | 9.69%  | 10.27% |
 
 MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 
-> **口径与时点**：理论价与市场价先按相同「交易日 × 转债」单元严格对齐，再汇总有效样本（BS n=152,208；ZL n=59,113）；MAPE 排除市场价格为零的单元。数据更新至 **2026-06-23**。ZL 理论价由 `backtest/Z-L_backtest_GPU_prod.py`（CUDA 批处理）计算；旧 CPU 和实验 GPU 入口因包含不可追溯的常数兜底而已禁用。完整重建使用 `python backtest/full_history_rebuild.py`，CUDA 或真实时点数据缺失时会停止而不会覆盖研究结果。
+> **口径与时点**：理论价与市场价按相同「交易日 × 转债」单元严格对齐（BS n=148,170；ZL n=137,356），MAPE 排除市场价为零的单元。周度样本更新至 **2026-07-24**。ZL 由 CUDA 生产入口计算；`python backtest/full_history_rebuild.py` 在 GPU 或真实时点数据缺失时会失败关闭，不覆盖已发布结果。
 
 ---
 
@@ -200,11 +191,23 @@ MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 
 所有输出以宽表 CSV 缓存（行=日期，列=转债代码），增量更新时只补充缺失日期。
 
+远端周度更新计划：
+
+| 环节 | 计划与门控 |
+|------|------------|
+| 定时触发 | GitHub Actions 每周五 17:30（北京时间）运行，也支持手动触发 |
+| 交易日口径 | 仅发布该 `W-FRI` 周内最后一个真实交易日；周五休市时自动保留此前最近交易日 |
+| 数据门控 | `TUSHARE_TOKEN`、真实源覆盖率、BS 覆盖率与基准日期任一不满足即停止 |
+| 执行链路 | 远端重建真实数据与 BS/基准 → GPU 环境重建 ZL → 远端重建因子、策略与图表 |
+| 发布边界 | 只在验证通过后提交产物；并发运行不互相取消，失败时保留上一版结果 |
+
+> GitHub 的定时工作流只从默认分支生效。启用前需将工作流合入默认分支，并在仓库 Secrets 中配置 `TUSHARE_TOKEN`；ZL 阶段仍需可用的 CUDA 远端环境完成交接。
+
 ---
 
 ## 每日信号系统
 
-`backtest/daily_signal.py` 在每个交易日 15:30 后自动运行，输出当日最值得关注的 5 只低估转债。
+`backtest/daily_signal.py` 输出最新可用交易日最值得关注的 5 只低估转债。它可独立用于本地日频监控；仓库公开研究产物按上述周度口径更新。
 
 ### 过滤条件
 
@@ -236,8 +239,8 @@ $$
 Mispricing = V_{model} - V_{market}
 $$
 
-- 正值 -> 低估 -> 做多。
-- 负值 -> 高估 -> 做空。
+- 正值 → 低估 → 做多。
+- 负值 → 高估 → 做空。
 
 ---
 
@@ -262,10 +265,12 @@ $$
 
 | Strategy | Annual Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
-| BS Long  | 15.34%        | 1.06   | -24.74%      |
-| ZL Long  | 5.46%         | 0.55   | -20.20%      |
+| BS Long  | 19.41%        | 0.91   | -28.96%      |
+| ZL Long  | 20.79%        | 0.95   | -29.75%      |
 
-结论摘要：ZL 在相对误差指标上更优，BS 在方向性捕捉与进攻弹性上更强。
+> **回测口径**：2019-01-25 至 2026-07-24，月末调仓，展示扣除交易成本后的多因子等权多头组合；夏普比率使用同期观测的一年期国债收益率均值。
+
+结论摘要：BS 与 ZL 提供不同的估值视角；最新样本中 ZL 多头收益略高，但两者回撤均提示组合仍需风险预算与市场状态约束。
 
 ---
 
@@ -297,7 +302,7 @@ $$
 - ZL 捕捉**价值回归 + 下行防御**。
 - 错误定价因子与传统风格因子呈显著**正交性**。
 
--> 两者结合可显著提升组合稳健性。
+→ 两者结合为组合提供互补的进攻与防守信息。
 
 ---
 
@@ -320,7 +325,7 @@ $$
 
 ## 完整报告
 
-完整研报见：/report/full_report.pdf
+完整研报见：[report/CB_pricing_full.pdf](report/CB_pricing_full.pdf)
 
 ---
 
@@ -345,28 +350,24 @@ $$
 
 **Current Language: English | [切换到中文](#简体中文)**
 
-👉 See concise summary: [summary/key_findings.md](summary/key_findings.md)
+👉 Start here: [Key Findings](summary/key_findings.md) · [Full Report](report/CB_pricing_full.pdf)
 
 ---
 
 ## 📌 Overview
 
-- This project develops an **absolute pricing framework** for Chinese convertible bonds using two core models.
-- Core objective: remove sentiment-driven valuation bias and convert mispricing into **tradable alpha signals**.
-
-Core models
-
-- Black-Scholes (BS) Model
-- Zheng-Lin (ZL) Model
+- This project studies Chinese A-share convertible bonds through two absolute pricing anchors: **Black-Scholes (BS)** and **Zheng-Lin (ZL)**.
+- The research chain covers observed market data, theoretical pricing, mispricing factors, cross-sectional portfolios, and automated publication.
+- The objective is to identify deviations from theoretical value and test whether they produce interpretable, tradable alpha.
 
 ---
 
 ## 📚 Paper Source
 
 - Primary reference paper: Comparative Study on Pricing Models of Chinese Convertible Bonds (Zheng Zhenlong, Lan Tiansheng, Chen Rong).
-- DOI: 10.13821/j.cnki.ceq.2025.01.11.
+- DOI: [10.13821/j.cnki.ceq.2025.01.11](https://doi.org/10.13821/j.cnki.ceq.2025.01.11).
 - Core idea: compare multiple convertible-bond pricing models by both pricing error and long-short alpha performance.
-- This repository includes full reports in report/ for detailed assumptions, calibration, and empirical outputs.
+- The [`report/`](report/) directory documents assumptions, calibration, and empirical outputs.
 
 ---
 
@@ -376,26 +377,27 @@ This repository is organized by research workflow from model pricing to factor c
 
 ```text
 Convertible-Bond-Pricing-Research/
-├─ backtest/                # BS and ZL pricing engines + data pipeline + daily signal
-│   ├─ data_pipeline.py     # Tushare-based data ingestion (replaces manual Excel)
-│   ├─ B-S_backtest.py      # Black-Scholes pricing backtest
+├─ .github/workflows/       # Remote weekly data and research-output updates
+├─ backtest/                # BS and ZL pricing engines + data pipeline + signal
+│   ├─ data_pipeline.py     # Full/incremental Tushare data pipeline
+│   ├─ B-S_backtest.py      # Weekly Black-Scholes pricing
 │   ├─ Z-L_backtest_GPU_prod.py # Zheng-Lin Monte Carlo pricing (CUDA production)
 │   ├─ full_history_rebuild.py  # GPU-gated full-history rebuild
-│   ├─ daily_signal.py      # Daily Top-5 undervalued bond signal + email push
+│   ├─ daily_signal.py      # Top-5 undervalued bond signal + email push
 │   └─ setup_notification.py# One-click email configuration wizard
 ├─ mispricing factor/       # Mispricing factor and correlation analysis
 ├─ long-short strategy/     # Cross-sectional long-short strategy outputs
 ├─ summary/                 # Concise summary for interview reading
 ├─ report/                  # Full research reports (PDF)
-├─ CLAUDE.md                # AI agent instructions (codebase navigation + run guide)
+├─ AGENTS.md                # Code navigation, data contracts, and run constraints
 └─ README.md                # Project overview and methodology
 ```
 
 Suggested reading order
 
-1. summary/key_findings.md
-2. README.md
-3. report/CB_pricing_full.pdf
+1. [`summary/key_findings.md`](summary/key_findings.md)
+2. [`README.md`](README.md)
+3. [`report/CB_pricing_full.pdf`](report/CB_pricing_full.pdf)
 
 ---
 
@@ -418,7 +420,7 @@ In the Chinese convertible bond market:
 - Relative valuation metrics (e.g., conversion premium) become unreliable.
 - Embedded clauses create strong path dependency.
 
--> A unified **absolute pricing anchor** is required.
+→ A unified **absolute pricing anchor** is required.
 
 ---
 
@@ -453,7 +455,7 @@ Key characteristics
 - High sensitivity to equity price and volatility.
 - No upper bound under call-free assumption.
 
--> Acts as an **offensive pricing anchor**.
+→ Acts as an **offensive pricing anchor**.
 
 ---
 
@@ -469,15 +471,9 @@ Monte Carlo simulation with optimal stopping.
 
 Model origin and mechanism
 
-- At its pricing core, ZL can be viewed as an extension and optimization of the classical Binomial Pricing Model (BPM). The binomial model rests on no-arbitrage and risk-neutral valuation: if stock plus risk-free borrowing can replicate the option payoff, the option price must equal the replication cost; equivalently, future node values are averaged under the virtual probability $q = \frac{(1+r)-d}{u-d}$ and discounted at the risk-free rate.
-- The beauty of the binomial tree is that it compresses the market into two states per step, up or down, and then works backward from terminal payoff to today's value. This logic requires the no-arbitrage condition $d < 1+r < u$; otherwise the replication argument breaks down.
-- In terms of applicability, the binomial model is also more suitable than Black-Scholes for American-style and exotic options, especially for Chinese convertible bonds, because it can check at each node whether early exercise or clause trigger should occur, instead of relying on a static closed-form valuation framework.
-- ZL does not replace this logic; it builds on it. It upgrades the simple up/down node structure into a clause-aware dynamic decision problem with call, put, reset, and conversion features. In that sense, ZL is the optimized version of binomial-tree thinking for real-world convertible bonds.
-- In implementation, this project uses Monte Carlo path simulation to carry that richer structure, replacing the simple tree with higher-dimensional path information so that strong path dependence and issuer-investor game effects can be handled more realistically.
-- The ZL framework is built on issuer-investor clause game logic under callable/putable/adjustable convertibles.
-- It explicitly models optimal issuer decisions (call/reset) and investor response (convert/put/hold) along each path.
-- Compared with static closed-form models, it better captures path dependency and clause-triggered nonlinear payoff.
-- In this project, ZL is treated as a defensive anchor suitable for downside-risk-aware valuation.
+- ZL retains the no-arbitrage and risk-neutral logic of a binomial tree, while extending simple up/down nodes into a dynamic decision problem with call, put, reset, and conversion clauses.
+- The implementation uses Monte Carlo paths to evaluate clause triggers, issuer-investor responses, and discounted cash flows path by path.
+- Relative to the static BS closed form, ZL better represents nonlinear clause constraints and strong path dependence, so it serves as the defensive pricing anchor.
 
 Key characteristics
 
@@ -485,7 +481,7 @@ Key characteristics
 - Captures call cap and reset convexity.
 - Produces more conservative valuation.
 
--> Acts as a **defensive anchor**.
+→ Acts as a **defensive anchor**.
 
 ---
 
@@ -493,15 +489,15 @@ Key characteristics
 
 | Error Metric           | BS     | ZL     |
 | ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 0.34   | 1.74   |
-| MAE (CNY)              | 14.69  | 12.59  |
-| RMSE (CNY)             | 36.02  | 19.84  |
-| MAPE                   | 10.30% | 10.01% |
-| SMAPE                  | 10.12% | 9.58%  |
+| Mean Error (Bias, CNY) | 2.69   | -12.63 |
+| MAE (CNY)              | 14.04  | 14.27  |
+| RMSE (CNY)             | 31.09  | 33.50  |
+| MAPE                   | 9.77%  | 9.39%  |
+| SMAPE                  | 9.69%  | 10.27% |
 
 Lower MAE/MAPE/SMAPE indicates better pricing fit.
 
-> **Scope & vintage**: theoretical and market prices are strictly aligned on identical (trading-day × bond) cells before aggregation (BS n=152,208; ZL n=59,113); zero-market-price cells are excluded from MAPE. Data are refreshed through **2026-06-23**. ZL prices are produced by `backtest/Z-L_backtest_GPU_prod.py` with batched CUDA. The invalid legacy CPU entrypoint has been removed; the experimental GPU entrypoint remains disabled because it contained untraceable constant fallbacks. Run `python backtest/full_history_rebuild.py` for a fail-closed rebuild that stops before replacing outputs when CUDA or point-in-time source data are unavailable.
+> **Scope & vintage**: theoretical and market prices are strictly aligned on identical trading-day × bond cells (BS n=148,170; ZL n=137,356), with zero-market-price cells excluded from MAPE. Weekly observations run through **2026-07-24**. ZL uses the CUDA production entrypoint; `python backtest/full_history_rebuild.py` fails closed without the GPU or point-in-time source data and does not overwrite published results.
 
 ---
 
@@ -524,11 +520,23 @@ Lower MAE/MAPE/SMAPE indicates better pricing fit.
 
 All outputs are cached as wide-format CSVs (rows = trade date, columns = bond code). Incremental runs only fill missing dates.
 
+Remote weekly update plan:
+
+| Stage | Schedule and gate |
+|-------|-------------------|
+| Trigger | GitHub Actions runs every Friday at 17:30 Asia/Shanghai and remains manually dispatchable |
+| Trading-date rule | Publish only the final observed date in each `W-FRI` week; if Friday is closed, retain the most recent open date |
+| Data gates | Stop if `TUSHARE_TOKEN`, observed-source coverage, BS coverage, or benchmark freshness fails |
+| Execution chain | Remote real-data + BS/benchmark rebuild → GPU ZL rebuild → remote factors, strategies, and figures |
+| Publication boundary | Commit only validated outputs; do not cancel an active run, and retain the previous release on failure |
+
+> Scheduled GitHub workflows run only from the default branch. Activation therefore requires merging the workflow into the default branch and configuring the repository `TUSHARE_TOKEN` secret; the ZL handoff still requires a CUDA-capable remote environment.
+
 ---
 
 ## 📡 Daily Signal System
 
-`backtest/daily_signal.py` runs automatically after market close each trading day, ranking the top 5 most undervalued convertible bonds based on combined BS + ZL pricing deviation.
+`backtest/daily_signal.py` ranks the five most undervalued bonds for the latest usable trading date. It can support local daily monitoring, while published research outputs follow the weekly schedule above.
 
 ### Filters Applied
 
@@ -559,8 +567,8 @@ $$
 Mispricing = V_{model} - V_{market}
 $$
 
-- Positive -> undervalued -> long.
-- Negative -> overvalued -> short.
+- Positive → undervalued → long.
+- Negative → overvalued → short.
 
 ---
 
@@ -585,10 +593,12 @@ The strategy is constructed based on **mispricing (RD)** defined above.
 
 | Strategy | Annual Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
-| BS Long  | 15.34%        | 1.06   | -24.74%      |
-| ZL Long  | 5.46%         | 0.55   | -20.20%      |
+| BS Long  | 19.41%        | 0.91   | -28.96%      |
+| ZL Long  | 20.79%        | 0.95   | -29.75%      |
 
-Summary: ZL performs better on relative pricing-error control, while BS is stronger in directional capture and offensive upside.
+> **Backtest scope**: 2019-01-25 to 2026-07-24, month-end rebalancing, net-of-cost equal-weight multi-factor long portfolios. Sharpe ratios use the observed average one-year government-bond yield over the same window.
+
+Summary: BS and ZL provide different valuation views. ZL delivers slightly higher long-only performance in the latest sample, while drawdowns in both portfolios show the need for explicit risk budgets and regime controls.
 
 ---
 
@@ -620,7 +630,7 @@ Summary: ZL performs better on relative pricing-error control, while BS is stron
 - ZL captures **mean reversion + downside protection**.
 - Mispricing factor is highly **orthogonal** to traditional style factors.
 
--> Combination improves portfolio robustness.
+→ The combination provides complementary offensive and defensive information.
 
 ---
 
@@ -643,7 +653,7 @@ Summary: ZL performs better on relative pricing-error control, while BS is stron
 
 ## 📎 Full Report
 
-Full research report available here: /report/full_report.pdf
+Full research report: [report/CB_pricing_full.pdf](report/CB_pricing_full.pdf)
 
 ---
 
