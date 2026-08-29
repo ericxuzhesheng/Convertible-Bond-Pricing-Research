@@ -12,6 +12,8 @@ import hashlib
 import zlib
 import math
 from collections import Counter
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
@@ -622,15 +624,40 @@ if (
 ):
     verified_cutoff = max(verified_dates)
     current_input_fingerprint = _build_input_fingerprint(verified_cutoff)
-    can_reuse_history = (
-        verified_manifest.get("input_cutoff")
-        == verified_cutoff.date().isoformat()
-        and verified_manifest.get("model_parameters") == MODEL_PARAMETERS
-        and verified_manifest.get("input_fingerprint")
-        == current_input_fingerprint
-        and verified_manifest.get("output_sha256")
-        == _sha256_file(SUMMARY_FILE)
-    )
+    history_verification = {
+        "input_cutoff": (
+            verified_manifest.get("input_cutoff")
+            == verified_cutoff.date().isoformat()
+        ),
+        "model_parameters": (
+            verified_manifest.get("model_parameters") == MODEL_PARAMETERS
+        ),
+        "input_fingerprint": (
+            verified_manifest.get("input_fingerprint")
+            == current_input_fingerprint
+        ),
+        "output_sha256": (
+            verified_manifest.get("output_sha256")
+            == _sha256_file(SUMMARY_FILE)
+        ),
+    }
+    can_reuse_history = all(history_verification.values())
+    if not can_reuse_history:
+        failed_checks = [
+            name for name, passed in history_verification.items() if not passed
+        ]
+        print(
+            "   ZL incremental history verification failed checks: "
+            + ", ".join(failed_checks)
+        )
+        if "input_fingerprint" in failed_checks:
+            print(
+                "   expected input fingerprint: "
+                f"{verified_manifest.get('input_fingerprint')}"
+            )
+            print(
+                f"   current input fingerprint:  {current_input_fingerprint}"
+            )
 if os.path.exists(SUMMARY_FILE) and (
     (not REBUILD_ALL and can_reuse_history)
     or (REBUILD_ALL and RESUME_CHECKPOINT)
@@ -675,16 +702,25 @@ elif os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:
     )
 
 if WEEKLY_ONLY:
-    # Recalculate the latest completed week under the current input contract.
-    df_zl_model.loc[coverage_dates] = np.nan
-    df_zl_error.loc[coverage_dates] = np.nan
-    df_diff_pct.loc[coverage_dates] = np.nan
+    # Recalculate only a newly completed week. Never clear an already verified
+    # historical row merely because some individual bond cells are unavailable.
+    refresh_dates = coverage_dates
+    if can_reuse_history:
+        refresh_dates = refresh_dates[refresh_dates > verified_cutoff]
+    df_zl_model.loc[refresh_dates] = np.nan
+    df_zl_error.loc[refresh_dates] = np.nan
+    df_diff_pct.loc[refresh_dates] = np.nan
 
 pending_mask = df_price.notna() & df_zl_model.isna()
 calc_dates_to_run = select_pending_calculation_dates(
     calculation_dates=calc_dates,
     pending_mask=pending_mask,
 )
+if WEEKLY_ONLY and can_reuse_history:
+    calc_dates_to_run = select_dates_after_checkpoint(
+        calculation_dates=calc_dates_to_run,
+        checkpoint_cutoff=verified_cutoff,
+    )
 if resume_checkpoint_cutoff is not None:
     calc_dates_to_run = select_dates_after_checkpoint(
         calculation_dates=calc_dates_to_run,
@@ -707,6 +743,13 @@ if EXECUTION_BACKEND == "cuda":
     print(f"   ZL execution backend: CUDA ({cuda_device_name()})")
 else:
     print("   ZL execution backend: CPU (Numba parallel)")
+
+# Capture the fingerprint before the simulation. Clause-history calculations
+# mutate working frames, so recomputing this after the loop is not stable.
+planned_verified_cutoff = pd.Timestamp(calc_dates.max())
+stable_input_fingerprint = _build_input_fingerprint(
+    planned_verified_cutoff
+)
 
 def _observed_clause_inputs(bond_code, date):
     if bond_code not in _basic.index or bond_code not in _clauses.index:
@@ -1038,12 +1081,16 @@ verified_output_dates = [
 if not verified_output_dates:
     raise DataContractError("ZL output has no verified valuation dates")
 verified_cutoff = pd.Timestamp(max(verified_output_dates))
+if verified_cutoff != planned_verified_cutoff:
+    raise DataContractError(
+        "ZL verified cutoff differs from the planned incremental cutoff"
+    )
 manifest_payload = {
     "contract_version": ZL_INPUT_CONTRACT_VERSION,
     "execution_backend": EXECUTION_BACKEND,
     "verified_dates": verified_output_dates,
     "input_cutoff": verified_cutoff.date().isoformat(),
-    "input_fingerprint": _build_input_fingerprint(verified_cutoff),
+    "input_fingerprint": stable_input_fingerprint,
     "output_sha256": _sha256_file(SUMMARY_FILE),
     "model_parameters": MODEL_PARAMETERS,
 }

@@ -70,6 +70,34 @@ def test_weekly_batch_fails_closed_before_git_publish() -> None:
     assert source.count("goto :fail") >= 3
 
 
+def test_weekly_batch_runs_only_after_the_verified_incremental_cutoff() -> None:
+    source = (BACKTEST_DIR / "weekly_update.bat").read_text(
+        encoding="utf-8"
+    )
+
+    assert "ZL_Model_Manifest.json" in source
+    assert '--start "%PIPELINE_START%"' in source
+    assert '--incremental-after "%MODEL_CUTOFF%"' in source
+    assert "--backend cuda --weekly --offline-inputs" in source
+
+
+def test_bs_incremental_volatility_write_preserves_history() -> None:
+    source = (BACKTEST_DIR / "B-S_backtest.py").read_text(encoding="utf-8")
+
+    assert "existing_volatility_history" in source
+    assert "merge_incremental_history(" in source
+
+
+def test_zl_weekly_increment_never_reprices_verified_dates() -> None:
+    source = (BACKTEST_DIR / "Z-L_backtest_GPU_prod.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "refresh_dates > verified_cutoff" in source
+    assert "checkpoint_cutoff=verified_cutoff" in source
+    assert "stable_input_fingerprint" in source
+
+
 def test_full_history_rebuild_checks_gpu_before_any_mutation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

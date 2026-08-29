@@ -1073,17 +1073,50 @@ def build_risk_free_rate_matrix(
     result = pd.DataFrame(
         np.nan, index=maturity.index, columns=maturity.columns, dtype=float
     )
+    if curve.empty:
+        raise DataContractError("yield curve is empty")
+
+    normalized = curve.copy()
+    normalized.index = pd.to_datetime(normalized.index, errors="coerce")
+    normalized = normalized.loc[normalized.index.notna()].sort_index()
+    if normalized.empty:
+        raise DataContractError("yield curve is empty")
+
+    curve_dates = normalized.index
     for date in maturity.index:
-        for bond in maturity.columns:
-            term = pd.to_numeric(maturity.at[date, bond], errors="coerce")
-            if pd.isna(term) or float(term) <= 0:
-                continue
-            result.at[date, bond] = interpolate_observed_yield_curve(
-                curve,
-                pd.Timestamp(date),
-                float(term),
-                max_staleness_days=max_staleness_days,
+        terms = pd.to_numeric(maturity.loc[date], errors="coerce")
+        valid = terms.notna() & np.isfinite(terms) & terms.gt(0)
+        if not valid.any():
+            continue
+
+        as_of = pd.Timestamp(date)
+        curve_position = int(curve_dates.searchsorted(as_of, side="right")) - 1
+        if curve_position < 0:
+            raise DataContractError(
+                f"yield curve unavailable on or before {as_of.date()}"
             )
+        curve_date = curve_dates[curve_position]
+        if (as_of - curve_date).days > max_staleness_days:
+            raise DataContractError(f"yield curve is stale on {as_of.date()}")
+
+        observed = pd.to_numeric(
+            normalized.iloc[curve_position], errors="coerce"
+        ).dropna()
+        if observed.empty:
+            raise DataContractError(
+                f"yield curve has no tenors on {curve_date.date()}"
+            )
+        try:
+            tenors = observed.index.to_numpy(dtype=float)
+        except (TypeError, ValueError) as exc:
+            raise DataContractError("yield curve tenors are not numeric") from exc
+        yields = observed.to_numpy(dtype=float)
+        order = np.argsort(tenors)
+        result.loc[date, valid.index[valid]] = np.interp(
+            terms.loc[valid].to_numpy(dtype=float),
+            tenors[order],
+            yields[order],
+        )
     return result
 
 

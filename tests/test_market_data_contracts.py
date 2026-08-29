@@ -446,6 +446,39 @@ def test_risk_free_matrix_rejects_dates_before_actual_curve() -> None:
         build_risk_free_rate_matrix(curve=curve, maturity=maturity)
 
 
+def test_risk_free_matrix_vectorizes_the_observed_curve_interpolation() -> None:
+    dates = pd.to_datetime(["2024-01-02", "2024-01-05"])
+    maturity = pd.DataFrame(
+        {
+            "short": [0.5, 1.0],
+            "middle": [2.0, 4.0],
+            "long": [8.0, np.nan],
+            "invalid": [-1.0, 0.0],
+        },
+        index=dates,
+    )
+    curve = pd.DataFrame(
+        {
+            1.0: [0.018, 0.019],
+            3.0: [0.022, 0.023],
+            5.0: [0.026, 0.027],
+        },
+        index=pd.to_datetime(["2024-01-02", "2024-01-04"]),
+    )
+
+    result = build_risk_free_rate_matrix(curve=curve, maturity=maturity)
+
+    for date in dates:
+        for bond in ["short", "middle", "long"]:
+            term = maturity.at[date, bond]
+            if pd.isna(term):
+                assert pd.isna(result.at[date, bond])
+            else:
+                expected = interpolate_observed_yield_curve(curve, date, term)
+                assert result.at[date, bond] == pytest.approx(expected)
+    assert result["invalid"].isna().all()
+
+
 def test_implied_spread_matrix_uses_contractual_cashflows() -> None:
     date = pd.Timestamp("2024-01-02")
     maturity = pd.DataFrame({"123001.SZ": [1.0]}, index=[date])

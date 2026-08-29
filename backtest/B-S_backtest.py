@@ -7,6 +7,8 @@ import warnings
 import time
 import os
 import sys
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
@@ -166,6 +168,12 @@ def _fetch_bond_volatility(bond_code):
 
 
 # 全量重建显式绕过历史缓存，避免旧版写入的 40% 常数无法识别。
+try:
+    existing_volatility_history = pd.read_csv(
+        VOL_CACHE_FILE, index_col=0, parse_dates=True
+    ).apply(pd.to_numeric, errors='coerce')
+except FileNotFoundError:
+    existing_volatility_history = pd.DataFrame(dtype=float)
 df_volatility = load_rebuildable_matrix_cache(
     path=VOL_CACHE_FILE,
     index=df_price.index,
@@ -199,7 +207,15 @@ if pending_bonds:
             print(f"   获取 {bond_code} 波动率失败: {e}")
     if updated_count:
         try:
-            df_volatility.to_csv(VOL_CACHE_FILE)
+            volatility_to_write = (
+                df_volatility
+                if REFRESH_INPUT_CACHE
+                else merge_incremental_history(
+                    existing_volatility_history,
+                    df_volatility,
+                )
+            )
+            volatility_to_write.to_csv(VOL_CACHE_FILE)
             print(f"   波动率已缓存至: {VOL_CACHE_FILE} (更新 {updated_count} 只)")
         except Exception as e:
             print(f"   缓存保存失败: {e}")
