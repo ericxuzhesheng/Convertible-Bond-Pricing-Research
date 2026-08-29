@@ -489,11 +489,31 @@ def test_bond_floor_rejects_missing_contractual_coupon() -> None:
         data_pipeline.calc_bond_floor_dcf(basic, maturity, curve)
 
 
-def test_stock_market_value_queries_each_underlying_security(
+def test_stock_market_value_batches_by_trade_date(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
-    pro = FakePro()
+    monkeypatch.setattr(
+        data_pipeline,
+        "fetch_trade_dates",
+        lambda *_: ["20240102"],
+    )
+
+    class DailyBasicPro:
+        def __init__(self) -> None:
+            self.calls: list[dict] = []
+
+        def daily_basic(self, **kwargs):
+            self.calls.append(kwargs)
+            return pd.DataFrame(
+                {
+                    "ts_code": ["000001.SZ", "000002.SZ", "000003.SZ"],
+                    "trade_date": [kwargs["trade_date"]] * 3,
+                    "total_mv": [500_000.0, 600_000.0, 700_000.0],
+                }
+            )
+
+    pro = DailyBasicPro()
     basic = pd.DataFrame(
         {
             "ts_code": ["123001.SZ", "123002.SZ"],
@@ -509,10 +529,7 @@ def test_stock_market_value_queries_each_underlying_security(
         pro, basic, price, "20240101", "20240103"
     )
 
-    assert [call["ts_code"] for call in pro.daily_basic_calls] == [
-        "000001.SZ",
-        "000002.SZ",
-    ]
+    assert [call["trade_date"] for call in pro.calls] == ["20240102"]
     assert result.loc[pd.Timestamp("2024-01-02"), "123001.SZ"] == pytest.approx(
         500_000.0
     )
@@ -548,6 +565,38 @@ def test_bps_query_uses_announcement_history_not_report_period_window(
         },
     ]
     assert result["123001.SZ"].tolist() == [12.5, 12.5]
+
+
+def test_bps_incremental_cache_reduces_history_to_one_two_year_chunk(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+    pro = FakePro()
+    basic = pd.DataFrame(
+        {"ts_code": ["123001.SZ"], "stk_cd": ["000001.SZ"]}
+    )
+    price = pd.DataFrame(
+        {"123001.SZ": [100.0]},
+        index=pd.to_datetime(["2024-01-02"]),
+    )
+
+    data_pipeline.fetch_bps(
+        pro,
+        basic,
+        price,
+        "20240101",
+        "20240105",
+        incremental_cache_available=True,
+    )
+
+    assert pro.fina_indicator_calls == [
+        {
+            "ts_code": "000001.SZ",
+            "start_date": "20230101",
+            "end_date": "20241231",
+            "fields": "ts_code,ann_date,end_date,bps,update_flag",
+        }
+    ]
 
 
 def test_bps_query_fails_closed_when_any_underlying_request_fails(
@@ -733,3 +782,98 @@ def test_tushare_retry_recovers_from_transient_disconnect(
 
     assert data_pipeline.call_tushare_with_retry(flaky_call) == "ok"
     assert attempts == 3
+
+
+def test_observed_conversion_price_is_inverted_from_same_day_values() -> None:
+    dates = pd.to_datetime(["2026-08-27", "2026-08-28"])
+    conversion_value = pd.DataFrame(
+        {"110084.SH": [98.13, 99.07]},
+        index=dates,
+    )
+    stock_close = pd.DataFrame(
+        {"600903.SH": [6.30, 6.36]},
+        index=dates,
+    )
+    basic = pd.DataFrame(
+        {
+            "ts_code": ["110084.SH"],
+            "stk_cd": ["600903.SH"],
+            "par_value": [100.0],
+        }
+    )
+
+    result = data_pipeline.derive_observed_conversion_price(
+        observed_conversion_value=conversion_value,
+        stock_close=stock_close,
+        cb_basic=basic,
+    )
+
+    assert result["110084.SH"].tolist() == [6.42, 6.42]
+
+
+def test_stock_close_download_batches_by_trade_date(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[dict] = []
+
+    class DailyPro:
+        def daily(self, **kwargs):
+            calls.append(kwargs)
+            return pd.DataFrame(
+                {
+                    "ts_code": ["600903.SH", "600000.SH"],
+                    "trade_date": [kwargs["trade_date"]] * 2,
+                    "close": [6.36, 10.0],
+                }
+            )
+
+    monkeypatch.setattr(
+        data_pipeline,
+        "fetch_trade_dates",
+        lambda *_: ["20260827", "20260828"],
+    )
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+    price = pd.DataFrame(
+        {"110084.SH": [132.29, 132.84]},
+        index=pd.to_datetime(["2026-08-27", "2026-08-28"]),
+    )
+    basic = pd.DataFrame(
+        {"ts_code": ["110084.SH"], "stk_cd": ["600903.SH"]}
+    )
+
+    result = data_pipeline.fetch_stock_close_matrix(
+        DailyPro(), price, basic, "20260827", "20260828"
+    )
+
+    assert [call["trade_date"] for call in calls] == ["20260827", "20260828"]
+    assert list(result.columns) == ["600903.SH"]
+
+
+def test_conversion_event_cache_can_be_reused_without_api_call(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache = tmp_path / "cb_conversion_price_events.csv"
+    expected = pd.DataFrame(
+        {
+            "ts_code": ["110084.SH"],
+            "change_date": ["20260801"],
+            "convert_price_initial": [10.0],
+            "convertprice_aft": [6.42],
+        }
+    )
+    expected.to_csv(cache, index=False)
+    monkeypatch.setattr(data_pipeline, "OUT_CONV_EVENTS", str(cache))
+    monkeypatch.setattr(
+        data_pipeline,
+        "fetch_conversion_price_events",
+        lambda *_: pytest.fail("cached retry must not call cb_price_chg"),
+    )
+
+    result = data_pipeline.load_conversion_price_events(
+        object(),
+        ["110084.SH"],
+        reuse_cache=True,
+    )
+
+    assert result["ts_code"].tolist() == ["110084.SH"]

@@ -580,6 +580,47 @@ def fetch_conversion_price_events(
     return result.sort_values(['ts_code', 'change_date'])
 
 
+def load_conversion_price_events(
+    pro,
+    bonds: list[str],
+    *,
+    reuse_cache: bool = False,
+) -> pd.DataFrame:
+    """Reuse historical events when ``cb_price_chg`` is unavailable.
+
+    The event cache is only the historical fallback.  Conversion prices in
+    the requested window are reconstructed later from same-day observed
+    conversion values and underlying-stock closes.
+    """
+
+    if reuse_cache and os.path.exists(OUT_CONV_EVENTS):
+        cached = pd.read_csv(OUT_CONV_EVENTS, dtype={"ts_code": str})
+        required = {
+            "ts_code",
+            "change_date",
+            "convert_price_initial",
+            "convertprice_aft",
+        }
+        missing = required.difference(cached.columns)
+        if missing:
+            raise DataContractError(
+                "conversion-price event cache missing columns: "
+                f"{sorted(missing)}"
+            )
+        requested = set(str(bond) for bond in bonds)
+        cached = cached.loc[cached["ts_code"].isin(requested)].copy()
+        if cached.empty:
+            raise DataContractError(
+                "conversion-price event cache has no requested bonds"
+            )
+        print(
+            "\n[Step 3] Reusing conversion-price event cache: "
+            f"{len(cached)} rows"
+        )
+        return cached
+    return fetch_conversion_price_events(pro, bonds)
+
+
 def fetch_clause_terms_akshare(bonds: list[str]) -> pd.DataFrame:
     """Download contractual redemption/put clauses from Eastmoney via AkShare."""
 
@@ -639,89 +680,176 @@ def load_clause_terms(
             "source_ok",
             "maturity_redemption_price",
         }
-        if required.issubset(cached.columns):
+        missing_columns = required.difference(cached.columns)
+        if missing_columns:
+            raise DataContractError(
+                f"clause cache missing columns: {sorted(missing_columns)}"
+            )
+        cached = cached.drop_duplicates("ts_code", keep="last")
+        missing_bonds = sorted(set(requested).difference(cached["ts_code"]))
+        if missing_bonds:
+            print(
+                "\n[Step 3] Extending clause retry cache for "
+                f"{len(missing_bonds)} new bonds"
+            )
+            fetched = fetch_clause_terms_akshare(missing_bonds)
+            cached = pd.concat([cached, fetched], ignore_index=True)
             cached = cached.drop_duplicates("ts_code", keep="last")
-            indexed = cached.set_index("ts_code")
-            missing = set(requested).difference(indexed.index)
-            if not missing:
-                selected = indexed.reindex(requested).reset_index()
-                coverage = (
-                    selected["source_ok"]
-                    .astype(str)
-                    .str.lower()
-                    .eq("true")
-                    .mean()
-                )
-                if coverage >= 0.98:
-                    print(
-                        "\n[Step 3] Reusing clause retry cache: "
-                        f"{coverage:.1%} source coverage"
-                    )
-                    return selected
+        indexed = cached.set_index("ts_code")
+        still_missing = set(requested).difference(indexed.index)
+        if still_missing:
+            raise DataContractError(
+                f"clause cache still missing {len(still_missing)} bonds"
+            )
+        selected = indexed.reindex(requested).reset_index()
+        coverage = (
+            selected["source_ok"]
+            .astype(str)
+            .str.lower()
+            .eq("true")
+            .mean()
+        )
+        if coverage < 0.98:
+            raise DataContractError(
+                f"clause source coverage too low: {coverage:.1%}"
+            )
+        print(
+            "\n[Step 3] Reusing clause retry cache: "
+            f"{coverage:.1%} source coverage"
+        )
+        return selected
     return fetch_clause_terms_akshare(requested)
 
 
-def calc_convert_val(
+def fetch_stock_close_matrix(
     pro,
     df_price: pd.DataFrame,
     cb_basic: pd.DataFrame,
-    df_conversion_price: pd.DataFrame,
     start: str,
     end: str,
 ) -> pd.DataFrame:
-    """
-    Derive conversion value only when cb_daily.cb_value is absent.
+    """Fetch same-day underlying-stock closes for the bond universe."""
 
-    Both stock close and conversion price must be observed on the same date.
-    No cross-date forward fill is allowed here.
-    """
-    print(f"\n[Step 4] 补充转换价值（拉取正股日线 {start}→{end}）...")
+    print(f"\n[Step 4] 拉取正股日线 {start}→{end} ...")
     bond_to_stock = (
         cb_basic.dropna(subset=['ts_code', 'stk_cd'])
         .set_index('ts_code')['stk_cd'].to_dict()
     )
 
-    stock_codes = sorted(set(bond_to_stock.values()))
+    stock_codes = {
+        str(bond_to_stock[bond])
+        for bond in df_price.columns
+        if bond in bond_to_stock
+    }
     chunks = []
     failures = []
-    for stock_code in tqdm(stock_codes, desc='stock daily for CV'):
+    trade_dates = fetch_trade_dates(pro, start, end)
+    for trade_date in tqdm(trade_dates, desc='stock daily for CV'):
         try:
             df = call_tushare_with_retry(
                 pro.daily,
-                ts_code=stock_code,
-                start_date=start,
-                end_date=end,
+                trade_date=trade_date,
                 fields='ts_code,trade_date,close'
             )
             if df is not None and not df.empty:
-                chunks.append(df)
+                chunks.append(
+                    df.loc[df['ts_code'].astype(str).isin(stock_codes)]
+                )
+            else:
+                failures.append((trade_date, 'empty response for open date'))
         except Exception as ex:
-            failures.append((stock_code, str(ex)))
+            failures.append((trade_date, str(ex)))
         time.sleep(0.1)
 
     if failures:
-        sample = "; ".join(f"{code}: {error}" for code, error in failures[:5])
+        sample = "; ".join(f"{date}: {error}" for date, error in failures[:5])
         raise DataContractError(
-            f"stock daily failed for {len(failures)} securities: {sample}"
+            f"stock daily failed for {len(failures)} trading dates: {sample}"
         )
 
     if not chunks:
-        print("   正股日线无数据，转换价值将全部为 NaN")
-        return pd.DataFrame(index=df_price.index, columns=df_price.columns, dtype=float)
+        print("   正股日线无数据")
+        return pd.DataFrame(index=df_price.index)
 
     raw = pd.concat(chunks, ignore_index=True)
     raw['trade_date'] = pd.to_datetime(raw['trade_date'])
     raw['close'] = pd.to_numeric(raw['close'], errors='coerce')
-    stk_wide = raw.pivot_table(index='trade_date', columns='ts_code', values='close', aggfunc='last')
+    return raw.pivot_table(
+        index='trade_date',
+        columns='ts_code',
+        values='close',
+        aggfunc='last',
+    )
+
+
+def derive_observed_conversion_price(
+    *,
+    observed_conversion_value: pd.DataFrame,
+    stock_close: pd.DataFrame,
+    cb_basic: pd.DataFrame,
+) -> pd.DataFrame:
+    """Infer daily conversion prices from same-day observed values.
+
+    ``conversion value = stock close * par value / conversion price``.
+    Conversion prices are quoted to cents, so the inverted result is rounded
+    to two decimals.
+    """
+
+    bond_to_stock = (
+        cb_basic.dropna(subset=['ts_code', 'stk_cd'])
+        .drop_duplicates('ts_code', keep='last')
+        .set_index('ts_code')['stk_cd']
+        .to_dict()
+    )
+    par_values = (
+        cb_basic.drop_duplicates('ts_code', keep='last')
+        .set_index('ts_code')['par_value']
+    )
+    result = pd.DataFrame(
+        index=observed_conversion_value.index,
+        columns=observed_conversion_value.columns,
+        dtype=float,
+    )
+    for bond in result.columns:
+        stock = bond_to_stock.get(bond)
+        par_value = pd.to_numeric(par_values.get(bond), errors='coerce')
+        if stock not in stock_close.columns or pd.isna(par_value) or par_value <= 0:
+            continue
+        stock_series = pd.to_numeric(
+            stock_close[stock].reindex(result.index), errors='coerce'
+        )
+        conversion_value = pd.to_numeric(
+            observed_conversion_value[bond], errors='coerce'
+        )
+        valid = (stock_series > 0) & (conversion_value > 0)
+        result.loc[valid, bond] = (
+            stock_series.loc[valid] * float(par_value)
+            / conversion_value.loc[valid]
+        ).round(2)
+    return result
+
+
+def calc_convert_val(
+    df_price: pd.DataFrame,
+    cb_basic: pd.DataFrame,
+    df_conversion_price: pd.DataFrame,
+    stock_close: pd.DataFrame,
+) -> pd.DataFrame:
+    """Derive conversion values from same-day stock and conversion prices."""
+
+    bond_to_stock = (
+        cb_basic.dropna(subset=['ts_code', 'stk_cd'])
+        .set_index('ts_code')['stk_cd'].to_dict()
+    )
 
     result = pd.DataFrame(index=df_price.index, columns=df_price.columns, dtype=float)
     for bond in df_price.columns:
         stk = bond_to_stock.get(bond)
         if stk is None or bond not in df_conversion_price.columns:
             continue
-        if stk not in stk_wide.columns:
+        if stk not in stock_close.columns:
             continue
-        stk_prices = stk_wide[stk].reindex(df_price.index)
+        stk_prices = stock_close[stk].reindex(df_price.index)
         conversion_price = pd.to_numeric(
             df_conversion_price[bond].reindex(df_price.index),
             errors='coerce',
@@ -964,28 +1092,35 @@ def fetch_stock_mv(
         cb_basic.dropna(subset=['ts_code', 'stk_cd'])
         .set_index('ts_code')['stk_cd'].to_dict()
     )
-    stock_codes = sorted(set(bond_to_stock.values()))
+    stock_codes = {
+        str(bond_to_stock[bond])
+        for bond in df_price.columns
+        if bond in bond_to_stock
+    }
     chunks = []
     failures = []
-    for stock_code in tqdm(stock_codes, desc='daily_basic'):
+    trade_dates = fetch_trade_dates(pro, start, end)
+    for trade_date in tqdm(trade_dates, desc='daily_basic'):
         try:
             df = call_tushare_with_retry(
                 pro.daily_basic,
-                ts_code=stock_code,
-                start_date=start,
-                end_date=end,
+                trade_date=trade_date,
                 fields='ts_code,trade_date,total_mv'
             )
             if df is not None and not df.empty:
-                chunks.append(df)
+                chunks.append(
+                    df.loc[df['ts_code'].astype(str).isin(stock_codes)]
+                )
+            else:
+                failures.append((trade_date, 'empty response for open date'))
         except Exception as ex:
-            failures.append((stock_code, str(ex)))
+            failures.append((trade_date, str(ex)))
         time.sleep(0.1)
 
     if failures:
-        sample = "; ".join(f"{code}: {error}" for code, error in failures[:5])
+        sample = "; ".join(f"{date}: {error}" for date, error in failures[:5])
         raise DataContractError(
-            f"daily_basic failed for {len(failures)} securities: {sample}"
+            f"daily_basic failed for {len(failures)} trading dates: {sample}"
         )
 
     if not chunks:
@@ -1108,13 +1243,21 @@ def fetch_bps(
     df_price: pd.DataFrame,
     start: str,
     end: str,
+    *,
+    incremental_cache_available: bool = False,
 ) -> pd.DataFrame:
     print(f"\n[Step 9] 拉取 BPS fina_indicator ({start}→{end}) ...")
     bond_to_stock = (
         cb_basic.dropna(subset=['ts_code', 'stk_cd'])
         .set_index('ts_code')['stk_cd'].to_dict()
     )
-    stock_codes = list(set(bond_to_stock.values()))
+    stock_codes = list(
+        {
+            bond_to_stock[bond]
+            for bond in df_price.columns
+            if bond in bond_to_stock
+        }
+    )
 
     # 增量更新加速：通过 disclosure_date 预筛期间有财报披露的正股
     if start >= "20200101" and len(stock_codes) > 50:
@@ -1146,7 +1289,8 @@ def fetch_bps(
 
     bps_series: dict = {}
     failures = []
-    first_report_year = max(1990, int(start[:4]) - 2)
+    lookback_years = 1 if incremental_cache_available else 2
+    first_report_year = max(1990, int(start[:4]) - lookback_years)
     last_report_year = int(end[:4])
     for stk in tqdm(stock_codes, desc='fina_indicator'):
         try:
@@ -1259,6 +1403,7 @@ def run_pipeline(
     rebuild_all: bool = False,
     weekly_validation: bool = False,
     reuse_clause_cache: bool = False,
+    reuse_conversion_event_cache: bool = False,
 ) -> None:
     pro = init_tushare()
     requested_end = end
@@ -1333,15 +1478,32 @@ def run_pipeline(
     amount.to_csv(OUT_AMOUNT)
 
     # --- 历史转股价与转换价值 ---
-    conversion_events = fetch_conversion_price_events(
-        pro, list(df_price.columns)
+    conversion_events = load_conversion_price_events(
+        pro,
+        list(df_price.columns),
+        reuse_cache=reuse_conversion_event_cache,
     )
     conversion_events.to_csv(OUT_CONV_EVENTS, index=False)
-    conversion_price = build_conversion_price_matrix(
+    event_conversion_price = build_conversion_price_matrix(
         dates=df_price.index,
         bonds=list(df_price.columns),
         cb_basic=cb_basic,
         change_events=conversion_events,
+    )
+    stock_close = fetch_stock_close_matrix(
+        pro,
+        df_price_new,
+        cb_basic,
+        start,
+        end,
+    )
+    observed_conversion_price_new = derive_observed_conversion_price(
+        observed_conversion_value=daily['convert_value'],
+        stock_close=stock_close,
+        cb_basic=cb_basic,
+    )
+    conversion_price = observed_conversion_price_new.combine_first(
+        event_conversion_price
     )
     conversion_price.to_csv(OUT_CONV_PRICE)
     clause_terms = load_clause_terms(
@@ -1396,15 +1558,13 @@ def run_pipeline(
         columns=df_price_new.columns,
     )
     derived_cv = calc_convert_val(
-        pro,
         df_price_new,
         cb_basic,
         conversion_price.reindex(
             index=df_price_new.index,
             columns=df_price_new.columns,
         ),
-        start,
-        end,
+        stock_close,
     )
     df_cv_new = observed_cv.combine_first(derived_cv)
     df_cv = (
@@ -1553,7 +1713,16 @@ def run_pipeline(
     df_rating.to_csv(OUT_RATING)
 
     # --- BPS ---
-    df_bps_new = fetch_bps(pro, cb_basic, df_price_new, start, end)
+    df_bps_new = fetch_bps(
+        pro,
+        cb_basic,
+        df_price_new,
+        start,
+        end,
+        incremental_cache_available=(
+            not rebuild_all and os.path.exists(OUT_BPS)
+        ),
+    )
     df_bps = (
         df_bps_new
         if rebuild_all
@@ -1635,6 +1804,14 @@ if __name__ == '__main__':
         action='store_true',
         help='retry from a complete local clause cache instead of redownloading it',
     )
+    parser.add_argument(
+        '--reuse-conversion-event-cache',
+        action='store_true',
+        help=(
+            'reuse local conversion-price events and reconstruct new daily '
+            'prices from observed cb_value and stock closes'
+        ),
+    )
     args = parser.parse_args()
     run_pipeline(
         args.start,
@@ -1642,4 +1819,5 @@ if __name__ == '__main__':
         rebuild_all=args.rebuild_all,
         weekly_validation=args.weekly,
         reuse_clause_cache=args.reuse_clause_cache,
+        reuse_conversion_event_cache=args.reuse_conversion_event_cache,
     )
