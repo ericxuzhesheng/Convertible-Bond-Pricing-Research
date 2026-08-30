@@ -299,7 +299,7 @@ $$
 - LSM 补充**自愿提前转股 + 继续持有决策**。
 - 错误定价因子与传统风格因子呈显著**正交性**。
 
-→ 两者结合为组合提供互补的进攻与防守信息。
+→ 三者结合为组合提供互补的进攻、防守与提前转股决策信息。
 
 ---
 
@@ -626,7 +626,7 @@ Summary: LSM narrows full-sample pricing bias from ZL's -12.85 CNY to -2.32 CNY 
 - LSM adds **voluntary early conversion + continuation decisions**.
 - Mispricing factor is highly **orthogonal** to traditional style factors.
 
-→ The combination provides complementary offensive and defensive information.
+→ Together, the three models provide complementary offensive, defensive, and early-conversion decision information.
 
 ---
 

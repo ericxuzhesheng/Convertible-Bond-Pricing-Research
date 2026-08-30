@@ -600,7 +600,7 @@ if __name__ == "__main__":
         results = strategy.analyze_results(plot=False)
         metrics = results['metrics']
         all_metrics[model] = metrics
-        benchmark_metrics = metrics['benchmark'] # 基准数据理论上两个模型跑出来是一样的
+        benchmark_metrics = metrics['benchmark'] # 三个模型使用同一基准序列
         all_data[model] = results['data']
     
     # 打印最终对比表
