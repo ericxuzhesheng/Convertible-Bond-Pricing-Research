@@ -1,4 +1,4 @@
-name: Complete weekly cloud update
+name: Strict incremental weekly cloud update
 
 on:
   workflow_dispatch:
@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - name: Check out main with complete history
+      - name: Check out main for incremental publication
         uses: actions/checkout@v4
         with:
           ref: main
@@ -87,7 +87,12 @@ jobs:
           echo "MODEL_CUTOFF=${MODEL_CUTOFF}" >> "${GITHUB_ENV}"
 
       - name: Update weekly market-data caches incrementally
-        run: python -u backtest/data_pipeline.py --start "${PIPELINE_START}" --weekly --reuse-clause-cache
+        run: >-
+          python -u backtest/data_pipeline.py
+          --start "${PIPELINE_START}"
+          --weekly
+          --reuse-clause-cache
+          --reuse-conversion-event-cache
 
       - name: Update Black-Scholes weekly results
         run: python -u backtest/B-S_backtest.py --weekly --incremental-after "${MODEL_CUTOFF}"
@@ -112,7 +117,7 @@ jobs:
       - name: Rebuild factors strategies and figures
         run: python -u backtest/rebuild_research_outputs.py
 
-      - name: Validate complete cloud outputs
+      - name: Validate the incremental cloud outputs
         shell: python
         run: |
           import hashlib

@@ -54,9 +54,10 @@ Convertible-Bond-Pricing-Research/
 
 ## How to Run
 
-### Full pipeline (from scratch)
+### Explicit maintenance only: full-history rebuild
 
 ```bash
+# Never use this for a routine update. It requires an explicit maintainer request.
 # GPU preflight → rebuild observed Tushare/AkShare inputs → BS → GPU ZL
 # → benchmark → factors → strategies → plots
 python backtest/full_history_rebuild.py
@@ -86,7 +87,7 @@ cd backtest
 Get-Content .\logs\main_sync.log -Tail 30
 ```
 
-The GitHub `full-backtest-cpu.yml` pipeline:
+The GitHub `weekly-incremental-cpu.yml` pipeline:
 1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_CPU_prod.py` — incrementally update weekly observed inputs and prices
 2. `long-short strategy/update_benchmark.py` — updates the 000832.CSI benchmark
 3. `rebuild_research_outputs.py` — regenerates factors, strategies, and README plots
@@ -97,8 +98,10 @@ the scheduled cloud update does not depend on the local computer being on.
 
 ### Incremental update (most common)
 
-Both backtest scripts detect existing cache and only compute missing dates.
-`data_pipeline.py` accepts `--start` / `--end` date arguments for range control.
+The routine scripts read the verified Manifest cutoff and compute only dates
+strictly after it. Historical NaNs are not missing work and must never trigger a
+weekly reprice. `data_pipeline.py` accepts `--start` / `--end` for an explicitly
+bounded incremental range.
 
 ---
 
@@ -238,9 +241,10 @@ Factor CSV bond code format: `sh110030` → normalized to `110030.SH` by `_stand
 | 网络要求 | 仅在网络可用时运行 |
 | 超时 | 4 小时 |
 
-If Friday is a public holiday, `data_pipeline.py` fetches no new data, models find
-no pending cells, and `git diff --cached --quiet` returns 0 — the commit is skipped
-automatically. No special holiday handling needed.
+If Friday is a public holiday, `data_pipeline.py` fetches no new completed week,
+the models find no dates after the verified cutoff, and
+`git diff --cached --quiet` returns 0 — the commit is skipped automatically. No
+special holiday handling is needed.
 
 ---
 

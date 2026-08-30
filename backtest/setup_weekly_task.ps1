@@ -1,6 +1,6 @@
 # setup_weekly_task.ps1
 # ============================================================
-# 一次性运行此脚本，在 Windows 任务计划程序中注册周更新定时任务
+# 一次性运行此脚本，在 Windows 任务计划程序中注册严格增量周更新任务
 #
 # 运行方式（以管理员权限）：
 #   右键 PowerShell → 以管理员身份运行 → cd 到 backtest 目录 → .\setup_weekly_task.ps1
@@ -55,7 +55,7 @@ Register-ScheduledTask `
     -Action $action `
     -Settings $settings `
     -Principal $principal `
-    -Description "可转债数据周更新：拉取数据、运行模型、重生成图表、提交推送 GitHub" `
+    -Description "可转债严格增量周更新：仅处理 Manifest 截止日后的新交易周，并在验证后推送 GitHub" `
     -Force | Out-Null
 
 Write-Host ""

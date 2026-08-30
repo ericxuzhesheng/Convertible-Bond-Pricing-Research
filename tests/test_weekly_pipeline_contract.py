@@ -98,6 +98,15 @@ def test_zl_weekly_increment_never_reprices_verified_dates() -> None:
     assert "stable_input_fingerprint" in source
 
 
+def test_zl_weekly_history_read_failure_is_fail_closed() -> None:
+    source = (BACKTEST_DIR / "Z-L_backtest_GPU_prod.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "weekly incremental ZL cannot read its verified history" in source
+    assert "refusing to continue or overwrite published results" in source
+
+
 def test_full_history_rebuild_checks_gpu_before_any_mutation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

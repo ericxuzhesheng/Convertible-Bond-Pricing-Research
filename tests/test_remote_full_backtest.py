@@ -159,7 +159,7 @@ def test_validate_zl_coverage_rejects_incomplete_rebuild(
 
 def test_cpu_workflow_runs_all_weekly_stages_before_publish() -> None:
     workflow = (
-        REPO_ROOT / ".github" / "workflows" / "full-backtest-cpu.yml"
+        REPO_ROOT / ".github" / "workflows" / "weekly-incremental-cpu.yml"
     ).read_text(encoding="utf-8")
 
     assert "PIPELINE_START=" in workflow
@@ -167,10 +167,11 @@ def test_cpu_workflow_runs_all_weekly_stages_before_publish() -> None:
     assert "cutoff + timedelta(days=1)" in workflow
     assert "cutoff - timedelta" not in workflow
     assert (
-        'data_pipeline.py --start "${PIPELINE_START}" --weekly '
-        "--reuse-clause-cache"
+        'data_pipeline.py\n          --start "${PIPELINE_START}"\n'
         in workflow
     )
+    assert "--reuse-clause-cache" in workflow
+    assert "--reuse-conversion-event-cache" in workflow
     assert (
         'B-S_backtest.py --weekly --incremental-after "${MODEL_CUTOFF}"'
         in workflow
@@ -195,7 +196,7 @@ def test_cpu_workflow_runs_all_weekly_stages_before_publish() -> None:
 
 def test_cpu_workflow_has_weekly_remote_schedule() -> None:
     workflow = (
-        REPO_ROOT / ".github" / "workflows" / "full-backtest-cpu.yml"
+        REPO_ROOT / ".github" / "workflows" / "weekly-incremental-cpu.yml"
     ).read_text(encoding="utf-8")
 
     assert "schedule:" in workflow

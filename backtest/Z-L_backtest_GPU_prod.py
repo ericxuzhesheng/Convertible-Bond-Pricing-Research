@@ -689,7 +689,12 @@ if os.path.exists(SUMMARY_FILE) and (
             raise DataContractError(
                 f"cannot resume local ZL checkpoint: {e}"
             ) from e
-        print(f"   历史结果读取失败，改为全量计算：{e}")
+        if WEEKLY_ONLY:
+            raise DataContractError(
+                "weekly incremental ZL cannot read its verified history; "
+                "refusing to continue or overwrite published results"
+            ) from e
+        print(f"   历史结果读取失败；当前为显式维护模式，将重新计算：{e}")
 elif os.path.exists(SUMMARY_FILE) and not REBUILD_ALL:
     if WEEKLY_ONLY:
         raise DataContractError(

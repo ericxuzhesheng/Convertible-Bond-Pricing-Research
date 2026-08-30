@@ -48,9 +48,9 @@
 
 ```text
 Convertible-Bond-Pricing-Research/
-├─ .github/workflows/       #  远端周度数据与研究产物更新
+├─ .github/workflows/       #  远端严格增量周更新与研究产物发布
 ├─ backtest/                #  BS 与 ZL 定价回测主程序 + 数据管道
-│   ├─ data_pipeline.py     #  Tushare 全量/增量数据管道
+│   ├─ data_pipeline.py     #  Tushare 数据管道；日常按 Manifest 边界增量运行
 │   ├─ B-S_backtest.py      #  Black-Scholes 周度定价
 │   ├─ Z-L_backtest_GPU_prod.py # 郑-林 Monte Carlo 定价（CUDA/CPU 共用驱动）
 │   ├─ Z-L_backtest_CPU_prod.py # GitHub Actions CPU 增量入口
@@ -351,9 +351,9 @@ This repository is organized by research workflow from model pricing to factor c
 
 ```text
 Convertible-Bond-Pricing-Research/
-├─ .github/workflows/       # Remote weekly data and research-output updates
+├─ .github/workflows/       # Strict incremental weekly data and research-output publication
 ├─ backtest/                # BS and ZL pricing engines + data pipeline
-│   ├─ data_pipeline.py     # Full/incremental Tushare data pipeline
+│   ├─ data_pipeline.py     # Tushare pipeline; routine runs are bounded by the manifest cutoff
 │   ├─ B-S_backtest.py      # Weekly Black-Scholes pricing
 │   ├─ Z-L_backtest_GPU_prod.py # Shared Zheng-Lin CUDA/CPU production driver
 │   ├─ Z-L_backtest_CPU_prod.py # GitHub Actions CPU incremental entrypoint
