@@ -12,6 +12,10 @@ Absolute pricing research for Chinese A-share convertible bonds using two models
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
 
+Current published vintage: **2026-08-28**. Routine weekly work is strictly
+incremental; do not run a full-history rebuild unless a maintainer explicitly
+requests one.
+
 ---
 
 ## Repository Layout
@@ -124,10 +128,12 @@ bond-column shape; instead interpolate by tenor at call time.
 
 ### ZL incremental logic
 
-`Z-L_backtest_GPU_prod.py` loads `ZL_Model_Summary.xlsx` and computes a `pending_mask`
-(date × bond pairs where price is non-NaN but ZL model price is NaN). Monte Carlo
-runs only for pending cells. When reindexing old cache DataFrames to match the
-current `df_price` shape, always use:
+`Z-L_backtest_GPU_prod.py` reads the verified cutoff from
+`ZL_Model_Manifest.json`. In weekly mode, eligible dates must be strictly later
+than that cutoff; historical NaNs are legitimate skipped observations and must
+not trigger repricing. Within eligible new dates, Monte Carlo runs only for valid
+pending cells. When reindexing old cache DataFrames to match the current
+`df_price` shape, always use:
 ```python
 df.reindex(index=df_price.index, columns=df_price.columns)
 ```
@@ -136,8 +142,10 @@ bond columns intact, causing KeyError for new bonds.
 
 ### BS volatility cache
 
-`B-S_backtest.py` loads `bs_volatility_cache.csv` on startup. If the file exists,
-it skips Tushare re-fetching. Missing entries are filled with `0.40` (40% default).
+`B-S_backtest.py --weekly --incremental-after YYYY-MM-DD` preserves the complete
+existing `bs_volatility_cache.csv` history and merges only new volatility rows.
+Never replace the cache with an incremental slice. Missing entries are filled
+with `0.40` (40% default).
 
 ### Windows console encoding
 
@@ -152,8 +160,8 @@ if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8"
 ## Environment Requirements
 
 - Python 3.9+
-- Key packages: `tushare`, `akshare`, `pandas`, `numpy`, `scipy`, `numba`, `openpyxl`, `matplotlib`
-- Tushare Pro token: set in `data_pipeline.py` at line `ts.set_token(...)`
+- Key packages: `tushare`, `akshare`, `pandas`, `numpy`, `scipy`, `numba==0.62.1`, `numba-cuda`, `openpyxl`, `matplotlib`
+- Tushare Pro token: provide `TUSHARE_TOKEN` or the ignored local file `backtest/tushare_token.txt`; never hard-code or commit it
 - No extra packages needed for email (uses stdlib `smtplib`)
 
 ---
@@ -161,7 +169,7 @@ if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8"
 ## Data Source
 
 All market data is fetched via **Tushare Pro API**:
-- `pro.cb_daily()` — bond prices, conversion values, balance, volume
+- `pro.cb_daily()` — bond prices, conversion values, balance, volume; when `cb_price_chg` is unavailable, calculate it from adjacent closes and optionally correct it with a free quote source
 - `pro.cb_basic()` — static info (coupon rate, maturity date, stock mapping)
 - `pro.daily_basic()` — stock market cap
 - `pro.rating()` — credit ratings
@@ -188,9 +196,10 @@ batch calls. Do not remove these sleeps.
 ```
 18:00 Friday
   │
-  ├─ data_pipeline.py         ← 更新周度真实市场数据
-  ├─ B-S_backtest.py          ← 更新 BS 周度定价
-  ├─ Z-L_backtest_GPU_prod.py ← 更新 ZL 周度定价
+  ├─ manifest cutoff          ← 读取已验证截止日，只允许后续新交易周
+  ├─ data_pipeline.py         ← 从截止日次日起增量更新真实市场数据
+  ├─ B-S_backtest.py          ← 仅更新截止日后的 BS 周度定价
+  ├─ Z-L_backtest_GPU_prod.py ← CUDA 仅更新截止日后的 ZL 周度定价
   │
   ├─ update_benchmark.py      ← 更新 000832.CSI 基准
   │
@@ -238,8 +247,9 @@ automatically. No special holiday handling needed.
 ## Common Pitfalls
 
 1. **Relative path bug**: Using `"filename.csv"` instead of `os.path.join(PIPELINE_DIR, "filename.csv")` causes cache misses when scripts are run from the project root.
-2. **ZL reindex bug**: `.reindex(df_price.index)` only reindexes rows; new bond columns become NaN only after adding `columns=df_price.columns`.
+2. **ZL history-repricing bug**: historical NaNs are not missing work. Weekly eligibility must use dates strictly later than the manifest cutoff before constructing the pending-cell mask.
 3. **rf_yield tenor mismatch**: If you ever `reindex(columns=df_price.columns)` on the yield cache, all values become NaN and fallback `fillna(0.02)` kicks in silently.
 4. **GBK encoding crash**: Chinese characters or emoji in `print()` crash on Windows GBK console; use the `io.TextIOWrapper` header or ASCII-only strings.
 5. **Tushare rate limits**: Bulk historical fetches hit per-minute limits; always batch by year and add `time.sleep(0.5)` between calls.
 6. **Git push authentication**: Scheduled tasks run in background; configure git credential store (`git config --global credential.helper manager`) or SSH key before registering the task, otherwise `git push` silently fails.
+7. **Incremental cache truncation**: never write an incremental volatility/data slice directly over a full cache; merge with existing history first.

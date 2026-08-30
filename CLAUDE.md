@@ -1,243 +1,32 @@
-# CLAUDE.md — Agent Instructions for Convertible Bond Pricing Research
+# CLAUDE.md — Convertible Bond Pricing Research
 
-This file tells Claude Code how to navigate and work with this codebase.
+Follow [`AGENTS.md`](AGENTS.md) as the single source of truth for repository
+layout, data contracts, commands, and operational safeguards.
 
----
+## Current published state
 
-## Project Purpose
+- Data and BS/ZL model outputs are updated through **2026-08-28**.
+- The production ZL increment was run with CUDA; the supported local environment
+  uses `numba==0.62.1` and `numba-cuda`.
+- Routine weekly execution is **incremental only**. `backtest/weekly_update.bat`
+  reads `backtest/ZL_Model_Manifest.json`, starts data ingestion on the following
+  day, and prices only dates strictly after the verified cutoff.
+- Historical NaNs are valid skipped cells, not permission to reprice history.
+- `cb_price_chg` may be calculated from adjacent closes when the paid/source field
+  is unavailable, with optional correction from a free quote source.
+- Load the Tushare token from `TUSHARE_TOKEN` or the ignored
+  `backtest/tushare_token.txt`; never hard-code or commit credentials.
 
-Absolute pricing research for Chinese A-share convertible bonds using two models:
-- **Black-Scholes (BS)**: closed-form, offensive anchor (equity/vol driven)
-- **Zheng-Lin (ZL)**: Monte Carlo optimal stopping, defensive anchor (clause-aware)
+## Routine commands
 
-The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
+```powershell
+# Local weekly CUDA update: data -> BS -> ZL -> benchmark -> factors -> plots -> publish
+cd backtest
+.\weekly_update.bat
 
----
-
-## Repository Layout
-
-```
-Convertible-Bond-Pricing-Research/
-├── CLAUDE.md                          ← you are here
-├── README.md                          ← bilingual overview
-├── backtest/                          ← PRIMARY working directory
-│   ├── data_pipeline.py               ← Tushare data ingestion (run first)
-│   ├── B-S_backtest.py                ← BS model pricing + output
-│   ├── Z-L_backtest_GPU_prod.py       ← ZL model (CUDA, production)
-│   ├── Z-L_backtest_GPU.py            ← disabled legacy entrypoint
-│   ├── regenerate_plots.py            ← 一键重生成 README 全部图表（无需重跑模型）
-│   ├── weekly_update.bat              ← 周更新主入口（数据→模型→图表→Git推送）
-│   ├── setup_weekly_task.ps1          ← 一次性注册 Windows 任务计划程序
-│   ├── logs/                          ← weekly_update.bat 日志
-│   ├── cb_*.csv                       ← wide-format data caches (rows=date, cols=bond)
-│   ├── rf_yield_cache.csv             ← risk-free yield curve (tenor format, not wide)
-│   ├── bs_volatility_cache.csv        ← 250-day rolling vol for BS
-│   ├── BS_Model_*.csv / .xlsx         ← BS model outputs
-│   └── ZL_Model_*.csv / .xlsx         ← ZL model outputs
-├── long-short strategy/
-│   ├── B-S_Z-L_strategy.py            ← monthly rebalancing backtest
-│   ├── update_benchmark.py            ← 增量更新 000832.CSI 基准 xlsx（Tushare，幂等）
-│   └── 000832_CSI_close_price.xlsx    ← 中证转债指数基准收盘价（Wind 格式，skiprows=5 读取）
-├── mispricing factor/
-│   ├── B-S_mispricing_factor.py       ← 6-factor BS composite
-│   └── Z-L_mispricing_factor.py       ← 6-factor ZL composite
-├── summary/
-│   └── key_findings.md                ← executive summary
-└── report/                            ← full research PDF
-```
-
----
-
-## How to Run
-
-### Full pipeline (from scratch)
-
-```bash
-# 1. Pull data for a date range
-python backtest/data_pipeline.py --start 20190101 --end 20260515
-
-# 2. Run BS model
-python backtest/B-S_backtest.py
-
-# 3. Run production ZL model (CUDA)
-python backtest/Z-L_backtest_GPU_prod.py
-```
-
-### Regenerate README plots only (no model recomputation)
-
-```bash
-# Reads existing XLSX outputs, regenerates all 6 README images in seconds
+# Rebuild figures from existing verified outputs without repricing
 python backtest/regenerate_plots.py
 ```
 
-### Weekly automation (scheduled, with GitHub push)
-
-```powershell
-# 1. One-time setup: register Windows Task Scheduler task (run as Administrator)
-#    Task fires every Friday at 18:00
-cd backtest
-.\setup_weekly_task.ps1
-
-# 2. Manual test run (without waiting for Friday)
-Start-ScheduledTask -TaskName "ConvertibleBond_WeeklyUpdate"
-
-# 3. Check logs
-Get-Content backtest\logs\weekly_update_*.log -Tail 30
-```
-
-The `weekly_update.bat` pipeline:
-1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_GPU_prod.py` — update weekly observed inputs and prices
-2. `long-short strategy/update_benchmark.py` — appends new 000832.CSI (中证转债指数) closes to the benchmark XLSX (idempotent, Tushare `index_daily`)
-3. `rebuild_research_outputs.py` — regenerates factors, strategies, and README plots
-4. `git add -u && git commit && git push origin main` — commits only if changes exist
-
-### Incremental update (most common)
-
-Both backtest scripts detect existing cache and only compute missing dates.
-`data_pipeline.py` accepts `--start` / `--end` date arguments for range control.
-
----
-
-## Key Architecture Patterns
-
-### Path convention
-
-All scripts use `PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))` to
-resolve paths. **Never use bare relative paths** like `"bs_volatility_cache.csv"` —
-always `os.path.join(PIPELINE_DIR, "bs_volatility_cache.csv")`. This was a
-previously fixed bug; do not regress it.
-
-### Cache file formats
-
-| File | Shape | Notes |
-|------|-------|-------|
-| `cb_price_cache.csv` | rows=trade_date, cols=ts_code | wide format |
-| `cb_convert_val_cache.csv` | rows=trade_date, cols=ts_code | wide format |
-| `cb_maturity_cache.csv` | rows=trade_date, cols=ts_code | years remaining |
-| `cb_stock_mv_cache.csv` | rows=trade_date, cols=ts_code | 万元 |
-| `cb_rating_cache.csv` | rows=trade_date, cols=ts_code | forward-filled |
-| `rf_yield_cache.csv` | rows=trade_date, cols=tenor (1,3,5,7,10) | **NOT wide bond format** |
-| `bs_volatility_cache.csv` | rows=ts_code, cols=trade_date or vice versa | 250-day rolling vol |
-
-`rf_yield_cache.csv` is in tenor format (5 columns). Do **not** reindex it to
-bond-column shape; instead interpolate by tenor at call time.
-
-### ZL incremental logic
-
-`Z-L_backtest_GPU_prod.py` loads `ZL_Model_Summary.xlsx` and computes a `pending_mask`
-(date × bond pairs where price is non-NaN but ZL model price is NaN). Monte Carlo
-runs only for pending cells. When reindexing old cache DataFrames to match the
-current `df_price` shape, always use:
-```python
-df.reindex(index=df_price.index, columns=df_price.columns)
-```
-Never `.reindex(df_price.index)` alone — that only reindexes rows and leaves old
-bond columns intact, causing KeyError for new bonds.
-
-### BS volatility cache
-
-`B-S_backtest.py` loads `bs_volatility_cache.csv` on startup. If the file exists,
-it skips Tushare re-fetching. Missing entries are filled with `0.40` (40% default).
-
-### Windows console encoding
-
-All scripts that `print()` Chinese or emoji must include this header:
-```python
-if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-```
-
----
-
-## Environment Requirements
-
-- Python 3.9+
-- Key packages: `tushare`, `akshare`, `pandas`, `numpy`, `scipy`, `numba` (GPU only), `openpyxl`, `matplotlib`
-- Tushare Pro token: set in `data_pipeline.py` at line `ts.set_token(...)`
-- No extra packages needed for email (uses stdlib `smtplib`)
-
----
-
-## Data Source
-
-All market data is fetched via **Tushare Pro API**:
-- `pro.cb_daily()` — bond prices, conversion values, balance, volume
-- `pro.cb_basic()` — static info (coupon rate, maturity date, stock mapping)
-- `pro.daily_basic()` — stock market cap
-- `pro.rating()` — credit ratings
-- `pro.fina_indicator()` — BPS (quarterly, forward-filled to daily)
-- `akshare.bond_zh_us_rate()` — risk-free yield curve
-
-Tushare has per-minute rate limits. `data_pipeline.py` uses `time.sleep()` between
-batch calls. Do not remove these sleeps.
-
----
-
-## Files NOT to Modify Without Care
-
-- `backtest/Z-L_backtest_GPU.py` — disabled legacy entrypoint; do not use for research output
-- `【浙商固收】转债资产端特征数据库【周更新外发】.xlsx` — legacy Excel source, kept for historical comparison
-- `backtest/rf_yield_cache.csv` — tenor-format yield curve cache; format differs from other caches
-
----
-
-## Weekly Automation Architecture
-
-### Pipeline order in `weekly_update.bat`
-
-```
-18:00 Friday
-  │
-  ├─ data_pipeline.py         ← 更新周度真实市场数据
-  ├─ B-S_backtest.py          ← 更新 BS 周度定价
-  ├─ Z-L_backtest_GPU_prod.py ← 更新 ZL 周度定价
-  │
-  ├─ update_benchmark.py      ← 增量补 000832.CSI（中证转债指数）收盘价到基准 xlsx
-  │     (Tushare index_daily; 幂等只追加; 保留 Wind 格式供 skiprows=5 读取)
-  │
-  ├─ regenerate_plots.py      ← 从 XLSX 快速重生成 README 全部 6 张图
-  │     (reads 理论价格/市场价格/相对偏差 sheets; no model recomputation)
-  │
-  └─ git add -u               ← 暂存所有已追踪的变更文件
-       git commit              ← 仅在有实际变更时提交（跳过空提交）
-       git push origin main    ← 推送到 GitHub
-```
-
-### `regenerate_plots.py` data sources
-
-| 图表 | 数据来源 | Sheet/列 |
-|------|---------|---------|
-| Fig1_BS_Price_Time_Series.png | BS_Model_Summary.xlsx | 理论价格, 市场价格, 相对偏差 |
-| Fig1_ZL_Price_Time_Series.png | ZL_Model_Summary.xlsx | 理论价格, 市场价格, 相对偏差 |
-| BS_model_performance.png | mispricing factor/B-S_alpha_strategy_results.csv | benchmark_nav, long_nav, bs_deviation_nav |
-| ZL_model_performance.png | mispricing factor/Z-L_alpha_strategy_results.csv | benchmark_nav, long_nav, zl_deviation_nav |
-| BS_factor_correlation.png | BS_Model_Summary.xlsx + mispricing factor/*.csv | 相对偏差 + 5 因子等权和 |
-| ZL_factor_correlation.png | ZL_Model_Summary.xlsx + mispricing factor/*.csv | 相对偏差 + 5 因子等权和 |
-
-Factor CSV bond code format: `sh110030` → normalized to `110030.SH` by `_standardize_code()`.
-
-### Windows Task Scheduler task details
-
-| 属性 | 值 |
-|------|-----|
-| 任务名 | ConvertibleBond_WeeklyUpdate |
-| 触发 | 每周五 18:00 |
-| 执行 | `cmd.exe /c weekly_update.bat` |
-| 登录类型 | Interactive（当前用户，需已登录） |
-| 网络要求 | 仅在网络可用时运行 |
-| 超时 | 4 小时 |
-
-If Friday is a public holiday, `data_pipeline.py` fetches no new data, models find
-no pending cells, and `git diff --cached --quiet` returns 0 — the commit is skipped
-automatically. No special holiday handling needed.
-
----
-
-## Common Pitfalls
-
-1. **Relative path bug**: Using `"filename.csv"` instead of `os.path.join(PIPELINE_DIR, "filename.csv")` causes cache misses when scripts are run from the project root.
-2. **ZL reindex bug**: `.reindex(df_price.index)` only reindexes rows; new bond columns become NaN only after adding `columns=df_price.columns`.
-3. **rf_yield tenor mismatch**: If you ever `reindex(columns=df_price.columns)` on the yield cache, all values become NaN and fallback `fillna(0.02)` kicks in silently.
-4. **GBK encoding crash**: Chinese characters or emoji in `print()` crash on Windows GBK console; use the `io.TextIOWrapper` header or ASCII-only strings.
-5. **Tushare rate limits**: Bulk historical fetches hit per-minute limits; always batch by year and add `time.sleep(0.5)` between calls.
-6. **Git push authentication**: Scheduled tasks run in background; configure git credential store (`git config --global credential.helper manager`) or SSH key before registering the task, otherwise `git push` silently fails.
+`backtest/full_history_rebuild.py` is an explicit maintenance path. Do not run it
+for ordinary weekly updates or merely to fill historical NaNs.

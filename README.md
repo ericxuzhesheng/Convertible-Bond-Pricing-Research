@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/定价模型-BS · ZL 双锚-F2C94C?style=for-the-badge" alt="BS + ZL">
-  <img src="https://img.shields.io/badge/数据区间-2017--2026 · 更新至 2026--07--24-4CAF50?style=for-the-badge" alt="Data through 2026-07-24">
+  <img src="https://img.shields.io/badge/数据区间-2017--2026 · 更新至 2026--08--28-4CAF50?style=for-the-badge" alt="Data through 2026-08-28">
   <img src="https://img.shields.io/badge/研究频率-周度定价 · 月度调仓-9B51E0?style=for-the-badge" alt="Weekly pricing and monthly rebalance">
 </p>
 
@@ -159,15 +159,15 @@ $$
 
 | Error Metric           | BS     | ZL     |
 | ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 2.69   | -12.63 |
-| MAE (CNY)              | 14.04  | 14.27  |
-| RMSE (CNY)             | 31.09  | 33.50  |
-| MAPE                   | 9.77%  | 9.39%  |
-| SMAPE                  | 9.69%  | 10.27% |
+| Mean Error (Bias, CNY) | 2.50   | -12.85 |
+| MAE (CNY)              | 14.09  | 14.48  |
+| RMSE (CNY)             | 31.14  | 33.70  |
+| MAPE                   | 9.76%  | 9.49%  |
+| SMAPE                  | 9.69%  | 10.39% |
 
 MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 
-> **口径与时点**：理论价与市场价按相同「交易日 × 转债」单元严格对齐（BS n=148,170；ZL n=137,356），MAPE 排除市场价为零的单元。周度样本更新至 **2026-07-24**。ZL 由 CUDA 生产入口计算；`python backtest/full_history_rebuild.py` 在 GPU 或真实时点数据缺失时会失败关闭，不覆盖已发布结果。
+> **口径与时点**：理论价与市场价按相同「交易日 × 转债」单元严格对齐（BS n=149,694；ZL n=138,820），MAPE 排除市场价为零的单元。周度样本更新至 **2026-08-28**。ZL 最新增量由 CUDA 生产入口计算；常规更新只处理 Manifest 截止日之后的新交易周，不回算已验证历史。
 
 ---
 
@@ -181,6 +181,7 @@ MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 |----------|-------------|
 | 可转债收盘价 | `pro.cb_daily(fields='close')` |
 | 转换价值 | `pro.cb_daily(fields='convert_val')` |
+| 可转债涨跌幅 | 优先使用源字段；缺失时按相邻收盘价手动计算，并以免费行情源校正 |
 | 剩余期限 | `pro.cb_basic()` 到期日推算 |
 | 正股总市值 | `pro.daily_basic(fields='total_mv')` |
 | 信用评级 | `pro.rating(bond_type='CB')` |
@@ -188,7 +189,7 @@ MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 | 无风险利率 | Akshare 国债收益率曲线 |
 | 纯债价值 | DCF 现金流折现（内置计算） |
 
-所有输出以宽表 CSV 缓存（行=日期，列=转债代码），增量更新时只补充缺失日期。
+所有输出以宽表 CSV 缓存（行=日期，列=转债代码）。常规周更新从 `ZL_Model_Manifest.json` 读取已验证截止日，只拉取、定价并发布其后的新增交易周；全历史重建仅用于显式维护，不属于日常更新路径。
 
 远端周度更新计划：
 
@@ -238,10 +239,10 @@ $$
 
 | Strategy | Annual Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
-| BS Long  | 19.41%        | 0.91   | -28.96%      |
-| ZL Long  | 20.79%        | 0.95   | -29.75%      |
+| BS Long  | 19.33%        | 0.91   | -28.96%      |
+| ZL Long  | 20.48%        | 0.94   | -29.75%      |
 
-> **回测口径**：2019-01-25 至 2026-07-24，月末调仓，展示扣除交易成本后的多因子等权多头组合；夏普比率使用同期观测的一年期国债收益率均值。
+> **回测口径**：2019-01-25 至 2026-08-28，共 91 个收益观察期，月末调仓，展示扣除交易成本后的多因子等权多头组合；夏普比率使用同期观测的一年期国债收益率均值。同期中证转债基准年化收益为 7.08%。
 
 结论摘要：BS 与 ZL 提供不同的估值视角；最新样本中 ZL 多头收益略高，但两者回撤均提示组合仍需风险预算与市场状态约束。
 
@@ -461,15 +462,15 @@ Key characteristics
 
 | Error Metric           | BS     | ZL     |
 | ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 2.69   | -12.63 |
-| MAE (CNY)              | 14.04  | 14.27  |
-| RMSE (CNY)             | 31.09  | 33.50  |
-| MAPE                   | 9.77%  | 9.39%  |
-| SMAPE                  | 9.69%  | 10.27% |
+| Mean Error (Bias, CNY) | 2.50   | -12.85 |
+| MAE (CNY)              | 14.09  | 14.48  |
+| RMSE (CNY)             | 31.14  | 33.70  |
+| MAPE                   | 9.76%  | 9.49%  |
+| SMAPE                  | 9.69%  | 10.39% |
 
 Lower MAE/MAPE/SMAPE indicates better pricing fit.
 
-> **Scope & vintage**: theoretical and market prices are strictly aligned on identical trading-day × bond cells (BS n=148,170; ZL n=137,356), with zero-market-price cells excluded from MAPE. Weekly observations run through **2026-07-24**. ZL uses the CUDA production entrypoint; `python backtest/full_history_rebuild.py` fails closed without the GPU or point-in-time source data and does not overwrite published results.
+> **Scope & vintage**: theoretical and market prices are strictly aligned on identical trading-day × bond cells (BS n=149,694; ZL n=138,820), with zero-market-price cells excluded from MAPE. Weekly observations run through **2026-08-28**. The latest ZL increment was priced through the CUDA production entrypoint; routine updates process only trading weeks after the verified manifest cutoff and do not reprice certified history.
 
 ---
 
@@ -483,6 +484,7 @@ Lower MAE/MAPE/SMAPE indicates better pricing fit.
 |------------|-------------|
 | CB closing price | `pro.cb_daily(fields='close')` |
 | Conversion value | `pro.cb_daily(fields='convert_val')` |
+| CB price change | Prefer the source field; otherwise calculate from adjacent closes and correct with a free quote source |
 | Remaining maturity | Derived from `pro.cb_basic()` maturity date |
 | Stock market cap | `pro.daily_basic(fields='total_mv')` |
 | Credit rating | `pro.rating(bond_type='CB')` |
@@ -490,7 +492,7 @@ Lower MAE/MAPE/SMAPE indicates better pricing fit.
 | Risk-free yield curve | Akshare treasury rate data |
 | Bond floor (DCF) | Computed internally from coupon + yield curve |
 
-All outputs are cached as wide-format CSVs (rows = trade date, columns = bond code). Incremental runs only fill missing dates.
+All outputs are cached as wide-format CSVs (rows = trade date, columns = bond code). Routine weekly runs read the verified cutoff from `ZL_Model_Manifest.json` and fetch, price, and publish only later trading weeks. Full-history rebuilds are explicit maintenance operations, not the normal update path.
 
 Remote weekly update plan:
 
@@ -540,10 +542,10 @@ The strategy is constructed based on **mispricing (RD)** defined above.
 
 | Strategy | Annual Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
-| BS Long  | 19.41%        | 0.91   | -28.96%      |
-| ZL Long  | 20.79%        | 0.95   | -29.75%      |
+| BS Long  | 19.33%        | 0.91   | -28.96%      |
+| ZL Long  | 20.48%        | 0.94   | -29.75%      |
 
-> **Backtest scope**: 2019-01-25 to 2026-07-24, month-end rebalancing, net-of-cost equal-weight multi-factor long portfolios. Sharpe ratios use the observed average one-year government-bond yield over the same window.
+> **Backtest scope**: 2019-01-25 to 2026-08-28, 91 return observations, month-end rebalancing, and net-of-cost equal-weight multi-factor long portfolios. Sharpe ratios use the observed average one-year government-bond yield over the same window. The CSI Convertible Bond Index annualized return is 7.08% over the same period.
 
 Summary: BS and ZL provide different valuation views. ZL delivers slightly higher long-only performance in the latest sample, while drawdowns in both portfolios show the need for explicit risk budgets and regime controls.
 

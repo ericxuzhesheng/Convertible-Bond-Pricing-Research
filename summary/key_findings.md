@@ -4,17 +4,24 @@
 - BS model acts as an offensive pricing anchor (captures equity beta and volatility).
 - ZL model acts as a defensive anchor (captures bond floor and clause constraints).
 - Mispricing factors are highly orthogonal to traditional factors (liquidity, momentum, etc.).
-- Backtest (2019–2026, data through 2026-06-05):
-  - BS long portfolio: ~15.3% annual return (Sharpe 1.06)
-  - ZL long portfolio: ~5.5% annual return with lower drawdown (Sharpe 0.55)
+- Backtest (2019-01-25 to 2026-08-28, 91 return observations):
+  - BS equal-weight six-factor long portfolio: 19.33% annual return (Sharpe 0.91; max drawdown -28.96%)
+  - ZL equal-weight six-factor long portfolio: 20.48% annual return (Sharpe 0.94; max drawdown -29.75%)
+  - CSI Convertible Bond Index benchmark: 7.08% annual return
 
 - 在高估值与拥挤交易并存的市场环境下，传统相对估值体系明显失效。
 - BS 模型可作为进攻型定价锚（捕捉正股 beta 与波动率）。
 - ZL 模型可作为防守型定价锚（刻画债底与条款约束）。
 - 错误定价因子与传统因子（流动性、动量等）呈显著正交。
-- 回测结果（2019–2026，数据截至 2026-06-05）：
-  - BS 多头组合：年化收益约 15.3%（夏普 1.06）
-  - ZL 多头组合：年化收益约 5.5%，且回撤更低（夏普 0.55）
+- 回测结果（2019-01-25 至 2026-08-28，共 91 个收益观察期）：
+  - BS 六因子等权多头组合：年化收益 19.33%（夏普 0.91；最大回撤 -28.96%）
+  - ZL 六因子等权多头组合：年化收益 20.48%（夏普 0.94；最大回撤 -29.75%）
+  - 同期中证转债指数基准：年化收益 7.08%
+
+## Update Contract | 更新约束
+
+- Routine weekly runs are incremental only: the verified cutoff comes from `backtest/ZL_Model_Manifest.json`, and BS/ZL price only later trading weeks.
+- 日常周更新只跑增量：以 `backtest/ZL_Model_Manifest.json` 的已验证截止日为边界，BS/ZL 仅计算后续新增交易周，不回算历史。
 
 ## Methodology | 方法框架
 
