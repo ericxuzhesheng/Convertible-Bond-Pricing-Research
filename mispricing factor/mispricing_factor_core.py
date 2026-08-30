@@ -1,11 +1,11 @@
 """
-mispricing_factor_core.py — 6因子复合策略回测（共享核心，BS/ZL 通过 model 参数选择）
+mispricing_factor_core.py — 6因子复合策略回测（共享核心，BS/ZL/LSM 通过 model 参数选择）
 
 入口包装: B-S_mispricing_factor.py / Z-L_mispricing_factor.py
 计算相对于中证转债指数（市场等权）的超额收益
 
 因子包括：
-1. 定价偏差（BS/ZL 模型相对偏差）- 取Max（做多模型高估）
+1. 定价偏差（BS/ZL/LSM 模型相对偏差）- 取Max（做多模型高估）
 2. 估值因子 - 取Min（做空高估值）
 3. 流动性因子 - 取Max（做多高流动性）
 4. 波动率因子 - 取Max（做多高波动）
@@ -49,13 +49,19 @@ class MultiFactorBacktest:
     def __init__(self, data_dir=None, model="BS"):
         """初始化回测系统
 
-        model: "BS" 或 "ZL"，决定读取哪个模型的相对偏差与输出文件名。
+        model: "BS"、"ZL" 或 "LSM"，决定读取哪个模型的相对偏差与输出文件名。
         data_dir: 输出目录，默认本脚本所在目录（mispricing factor/）。
         """
-        if model not in ("BS", "ZL"):
-            raise ValueError(f"model 必须是 'BS' 或 'ZL'，收到: {model}")
+        if model not in ("BS", "ZL", "LSM"):
+            raise ValueError(
+                f"model 必须是 'BS'、'ZL' 或 'LSM'，收到: {model}"
+            )
         self.model = model
-        self.model_dash = "B-S" if model == "BS" else "Z-L"
+        self.model_dash = {
+            "BS": "B-S",
+            "ZL": "Z-L",
+            "LSM": "LSM",
+        }[model]
         self.dev_key = f"{model.lower()}_deviation"
         self.data_dir = Path(data_dir) if data_dir else SCRIPT_DIR
         # 输入文件候选目录: 本目录 → backtest/ → long-short strategy/ → 旧外部目录

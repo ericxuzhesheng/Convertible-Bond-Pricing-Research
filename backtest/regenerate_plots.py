@@ -2,13 +2,16 @@
 regenerate_plots.py — 一键重生成 README 全部图表
 
 从现有模型输出 XLSX / CSV 读取数据，不重跑模型计算。
-生成 6 张 README 引用图片：
+生成 9 张 README 引用图片：
   backtest/Fig1_BS_Price_Time_Series.png
   backtest/Fig1_ZL_Price_Time_Series.png
+  backtest/Fig1_LSM_Price_Time_Series.png
   long-short strategy/BS_model_performance.png
   long-short strategy/ZL_model_performance.png
+  long-short strategy/LSM_model_performance.png
   mispricing factor/BS_factor_correlation.png
   mispricing factor/ZL_factor_correlation.png
+  mispricing factor/LSM_factor_correlation.png
 """
 
 from __future__ import annotations  # Python 3.9 compatible union types
@@ -39,6 +42,7 @@ REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 
 BS_XLSX = os.path.join(SCRIPT_DIR, "BS_Model_Summary.xlsx")
 ZL_XLSX = os.path.join(SCRIPT_DIR, "ZL_Model_Summary.xlsx")
+LSM_XLSX = os.path.join(SCRIPT_DIR, "LSM_Model_Summary.xlsx")
 LS_DIR = os.path.join(REPO_ROOT, "long-short strategy")
 MF_DIR = os.path.join(REPO_ROOT, "mispricing factor")
 
@@ -279,6 +283,40 @@ def plot_zl_timeseries() -> None:
     _save(os.path.join(SCRIPT_DIR, "Fig1_ZL_Price_Time_Series.png"))
 
 
+def plot_lsm_timeseries() -> None:
+    print("[LSM] 加载 LSM_Model_Summary.xlsx ...")
+    df_model = _load_xlsx_wide(LSM_XLSX, SHEET_MODEL)
+    df_market = _load_xlsx_wide(LSM_XLSX, SHEET_MARKET)
+    df_reldev = _load_xlsx_wide(LSM_XLSX, SHEET_RELDEV)
+    if df_model is None or df_market is None or df_reldev is None:
+        print("  [跳过] LSM 时序图缺少必要 sheet")
+        return
+    daily = build_matched_plot_series(
+        model=df_model,
+        market=df_market,
+        relative_deviation=df_reldev,
+    )
+    weekly = build_reliable_weekly_plot_series(daily, min_sample_count=20)
+    fig, ax1 = plt.subplots(figsize=(12, 6))
+    l1, = ax1.plot(weekly.index, weekly["model"], "k-", label="LSM模型", linewidth=1.5)
+    l2, = ax1.plot(weekly.index, weekly["market"], "k--", label="市场价格", linewidth=1.5)
+    ax1.set_ylabel("转债平均价格 (元)")
+    ax1.set_xlabel("年份")
+    ax2 = ax1.twinx()
+    ax2.fill_between(
+        weekly.index,
+        weekly["relative_deviation_pct"],
+        0,
+        color="gray",
+        alpha=0.5,
+    )
+    ax2.set_ylabel("平均定价错误 (%)")
+    patch = mpatches.Patch(color="gray", alpha=0.5, label="定价错误")
+    ax1.legend([l1, l2, patch], ["LSM模型", "市场价格", "定价错误"], loc="upper center")
+    plt.title("LSM模型定价结果与市场价格对比")
+    _save(os.path.join(SCRIPT_DIR, "Fig1_LSM_Price_Time_Series.png"))
+
+
 # ── 策略绩效图 ────────────────────────────────────────────────────────────────
 
 def _plot_one_strategy(csv_path: str, label_prefix: str, dev_col: str, out_path: str) -> None:
@@ -351,6 +389,12 @@ def plot_strategy_performance() -> None:
         label_prefix="ZL",
         dev_col="zl_deviation_nav",
         out_path=os.path.join(LS_DIR, "ZL_model_performance.png"),
+    )
+    _plot_one_strategy(
+        csv_path=os.path.join(MF_DIR, "LSM_alpha_strategy_results.csv"),
+        label_prefix="LSM",
+        dev_col="lsm_deviation_nav",
+        out_path=os.path.join(LS_DIR, "LSM_model_performance.png"),
     )
 
 
@@ -441,6 +485,16 @@ def plot_factor_correlation() -> None:
                 out_path=os.path.join(MF_DIR, "ZL_factor_correlation.png"),
             )
 
+    df_lsm_reldev = _load_xlsx_wide(LSM_XLSX, SHEET_RELDEV)
+    if df_lsm_reldev is not None:
+        merged_lsm = _load_factor_csvs(MF_DIR, df_lsm_reldev, "LSM")
+        if merged_lsm is not None:
+            _plot_factor_corr(
+                merged_lsm,
+                title="LSM 因子相关性热力图",
+                out_path=os.path.join(MF_DIR, "LSM_factor_correlation.png"),
+            )
+
 
 # ── 入口 ──────────────────────────────────────────────────────────────────────
 
@@ -451,6 +505,7 @@ def main() -> None:
 
     plot_bs_timeseries()
     plot_zl_timeseries()
+    plot_lsm_timeseries()
     plot_strategy_performance()
     plot_factor_correlation()
 

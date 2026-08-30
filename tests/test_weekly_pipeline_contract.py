@@ -37,7 +37,8 @@ def test_research_output_rebuild_runs_all_downstream_stages(
         "build_observed_factors.py",
         "B-S_mispricing_factor.py",
         "Z-L_mispricing_factor.py",
-        "B-S_Z-L_strategy.py",
+        "LSM_mispricing_factor.py",
+        "BS_ZL_LSM_strategy.py",
         "regenerate_plots.py",
     ]
 
@@ -107,6 +108,16 @@ def test_zl_weekly_history_read_failure_is_fail_closed() -> None:
     assert "refusing to continue or overwrite published results" in source
 
 
+def test_lsm_weekly_increment_never_reprices_verified_dates() -> None:
+    source = (BACKTEST_DIR / "LSM_backtest.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "calculation_dates > verified_dates.max()" in source
+    assert "LSM weekly history verification failed" in source
+    assert "--initialize-history" in source
+
+
 def test_full_history_rebuild_checks_gpu_before_any_mutation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -140,6 +151,7 @@ def test_full_history_rebuild_uses_real_data_rebuild_flags(
         "data_pipeline.py",
         "B-S_backtest.py",
         "Z-L_backtest_GPU_prod.py",
+        "LSM_backtest.py",
         "update_benchmark.py",
         "rebuild_research_outputs.py",
     ]
@@ -148,6 +160,8 @@ def test_full_history_rebuild_uses_real_data_rebuild_flags(
     assert "--rebuild-all" in calls[2]
     assert "--weekly" in calls[1]
     assert "--weekly" in calls[2]
+    assert "--weekly" in calls[3]
+    assert "--initialize-history" in calls[3]
     assert "--refresh-input-cache" in calls[1]
     assert "--refresh-input-cache" in calls[2]
     assert "--weekly" in calls[0]

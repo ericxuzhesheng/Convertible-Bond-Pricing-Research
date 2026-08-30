@@ -4,7 +4,7 @@
 数据源：Tushare Pro `index_daily(ts_code='000832.CSI')`。
 幂等：仅追加比文件内现有最大日期更新的交易日，保留原 Wind 导出格式
 （前 5 行元数据 + 第 6 行 ['Date','close'] 表头 + 时序），使
-B-S_Z-L_strategy.py 的 `skiprows=5` 读取方式继续有效。
+BS_ZL_LSM_strategy.py 的基准读取方式继续有效。
 
 用法：
     python "long-short strategy/update_benchmark.py" [--end YYYYMMDD]

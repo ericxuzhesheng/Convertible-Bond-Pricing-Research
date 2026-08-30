@@ -53,6 +53,12 @@ def run_full_rebuild(
         ],
         [
             python_executable,
+            str(BACKTEST_DIR / "LSM_backtest.py"),
+            "--weekly",
+            "--initialize-history",
+        ],
+        [
+            python_executable,
             str(
                 REPO_ROOT
                 / "long-short strategy"

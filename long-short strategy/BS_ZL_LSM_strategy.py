@@ -584,7 +584,11 @@ class CBStrategy:
         }
 
 if __name__ == "__main__":
-    models = ["BS_Model_Summary.xlsx", "ZL_Model_Summary.xlsx"]
+    models = [
+        "BS_Model_Summary.xlsx",
+        "ZL_Model_Summary.xlsx",
+        "LSM_Model_Summary.xlsx",
+    ]
     all_metrics = {}
     all_data = {}
 
@@ -600,11 +604,11 @@ if __name__ == "__main__":
         all_data[model] = results['data']
     
     # 打印最终对比表
-    print("\n\n" + "="*90)
-    print(f"{'模型对比汇总':^90}")
-    print("="*90)
-    print(f"{'指标':<8} | {'BS多空':<8} | {'BS多头':<8} | {'BS空头':<8} | {'ZL多空':<8} | {'ZL多头':<8} | {'ZL空头':<8} | {'基准':<8}")
-    print("-" * 90)
+    print("\n\n" + "="*128)
+    print(f"{'模型对比汇总':^128}")
+    print("="*128)
+    print(f"{'指标':<8} | {'BS多空':<8} | {'BS多头':<8} | {'BS空头':<8} | {'ZL多空':<8} | {'ZL多头':<8} | {'ZL空头':<8} | {'LSM多空':<8} | {'LSM多头':<8} | {'LSM空头':<8} | {'基准':<8}")
+    print("-" * 128)
     
     m_names = ['年化收益', '年化波动', '夏普比率', '最大回撤']
     for i, name in enumerate(m_names):
@@ -614,13 +618,16 @@ if __name__ == "__main__":
         zl_s = all_metrics["ZL_Model_Summary.xlsx"]['strategy'][i]
         zl_l = all_metrics["ZL_Model_Summary.xlsx"]['long'][i]
         zl_sh = all_metrics["ZL_Model_Summary.xlsx"]['short'][i]
+        lsm_s = all_metrics["LSM_Model_Summary.xlsx"]['strategy'][i]
+        lsm_l = all_metrics["LSM_Model_Summary.xlsx"]['long'][i]
+        lsm_sh = all_metrics["LSM_Model_Summary.xlsx"]['short'][i]
         bm_val = benchmark_metrics[i]
         
         if name in ['年化收益', '年化波动', '最大回撤']:
-            print(f"{name:<8} | {bs_s:>8.2%} | {bs_l:>8.2%} | {bs_sh:>8.2%} | {zl_s:>8.2%} | {zl_l:>8.2%} | {zl_sh:>8.2%} | {bm_val:>8.2%}")
+            print(f"{name:<8} | {bs_s:>8.2%} | {bs_l:>8.2%} | {bs_sh:>8.2%} | {zl_s:>8.2%} | {zl_l:>8.2%} | {zl_sh:>8.2%} | {lsm_s:>8.2%} | {lsm_l:>8.2%} | {lsm_sh:>8.2%} | {bm_val:>8.2%}")
         else:
-            print(f"{name:<8} | {bs_s:>8.2f} | {bs_l:>8.2f} | {bs_sh:>8.2f} | {zl_s:>8.2f} | {zl_l:>8.2f} | {zl_sh:>8.2f} | {bm_val:>8.2f}")
-    print("="*90)
+            print(f"{name:<8} | {bs_s:>8.2f} | {bs_l:>8.2f} | {bs_sh:>8.2f} | {zl_s:>8.2f} | {zl_l:>8.2f} | {zl_sh:>8.2f} | {lsm_s:>8.2f} | {lsm_l:>8.2f} | {lsm_sh:>8.2f} | {bm_val:>8.2f}")
+    print("="*128)
 
     # === 分别绘制每个模型的明细图（总、多头、空头、基准） ===
     print("\n开始绘制各模型明细对比图...")
@@ -638,7 +645,11 @@ if __name__ == "__main__":
     first_model = models[0]
     b_cum = all_data[first_model]['benchmark_cum']
     
-    model_labels = {'BS_Model_Summary.xlsx': 'BS', 'ZL_Model_Summary.xlsx': 'ZL'}
+    model_labels = {
+        'BS_Model_Summary.xlsx': 'BS',
+        'ZL_Model_Summary.xlsx': 'ZL',
+        'LSM_Model_Summary.xlsx': 'LSM',
+    }
 
     for model in models:
         fig, ax = plt.subplots(figsize=(14, 8))

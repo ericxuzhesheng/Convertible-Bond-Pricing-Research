@@ -100,6 +100,9 @@ jobs:
       - name: Update ZL weekly results on CPU
         run: python -u backtest/Z-L_backtest_CPU_prod.py --weekly --offline-inputs
 
+      - name: Update LSM weekly results incrementally
+        run: python -u backtest/LSM_backtest.py --weekly
+
       - name: Resolve the latest completed weekly market date
         shell: bash
         run: |
@@ -152,6 +155,16 @@ jobs:
           if model.index.max().date().isoformat() != manifest["input_cutoff"]:
               raise SystemExit("ZL manifest cutoff is not the latest model date")
 
+          lsm_manifest = json.loads(
+              (root / "LSM_Model_Manifest.json").read_text(encoding="utf-8")
+          )
+          lsm_summary = root / "LSM_Model_Summary.xlsx"
+          lsm_hash = hashlib.sha256(lsm_summary.read_bytes()).hexdigest()
+          if lsm_manifest.get("output_sha256") != lsm_hash:
+              raise SystemExit("LSM summary hash does not match its manifest")
+          if lsm_manifest.get("input_cutoff") != manifest["input_cutoff"]:
+              raise SystemExit("LSM and ZL incremental cutoffs do not align")
+
       - name: Upload weekly outputs for recovery
         uses: actions/upload-artifact@v4
         with:
@@ -173,6 +186,9 @@ jobs:
             backtest/ZL_Model_*.csv
             backtest/ZL_Model_Summary.xlsx
             backtest/ZL_Model_Manifest.json
+            backtest/LSM_Model_*.csv
+            backtest/LSM_Model_Summary.xlsx
+            backtest/LSM_Model_Manifest.json
             backtest/Market_Prices.csv
             backtest/Fig*.png
             long-short strategy/000832_CSI_close_price.csv

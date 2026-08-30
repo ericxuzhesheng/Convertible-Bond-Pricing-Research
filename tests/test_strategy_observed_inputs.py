@@ -9,7 +9,7 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 STRATEGY_PATH = (
-    REPO_ROOT / "long-short strategy" / "B-S_Z-L_strategy.py"
+    REPO_ROOT / "long-short strategy" / "BS_ZL_LSM_strategy.py"
 )
 SPEC = importlib.util.spec_from_file_location("cb_strategy", STRATEGY_PATH)
 assert SPEC is not None and SPEC.loader is not None

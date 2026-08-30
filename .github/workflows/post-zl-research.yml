@@ -68,7 +68,12 @@ jobs:
           import pandas as pd
 
           sys.path.insert(0, "backtest")
-          from market_data_contracts import validate_pricing_coverage
+          from market_data_contracts import (
+              ZL_HISTORICAL_MIN_COVERAGE,
+              ZL_MIN_COVERAGE_ENFORCED_FROM,
+              ZL_MIN_PRICING_COVERAGE,
+              validate_pricing_coverage,
+          )
 
           root = Path("backtest")
           manifest_path = root / "ZL_Model_Manifest.json"
@@ -132,10 +137,15 @@ jobs:
               market_price=market,
               model_price=model,
               dates=market.index,
-              min_coverage=0.98,
+              min_coverage=ZL_MIN_PRICING_COVERAGE,
               min_count=20,
               label="ZL weekly handoff",
+              historical_min_coverage=ZL_HISTORICAL_MIN_COVERAGE,
+              min_coverage_enforced_from=ZL_MIN_COVERAGE_ENFORCED_FROM,
           )
+
+      - name: Update LSM results from the verified ZL handoff
+        run: python -u backtest/LSM_backtest.py --weekly
 
       - name: Rebuild factors strategies and figures
         run: python -u backtest/rebuild_research_outputs.py

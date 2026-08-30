@@ -8,7 +8,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.9+">
-  <img src="https://img.shields.io/badge/定价模型-BS · ZL 双锚-F2C94C?style=for-the-badge" alt="BS + ZL">
+  <img src="https://img.shields.io/badge/定价模型-BS · ZL · LSM-F2C94C?style=for-the-badge" alt="BS + ZL + LSM">
   <img src="https://img.shields.io/badge/数据区间-2017--2026 · 更新至 2026--08--28-4CAF50?style=for-the-badge" alt="Data through 2026-08-28">
   <img src="https://img.shields.io/badge/研究频率-周度定价 · 月度调仓-9B51E0?style=for-the-badge" alt="Weekly pricing and monthly rebalance">
 </p>
@@ -27,7 +27,7 @@
 
 ## 项目概述
 
-- 本项目以 **Black-Scholes（BS）** 与 **郑-林（ZL）** 为双重绝对定价锚，研究中国 A 股可转债。
+- 本项目以 **Black-Scholes（BS）**、**郑-林（ZL）** 与 **最小二乘蒙特卡罗（LSM）** 构建三模型绝对定价框架，研究中国 A 股可转债。
 - 研究链路覆盖真实市场数据、理论定价、错误定价因子、横截面组合与自动化发布。
 - 核心目标是识别市场价格相对理论价值的偏离，并检验其能否形成可解释、可交易的 Alpha。
 
@@ -36,6 +36,7 @@
 ## 论文来源
 
 - 主要参考论文：《中国可转债定价模型比较研究》（郑振龙、兰添晟、陈蓉）。
+- LSM 方法参考：[东北证券《可转债研究框架：从理论概念到实战策略》](report/Northeast_Securities_Convertible_Bond_Research_Framework_Theory_to_Strategy_20240823.pdf)。
 - DOI：[10.13821/j.cnki.ceq.2025.01.11](https://doi.org/10.13821/j.cnki.ceq.2025.01.11)。
 - 核心思路：同时从定价误差与多空组合 Alpha 两个维度比较多种可转债定价模型。
 - 本仓库在 [`report/`](report/) 提供完整报告，便于核对模型假设、参数设定与实证细节。
@@ -49,11 +50,12 @@
 ```text
 Convertible-Bond-Pricing-Research/
 ├─ .github/workflows/       #  远端严格增量周更新与研究产物发布
-├─ backtest/                #  BS 与 ZL 定价回测主程序 + 数据管道
+├─ backtest/                #  BS、ZL 与 LSM 定价回测主程序 + 数据管道
 │   ├─ data_pipeline.py     #  Tushare 数据管道；日常按 Manifest 边界增量运行
 │   ├─ B-S_backtest.py      #  Black-Scholes 周度定价
 │   ├─ Z-L_backtest_GPU_prod.py # 郑-林 Monte Carlo 定价（CUDA/CPU 共用驱动）
 │   ├─ Z-L_backtest_CPU_prod.py # GitHub Actions CPU 增量入口
+│   ├─ LSM_backtest.py      #  LSM 向量化定价与独立增量 Manifest
 │   └─ full_history_rebuild.py  # GPU 门控的一键全历史重建
 ├─ mispricing factor/       #  错误定价因子与相关性分析
 ├─ long-short strategy/     #  横截面多空策略与绩效输出
@@ -155,19 +157,32 @@ $$
 
 ---
 
+### 🔹 Least-Squares Monte Carlo Model (LSM)
+
+定价逻辑：
+
+1. 以转换价值为状态变量模拟风险中性路径。
+2. 从到期日向前回溯，对实值路径的继续持有价值回归于 $1,S,S^2$。
+3. 比较即时转股价值与估计的继续价值，得到自愿提前转股价值。
+4. 最终价格取 `max(ZL 条款价值, LSM 自愿转股价值)`，避免重复加总同一转股期权。
+
+生产参数为 256 条对偶路径、48 个行权时点、按日期固定随机种子；计算按债券批量向量化。首轮历史初始化后，`LSM_Model_Manifest.json` 会验证输入指纹和已发布工作簿哈希，日常运行只处理新增交易周。
+
+---
+
 ### 模型误差对比
 
-| Error Metric           | BS     | ZL     |
-| ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 2.50   | -12.85 |
-| MAE (CNY)              | 14.09  | 14.48  |
-| RMSE (CNY)             | 31.14  | 33.70  |
-| MAPE                   | 9.76%  | 9.49%  |
-| SMAPE                  | 9.69%  | 10.39% |
+| Error Metric           | BS     | ZL     | LSM    |
+| ---------------------- | ------ | ------ | ------ |
+| Mean Error (Bias, CNY) | 2.50   | -12.85 | -2.32  |
+| MAE (CNY)              | 14.09  | 14.48  | 13.86  |
+| RMSE (CNY)             | 31.14  | 33.70  | 32.48  |
+| MAPE                   | 9.76%  | 9.49%  | 9.23%  |
+| SMAPE                  | 9.69%  | 10.39% | 9.46%  |
 
 MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 
-> **口径与时点**：理论价与市场价按相同「交易日 × 转债」单元严格对齐（BS n=149,694；ZL n=138,820），MAPE 排除市场价为零的单元。周度样本更新至 **2026-08-28**。ZL 最新增量由 CUDA 生产入口计算；常规更新只处理 Manifest 截止日之后的新交易周，不回算已验证历史。
+> **口径与时点**：理论价与市场价按相同「交易日 × 转债」单元严格对齐（BS n=149,694；ZL/LSM n=138,820），MAPE 排除市场价为零的单元。周度样本更新至 **2026-08-28**。ZL 最新增量由 CUDA 生产入口计算；ZL 与 LSM 分别使用独立 Manifest，常规更新只处理各自已验证截止日之后的新交易周。
 
 ---
 
@@ -189,7 +204,7 @@ MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 | 无风险利率 | Akshare 国债收益率曲线 |
 | 纯债价值 | DCF 现金流折现（内置计算） |
 
-所有输出以宽表 CSV 缓存（行=日期，列=转债代码）。常规周更新从 `ZL_Model_Manifest.json` 读取已验证截止日，只拉取、定价并发布其后的新增交易周；全历史重建仅用于显式维护，不属于日常更新路径。
+所有输出以宽表 CSV 缓存（行=日期，列=转债代码）。常规周更新从 `ZL_Model_Manifest.json` 确定数据/BS/ZL 边界，再由 `LSM_Model_Manifest.json` 独立验证 LSM 历史；各模型只定价已验证截止日后的新增交易周。全历史重建仅用于显式维护，不属于日常更新路径。
 
 远端周度更新计划：
 
@@ -198,7 +213,7 @@ MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 | 定时触发 | GitHub Actions 每周五 17:30（北京时间）运行，也支持手动触发 |
 | 交易日口径 | 仅发布该 `W-FRI` 周内最后一个真实交易日；周五休市时自动保留此前最近交易日 |
 | 数据门控 | `TUSHARE_TOKEN`、真实源覆盖率、BS 覆盖率与基准日期任一不满足即停止 |
-| 执行链路 | GitHub 增量更新真实数据与 BS → CPU 增量更新 ZL → 更新基准、因子、策略与图表 |
+| 执行链路 | GitHub 增量更新真实数据与 BS → CPU 增量更新 ZL → 向量化增量更新 LSM → 更新基准、因子、策略与图表 |
 | 发布边界 | 只在验证通过后提交产物；并发运行不互相取消，失败时保留上一版结果 |
 
 > GitHub 的定时工作流只从默认分支生效。启用前需在仓库 Secrets 中配置 `TUSHARE_TOKEN`。周度 ZL 使用 CPU 增量后端，不依赖本地电脑或 CUDA；全历史重建仍建议使用 GPU。
@@ -237,36 +252,43 @@ $$
 
 ## 回测结果
 
-| Strategy | Annual Return | Sharpe | Max Drawdown |
+| Strategy | Annualized Excess Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
-| BS Long  | 19.33%        | 0.91   | -28.96%      |
-| ZL Long  | 20.48%        | 0.94   | -29.75%      |
+| BS Long  | 12.25%        | 0.91   | -28.96%      |
+| ZL Long  | 13.40%        | 0.94   | -29.75%      |
+| LSM Long | 13.30%        | 0.92   | -31.04%      |
 
 > **回测口径**：2019-01-25 至 2026-08-28，共 91 个收益观察期，月末调仓，展示扣除交易成本后的多因子等权多头组合；夏普比率使用同期观测的一年期国债收益率均值。同期中证转债基准年化收益为 7.08%。
 
-结论摘要：BS 与 ZL 提供不同的估值视角；最新样本中 ZL 多头收益略高，但两者回撤均提示组合仍需风险预算与市场状态约束。
+结论摘要：LSM 将全样本定价偏差从 ZL 的 -12.85 元收窄至 -2.32 元，且 MAPE 降至 9.23%。三种多因子组合的年化超额接近，LSM 未在策略端稳定超越 ZL，且最大回撤略高。
 
 ---
 
 ## 关键图表
 
-### 定价误差与市场价格时序（BS / ZL）
+### 定价误差与市场价格时序（BS / ZL / LSM）
 
 ![BS 定价与市场价格时序](backtest/Fig1_BS_Price_Time_Series.png)
 
 ![ZL 定价与市场价格时序](backtest/Fig1_ZL_Price_Time_Series.png)
 
-### 多空策略表现（BS / ZL）
+![LSM 定价与市场价格时序](backtest/Fig1_LSM_Price_Time_Series.png)
+
+### 多空策略表现（BS / ZL / LSM）
 
 ![BS 多空策略绩效](long-short%20strategy/BS_model_performance.png)
 
 ![ZL 多空策略绩效](long-short%20strategy/ZL_model_performance.png)
 
-### 错误定价因子相关性（BS / ZL）
+![LSM 多空策略绩效](long-short%20strategy/LSM_model_performance.png)
+
+### 错误定价因子相关性（BS / ZL / LSM）
 
 ![BS 错误定价因子相关性](mispricing%20factor/BS_factor_correlation.png)
 
 ![ZL 错误定价因子相关性](mispricing%20factor/ZL_factor_correlation.png)
+
+![LSM 错误定价因子相关性](mispricing%20factor/LSM_factor_correlation.png)
 
 ---
 
@@ -274,6 +296,7 @@ $$
 
 - BS 捕捉**估值扩张 + 动量**。
 - ZL 捕捉**价值回归 + 下行防御**。
+- LSM 补充**自愿提前转股 + 继续持有决策**。
 - 错误定价因子与传统风格因子呈显著**正交性**。
 
 → 两者结合为组合提供互补的进攻与防守信息。
@@ -284,6 +307,7 @@ $$
 
 - BS 对条款约束刻画不足。
 - ZL 计算成本较高。
+- LSM 受路径数、行权网格与回归基函数设定影响，目前为 ZL 条款价值与 LSM 自愿转股价值的稳健组合，不是单一联合路径内的完整结构模型。
 - 空头端在强动量市场中可能承压。
 
 ---
@@ -330,7 +354,7 @@ $$
 
 ## 📌 Overview
 
-- This project studies Chinese A-share convertible bonds through two absolute pricing anchors: **Black-Scholes (BS)** and **Zheng-Lin (ZL)**.
+- This project studies Chinese A-share convertible bonds through a three-model absolute-pricing framework: **Black-Scholes (BS)**, **Zheng-Lin (ZL)**, and **Least-Squares Monte Carlo (LSM)**.
 - The research chain covers observed market data, theoretical pricing, mispricing factors, cross-sectional portfolios, and automated publication.
 - The objective is to identify deviations from theoretical value and test whether they produce interpretable, tradable alpha.
 
@@ -339,6 +363,7 @@ $$
 ## 📚 Paper Source
 
 - Primary reference paper: Comparative Study on Pricing Models of Chinese Convertible Bonds (Zheng Zhenlong, Lan Tiansheng, Chen Rong).
+- LSM method reference: [Northeast Securities, *Convertible Bond Research Framework: From Theory to Strategy*](report/Northeast_Securities_Convertible_Bond_Research_Framework_Theory_to_Strategy_20240823.pdf).
 - DOI: [10.13821/j.cnki.ceq.2025.01.11](https://doi.org/10.13821/j.cnki.ceq.2025.01.11).
 - Core idea: compare multiple convertible-bond pricing models by both pricing error and long-short alpha performance.
 - The [`report/`](report/) directory documents assumptions, calibration, and empirical outputs.
@@ -352,11 +377,12 @@ This repository is organized by research workflow from model pricing to factor c
 ```text
 Convertible-Bond-Pricing-Research/
 ├─ .github/workflows/       # Strict incremental weekly data and research-output publication
-├─ backtest/                # BS and ZL pricing engines + data pipeline
+├─ backtest/                # BS, ZL, and LSM pricing engines + data pipeline
 │   ├─ data_pipeline.py     # Tushare pipeline; routine runs are bounded by the manifest cutoff
 │   ├─ B-S_backtest.py      # Weekly Black-Scholes pricing
 │   ├─ Z-L_backtest_GPU_prod.py # Shared Zheng-Lin CUDA/CPU production driver
 │   ├─ Z-L_backtest_CPU_prod.py # GitHub Actions CPU incremental entrypoint
+│   ├─ LSM_backtest.py      # Vectorized LSM pricing with its own incremental manifest
 │   └─ full_history_rebuild.py  # GPU-gated full-history rebuild
 ├─ mispricing factor/       # Mispricing factor and correlation analysis
 ├─ long-short strategy/     # Cross-sectional long-short strategy outputs
@@ -458,19 +484,32 @@ Key characteristics
 
 ---
 
+### 🔹 Least-Squares Monte Carlo Model (LSM)
+
+Pricing logic
+
+1. Simulate risk-neutral paths with conversion value as the state variable.
+2. Work backward from maturity and regress continuation value on $1,S,S^2$ for in-the-money paths.
+3. Compare immediate conversion with estimated continuation value to price voluntary early conversion.
+4. Use `max(clause-aware ZL value, voluntary-conversion LSM value)` to avoid counting the same conversion option twice.
+
+Production uses 256 antithetic paths, 48 exercise dates, deterministic date-based seeds, and batch NumPy vectorization across bonds. After the one-time historical initialization, `LSM_Model_Manifest.json` verifies the input fingerprint and published workbook hash, and routine runs price only later trading weeks.
+
+---
+
 ### Model Error Comparison
 
-| Error Metric           | BS     | ZL     |
-| ---------------------- | ------ | ------ |
-| Mean Error (Bias, CNY) | 2.50   | -12.85 |
-| MAE (CNY)              | 14.09  | 14.48  |
-| RMSE (CNY)             | 31.14  | 33.70  |
-| MAPE                   | 9.76%  | 9.49%  |
-| SMAPE                  | 9.69%  | 10.39% |
+| Error Metric           | BS     | ZL     | LSM    |
+| ---------------------- | ------ | ------ | ------ |
+| Mean Error (Bias, CNY) | 2.50   | -12.85 | -2.32  |
+| MAE (CNY)              | 14.09  | 14.48  | 13.86  |
+| RMSE (CNY)             | 31.14  | 33.70  | 32.48  |
+| MAPE                   | 9.76%  | 9.49%  | 9.23%  |
+| SMAPE                  | 9.69%  | 10.39% | 9.46%  |
 
 Lower MAE/MAPE/SMAPE indicates better pricing fit.
 
-> **Scope & vintage**: theoretical and market prices are strictly aligned on identical trading-day × bond cells (BS n=149,694; ZL n=138,820), with zero-market-price cells excluded from MAPE. Weekly observations run through **2026-08-28**. The latest ZL increment was priced through the CUDA production entrypoint; routine updates process only trading weeks after the verified manifest cutoff and do not reprice certified history.
+> **Scope & vintage**: theoretical and market prices are strictly aligned on identical trading-day × bond cells (BS n=149,694; ZL/LSM n=138,820), with zero-market-price cells excluded from MAPE. Weekly observations run through **2026-08-28**. The latest ZL increment was priced through the CUDA production entrypoint. ZL and LSM use separate manifests, and routine updates process only trading weeks after each verified cutoff.
 
 ---
 
@@ -492,7 +531,7 @@ Lower MAE/MAPE/SMAPE indicates better pricing fit.
 | Risk-free yield curve | Akshare treasury rate data |
 | Bond floor (DCF) | Computed internally from coupon + yield curve |
 
-All outputs are cached as wide-format CSVs (rows = trade date, columns = bond code). Routine weekly runs read the verified cutoff from `ZL_Model_Manifest.json` and fetch, price, and publish only later trading weeks. Full-history rebuilds are explicit maintenance operations, not the normal update path.
+All outputs are cached as wide-format CSVs (rows = trade date, columns = bond code). Routine weekly runs use `ZL_Model_Manifest.json` to bound data/BS/ZL work and `LSM_Model_Manifest.json` to verify LSM history independently; each model prices only trading weeks after its certified cutoff. Full-history rebuilds are explicit maintenance operations, not the normal update path.
 
 Remote weekly update plan:
 
@@ -501,7 +540,7 @@ Remote weekly update plan:
 | Trigger | GitHub Actions runs every Friday at 17:30 Asia/Shanghai and remains manually dispatchable |
 | Trading-date rule | Publish only the final observed date in each `W-FRI` week; if Friday is closed, retain the most recent open date |
 | Data gates | Stop if `TUSHARE_TOKEN`, observed-source coverage, BS coverage, or benchmark freshness fails |
-| Execution chain | GitHub incremental real-data + BS update → CPU incremental ZL update → benchmark, factors, strategies, and figures |
+| Execution chain | GitHub incremental real-data + BS update → CPU incremental ZL update → vectorized incremental LSM update → benchmark, factors, strategies, and figures |
 | Publication boundary | Commit only validated outputs; do not cancel an active run, and retain the previous release on failure |
 
 > Scheduled GitHub workflows run only from the default branch and require the repository `TUSHARE_TOKEN` secret. Weekly ZL runs incrementally on CPU without a local computer or CUDA; full-history rebuilds should still use GPU compute.
@@ -540,36 +579,43 @@ The strategy is constructed based on **mispricing (RD)** defined above.
 
 ## 📈 Results
 
-| Strategy | Annual Return | Sharpe | Max Drawdown |
+| Strategy | Annualized Excess Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
-| BS Long  | 19.33%        | 0.91   | -28.96%      |
-| ZL Long  | 20.48%        | 0.94   | -29.75%      |
+| BS Long  | 12.25%        | 0.91   | -28.96%      |
+| ZL Long  | 13.40%        | 0.94   | -29.75%      |
+| LSM Long | 13.30%        | 0.92   | -31.04%      |
 
 > **Backtest scope**: 2019-01-25 to 2026-08-28, 91 return observations, month-end rebalancing, and net-of-cost equal-weight multi-factor long portfolios. Sharpe ratios use the observed average one-year government-bond yield over the same window. The CSI Convertible Bond Index annualized return is 7.08% over the same period.
 
-Summary: BS and ZL provide different valuation views. ZL delivers slightly higher long-only performance in the latest sample, while drawdowns in both portfolios show the need for explicit risk budgets and regime controls.
+Summary: LSM narrows full-sample pricing bias from ZL's -12.85 CNY to -2.32 CNY and reduces MAPE to 9.23%. Annualized excess returns are similar across the three multi-factor portfolios; LSM does not consistently beat ZL at the strategy level and has a slightly larger drawdown.
 
 ---
 
 ## 🖼️ Key Figures
 
-### Pricing vs Market Time Series (BS / ZL)
+### Pricing vs Market Time Series (BS / ZL / LSM)
 
 ![BS Pricing vs Market Time Series](backtest/Fig1_BS_Price_Time_Series.png)
 
 ![ZL Pricing vs Market Time Series](backtest/Fig1_ZL_Price_Time_Series.png)
 
-### Long-Short Strategy Performance (BS / ZL)
+![LSM Pricing vs Market Time Series](backtest/Fig1_LSM_Price_Time_Series.png)
+
+### Long-Short Strategy Performance (BS / ZL / LSM)
 
 ![BS Long-Short Strategy Performance](long-short%20strategy/BS_model_performance.png)
 
 ![ZL Long-Short Strategy Performance](long-short%20strategy/ZL_model_performance.png)
 
-### Mispricing Factor Correlation (BS / ZL)
+![LSM Long-Short Strategy Performance](long-short%20strategy/LSM_model_performance.png)
+
+### Mispricing Factor Correlation (BS / ZL / LSM)
 
 ![BS Mispricing Factor Correlation](mispricing%20factor/BS_factor_correlation.png)
 
 ![ZL Mispricing Factor Correlation](mispricing%20factor/ZL_factor_correlation.png)
+
+![LSM Mispricing Factor Correlation](mispricing%20factor/LSM_factor_correlation.png)
 
 ---
 
@@ -577,6 +623,7 @@ Summary: BS and ZL provide different valuation views. ZL delivers slightly highe
 
 - BS captures **valuation expansion + momentum**.
 - ZL captures **mean reversion + downside protection**.
+- LSM adds **voluntary early conversion + continuation decisions**.
 - Mispricing factor is highly **orthogonal** to traditional style factors.
 
 → The combination provides complementary offensive and defensive information.
@@ -587,6 +634,7 @@ Summary: BS and ZL provide different valuation views. ZL delivers slightly highe
 
 - BS ignores detailed clause constraints.
 - ZL is computationally expensive.
+- LSM depends on path count, exercise grid, and regression basis. The current implementation is a robust maximum of the ZL clause value and standalone LSM conversion value, not a single fully joint path model.
 - Short leg can underperform during momentum-dominated markets.
 
 ---

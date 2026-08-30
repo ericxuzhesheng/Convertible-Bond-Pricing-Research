@@ -6,9 +6,10 @@ This file tells Codex how to navigate and work with this codebase.
 
 ## Project Purpose
 
-Absolute pricing research for Chinese A-share convertible bonds using two models:
+Absolute pricing research for Chinese A-share convertible bonds using three models:
 - **Black-Scholes (BS)**: closed-form, offensive anchor (equity/vol driven)
 - **Zheng-Lin (ZL)**: Monte Carlo optimal stopping, defensive anchor (clause-aware)
+- **Least-Squares Monte Carlo (LSM)**: vectorized continuation-value regression and voluntary early conversion
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
 
@@ -29,6 +30,8 @@ Convertible-Bond-Pricing-Research/
 │   ├── B-S_backtest.py                ← BS model pricing + output
 │   ├── Z-L_backtest_GPU_prod.py       ← shared ZL driver (CUDA/CPU)
 │   ├── Z-L_backtest_CPU_prod.py       ← GitHub CPU incremental entrypoint
+│   ├── LSM_backtest.py                 ← vectorized strict-incremental LSM driver
+│   ├── lsm_backend.py                  ← batched quadratic Longstaff-Schwartz engine
 │   ├── Z-L_backtest_GPU.py            ← disabled legacy entrypoint
 │   ├── full_history_rebuild.py        ← fail-closed full-history rebuild
 │   ├── regenerate_plots.py            ← 一键重生成 README 全部图表（无需重跑模型）
@@ -39,12 +42,14 @@ Convertible-Bond-Pricing-Research/
 │   ├── rf_yield_cache.csv             ← risk-free yield curve (tenor format, not wide)
 │   ├── bs_volatility_cache.csv        ← 250-day rolling vol for BS
 │   ├── BS_Model_*.csv / .xlsx         ← BS model outputs
-│   └── ZL_Model_*.csv / .xlsx         ← ZL model outputs
+│   ├── ZL_Model_*.csv / .xlsx         ← ZL model outputs
+│   └── LSM_Model_*.csv / .xlsx        ← LSM outputs + independent manifest
 ├── long-short strategy/
-│   └── B-S_Z-L_strategy.py            ← monthly rebalancing backtest
+│   └── BS_ZL_LSM_strategy.py          ← three-model monthly rebalancing backtest
 ├── mispricing factor/
 │   ├── B-S_mispricing_factor.py       ← 6-factor BS composite
-│   └── Z-L_mispricing_factor.py       ← 6-factor ZL composite
+│   ├── Z-L_mispricing_factor.py       ← 6-factor ZL composite
+│   └── LSM_mispricing_factor.py       ← 6-factor LSM composite
 ├── summary/
 │   └── key_findings.md                ← executive summary
 └── report/                            ← full research PDF
@@ -58,7 +63,7 @@ Convertible-Bond-Pricing-Research/
 
 ```bash
 # Never use this for a routine update. It requires an explicit maintainer request.
-# GPU preflight → rebuild observed Tushare/AkShare inputs → BS → GPU ZL
+# GPU preflight → rebuild observed Tushare/AkShare inputs → BS → GPU ZL → LSM
 # → benchmark → factors → strategies → plots
 python backtest/full_history_rebuild.py
 ```
@@ -66,7 +71,7 @@ python backtest/full_history_rebuild.py
 ### Regenerate README plots only (no model recomputation)
 
 ```bash
-# Reads existing XLSX outputs, regenerates all 6 README images in seconds
+# Reads existing XLSX outputs, regenerates all 9 README images in seconds
 python backtest/regenerate_plots.py
 ```
 
@@ -88,10 +93,11 @@ Get-Content .\logs\main_sync.log -Tail 30
 ```
 
 The GitHub `weekly-incremental-cpu.yml` pipeline:
-1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_CPU_prod.py` — incrementally update weekly observed inputs and prices
-2. `long-short strategy/update_benchmark.py` — updates the 000832.CSI benchmark
-3. `rebuild_research_outputs.py` — regenerates factors, strategies, and README plots
-4. validation + `git commit && git push origin main` — publishes only complete verified changes
+1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_CPU_prod.py` — incrementally update weekly observed inputs and BS/ZL prices
+2. `LSM_backtest.py --weekly` — verifies its independent manifest and prices only later ZL dates
+3. `long-short strategy/update_benchmark.py` — updates the 000832.CSI benchmark
+4. `rebuild_research_outputs.py` — regenerates three model factors, strategies, and nine README plots
+5. validation + `git commit && git push origin main` — publishes only complete verified changes
 
 The Windows `weekly_update.bat` remains available as a manual CUDA path, but
 the scheduled cloud update does not depend on the local computer being on.
@@ -150,6 +156,14 @@ existing `bs_volatility_cache.csv` history and merges only new volatility rows.
 Never replace the cache with an incremental slice. Missing entries are filled
 with `0.40` (40% default).
 
+### LSM incremental logic
+
+`LSM_backtest.py --weekly` requires `LSM_Model_Manifest.json` after the one-time
+explicit initialization. It verifies the historical input fingerprint, model
+parameters, and summary-workbook SHA-256 before calculating dates strictly later
+than its verified cutoff. If there are no later dates, it exits without rewriting
+outputs. Never pass `--initialize-history` in routine automation.
+
 ### Windows console encoding
 
 All scripts that `print()` Chinese or emoji must include this header:
@@ -203,14 +217,15 @@ batch calls. Do not remove these sleeps.
   ├─ data_pipeline.py         ← 从截止日次日起增量更新真实市场数据
   ├─ B-S_backtest.py          ← 仅更新截止日后的 BS 周度定价
   ├─ Z-L_backtest_GPU_prod.py ← CUDA 仅更新截止日后的 ZL 周度定价
+  ├─ LSM_backtest.py          ← 校验独立 Manifest，仅计算新增 ZL 周度截面
   │
   ├─ update_benchmark.py      ← 更新 000832.CSI 基准
   │
   ├─ rebuild_research_outputs.py
   │     ├─ build_observed_factors.py  ← 从 Tushare 日频缓存重建五个非定价因子
-  │     ├─ BS/ZL factor backtests
+  │     ├─ BS/ZL/LSM factor backtests
   │     ├─ monthly long-short strategy
-  │     └─ regenerate_plots.py        ← 重生成 README 全部 6 张图
+  │     └─ regenerate_plots.py        ← 重生成 README 全部 9 张图
   │
   └─ git add -u               ← 暂存所有已追踪的变更文件
        git commit              ← 仅在有实际变更时提交（跳过空提交）
@@ -223,10 +238,13 @@ batch calls. Do not remove these sleeps.
 |------|---------|---------|
 | Fig1_BS_Price_Time_Series.png | BS_Model_Summary.xlsx | 理论价格, 市场价格, 相对偏差 |
 | Fig1_ZL_Price_Time_Series.png | ZL_Model_Summary.xlsx | 理论价格, 市场价格, 相对偏差 |
+| Fig1_LSM_Price_Time_Series.png | LSM_Model_Summary.xlsx | 理论价格, 市场价格, 相对偏差 |
 | BS_model_performance.png | mispricing factor/B-S_alpha_strategy_results.csv | benchmark_nav, long_nav, bs_deviation_nav |
 | ZL_model_performance.png | mispricing factor/Z-L_alpha_strategy_results.csv | benchmark_nav, long_nav, zl_deviation_nav |
+| LSM_model_performance.png | mispricing factor/LSM_alpha_strategy_results.csv | benchmark_nav, long_nav, lsm_deviation_nav |
 | BS_factor_correlation.png | BS_Model_Summary.xlsx + mispricing factor/*.csv | 相对偏差 + 5 因子等权和 |
 | ZL_factor_correlation.png | ZL_Model_Summary.xlsx + mispricing factor/*.csv | 相对偏差 + 5 因子等权和 |
+| LSM_factor_correlation.png | LSM_Model_Summary.xlsx + mispricing factor/*.csv | 相对偏差 + 5 因子等权和 |
 
 Factor CSV bond code format: `sh110030` → normalized to `110030.SH` by `_standardize_code()`.
 

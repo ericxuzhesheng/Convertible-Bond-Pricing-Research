@@ -13,7 +13,8 @@ STEPS = [
     BACKTEST_DIR / "build_observed_factors.py",
     REPO_ROOT / "mispricing factor" / "B-S_mispricing_factor.py",
     REPO_ROOT / "mispricing factor" / "Z-L_mispricing_factor.py",
-    REPO_ROOT / "long-short strategy" / "B-S_Z-L_strategy.py",
+    REPO_ROOT / "mispricing factor" / "LSM_mispricing_factor.py",
+    REPO_ROOT / "long-short strategy" / "BS_ZL_LSM_strategy.py",
     BACKTEST_DIR / "regenerate_plots.py",
 ]
 

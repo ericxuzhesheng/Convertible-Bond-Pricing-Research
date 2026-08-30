@@ -51,7 +51,7 @@
   \vspace*{2.1cm}
   {\color{navy}\Huge\bfseries 中国可转债绝对定价研究\par}
   \vspace{0.45cm}
-  {\color{blue}\LARGE Black--Scholes 与 Zheng--Lin 模型\par}
+  {\color{blue}\LARGE Black--Scholes、Zheng--Lin 与 LSM 模型\par}
   \vspace{0.9cm}
   {\Large 研究结果更新版\par}
   \vspace{1.5cm}
@@ -77,7 +77,7 @@
 
 本次更新将主报告的数据截止日由 2026 年 3 月推进至
 \textbf{2026-08-28}，并使用当前仓库中的周频模型定价结果、月度因子回测
-及同期一年期国债收益率口径重新核对绩效。研究仍聚焦两个已实现且可复现的
+及同期一年期国债收益率口径重新核对绩效。研究聚焦三个已实现且可复现的
 绝对定价模型：
 
 \begin{itemize}
@@ -85,6 +85,8 @@
         无风险利率与剩余期限对转债价值的影响。
   \item \textbf{ZL 模型：}基于蒙特卡罗路径并纳入已观测赎回、回售条款状态，
         同时使用信用利差对现金流折现。
+  \item \textbf{LSM 模型：}使用最小二乘回归估计继续持有价值，
+        比较即时转股与继续价值，并与 ZL 条款价值做稳健组合。
 \end{itemize}
 
 \begin{table}[h]
@@ -93,34 +95,39 @@
   \rowcolors{2}{lightgray}{white}
   \begin{tabular}{lrrrrr}
     \toprule
-    模型 & 年化收益 & 夏普比率 & 最大回撤 & 年化波动 & 平均换手率 \\
+    模型 & 年化超额 & 夏普比率 & 最大回撤 & 年化波动 & 平均换手率 \\
     \midrule
-    BS & 19.33\% & 0.91 & -28.96\% & 19.09\% & 54.33\% \\
-    ZL & 20.48\% & 0.94 & -29.75\% & 19.78\% & 57.34\% \\
+    BS & 12.25\% & 0.91 & -28.96\% & 19.09\% & 54.33\% \\
+    ZL & 13.40\% & 0.94 & -29.75\% & 19.78\% & 57.34\% \\
+    LSM & 13.30\% & 0.92 & -31.04\% & 20.03\% & 55.23\% \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-同期中证转债基准年化收益为 \textbf{7.08\%}。BS 与 ZL 六因子组合的
-年化超额收益分别为 12.25\% 和 13.40\%。最新样本中 ZL 的收益和夏普略高，
-但两类组合均经历接近 30\% 的最大回撤，因此模型定价信号不应被视为独立的
+同期中证转债基准年化收益为 \textbf{7.08\%}。三种六因子组合的
+年化超额收益分别为 12.25\%、13.40\% 和 13.30\%。LSM 在定价偏差上改善明显，
+但策略收益未稳定超越 ZL；三类组合均经历较大回撤，因此定价信号不应被视为独立的
 低风险套利。
 
 \sectionbar{二、定价结果与最新截面}
 
-截至 2026-08-28，BS 模型有 313 只有效定价，ZL 模型有 301 只有效定价。
+截至 2026-08-28，BS 模型有 313 只有效定价，ZL 与 LSM 均有 301 只。
 在各自有效样本上，理论价格相对市场价格偏离度的截面中位数分别为
-\textbf{-6.14\%} 与 \textbf{-17.83\%}。该结果说明当前绝对定价模型普遍给出
+\textbf{-6.14\%}、\textbf{-17.83\%} 与 \textbf{-9.44\%}。LSM 将全样本平均偏差从 ZL 的
+-12.85 元收窄到 -2.32 元，MAPE 由 9.49\% 降至 9.23\%。当前模型仍普遍给出
 低于市场价格的估值，但不能直接解释为可无摩擦做空的套利空间：流动性、
 信用风险、条款执行意愿、波动率估计误差和卖空约束都会影响偏离的可交易性。
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.94\textwidth]{../backtest/Fig1_BS_Price_Time_Series.png}
+  \includegraphics[width=0.76\textwidth]{../backtest/Fig1_BS_Price_Time_Series.png}
   \caption{BS 模型理论价格、市场价格与相对偏离度}
   \vspace{0.8cm}
-  \includegraphics[width=0.94\textwidth]{../backtest/Fig1_ZL_Price_Time_Series.png}
+  \includegraphics[width=0.76\textwidth]{../backtest/Fig1_ZL_Price_Time_Series.png}
   \caption{ZL 模型理论价格、市场价格与相对偏离度}
+  \vspace{0.5cm}
+  \includegraphics[width=0.76\textwidth]{../backtest/Fig1_LSM_Price_Time_Series.png}
+  \caption{LSM 模型理论价格、市场价格与相对偏离度}
 \end{figure}
 
 \clearpage
@@ -138,25 +145,31 @@
     \toprule
     模型 & 策略 & 年化收益 & 夏普比率 & 最大回撤 & 累计收益 \\
     \midrule
-    BS & 定价偏差单因子 & 20.34\% & 1.20 & -21.76\% & 307.68\% \\
-    BS & 六因子等权 & 19.33\% & 0.91 & -28.96\% & 282.41\% \\
-    ZL & 定价偏差单因子 & 22.31\% & 1.37 & -14.99\% & 360.95\% \\
-    ZL & 六因子等权 & 20.48\% & 0.94 & -29.75\% & 311.30\% \\
+    BS & 定价偏差单因子 & 13.26\% & 1.20 & -21.76\% & 239.61\% \\
+    BS & 六因子等权 & 12.25\% & 0.91 & -28.96\% & 214.34\% \\
+    ZL & 定价偏差单因子 & 15.22\% & 1.37 & -14.99\% & 292.88\% \\
+    ZL & 六因子等权 & 13.40\% & 0.94 & -29.75\% & 243.23\% \\
+    LSM & 定价偏差单因子 & 11.71\% & 1.14 & -20.82\% & 201.37\% \\
+    LSM & 六因子等权 & 13.30\% & 0.92 & -31.04\% & 240.50\% \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 定价偏差单因子在当前样本中的风险调整后表现优于六因子等权组合，尤其是
-ZL 定价偏差因子。不过，这些结果来自同一历史样本内的描述性回测，尚不构成
+ZL 定价偏差因子。LSM 多因子组合的年化超额与 ZL 接近，但回撤更大。
+这些结果来自同一历史样本内的描述性回测，尚不构成
 样本外稳健性或未来收益保证。
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.95\textwidth]{../long-short strategy/BS_model_performance.png}
+  \includegraphics[width=0.76\textwidth]{../long-short strategy/BS_model_performance.png}
   \caption{BS 定价偏差策略与基准净值}
   \vspace{0.8cm}
-  \includegraphics[width=0.95\textwidth]{../long-short strategy/ZL_model_performance.png}
+  \includegraphics[width=0.76\textwidth]{../long-short strategy/ZL_model_performance.png}
   \caption{ZL 定价偏差策略与基准净值}
+  \vspace{0.5cm}
+  \includegraphics[width=0.76\textwidth]{../long-short strategy/LSM_model_performance.png}
+  \caption{LSM 定价偏差策略与基准净值}
 \end{figure}
 
 \clearpage
@@ -168,11 +181,22 @@ ZL 定价偏差因子。不过，这些结果来自同一历史样本内的描�
 
 \begin{figure}[h!]
   \centering
-  \includegraphics[width=0.64\textwidth]{../mispricing factor/BS_factor_correlation.png}
-  \caption{BS 定价偏差与五类传统因子的相关性}
-  \vspace{0.15cm}
-  \includegraphics[width=0.64\textwidth]{../mispricing factor/ZL_factor_correlation.png}
-  \caption{ZL 定价偏差与五类传统因子的相关性}
+  \begin{minipage}{0.32\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../mispricing factor/BS_factor_correlation.png}\\
+    \small (a) BS
+  \end{minipage}\hfill
+  \begin{minipage}{0.32\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../mispricing factor/ZL_factor_correlation.png}\\
+    \small (b) ZL
+  \end{minipage}\hfill
+  \begin{minipage}{0.32\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../mispricing factor/LSM_factor_correlation.png}\\
+    \small (c) LSM
+  \end{minipage}
+  \caption{三种模型定价偏差与五类传统因子的相关性}
 \end{figure}
 
 \clearpage
@@ -189,23 +213,25 @@ ZL 定价偏差因子。不过，这些结果来自同一历史样本内的描�
              2026-08-28。 \\
   交易成本 & 多头因子回测扣除双边 0.06\% 交易成本。 \\
   夏普口径 & 使用回测期内实际观测的一年期国债收益率均值作为无风险利率。 \\
-  输出依据 & \texttt{BS/ZL\_Model\_Summary.xlsx}、
-             \texttt{B-S/Z-L\_alpha\_strategy\_results.csv} 与对应绩效表。 \\
+  输出依据 & \texttt{BS/ZL/LSM\_Model\_Summary.xlsx}、
+             \texttt{B-S/Z-L/LSM\_alpha\_strategy\_results.csv} 与对应绩效表。 \\
   增量约束 & 日常周更新从 \texttt{ZL\_Model\_Manifest.json} 读取已验证截止日，
-             只拉取和定价后续新增交易周，不回算已验证历史。 \\
+             LSM 使用独立 Manifest；各模型只定价后续新增交易周。 \\
   \bottomrule
 \end{tabularx}
 
-\sectionbar{六、LSM 模型状态说明}
+\sectionbar{六、LSM 模型实现}
 
 东北证券《可转债研究框架：从理论概念到实战策略》还介绍了第三种绝对定价
 方法 LSM（最小二乘蒙特卡罗）。LSM 通过回归估计继续持有价值，并与即时转股
 价值比较，以处理美式提前转股权。
 
-\textbf{本仓库当前没有 LSM 实现或 LSM 回测输出，因此本报告不展示 LSM
-绩效，也不把其列为已完成模型。} 若后续加入 LSM，需要先固定回归基函数、
-路径数量、提前转股规则及赎回、回售、下修事件顺序，再按与 BS/ZL 相同的数据
-截止日和交易成本口径进行比较。
+本仓库已按东北证券报告的二次基函数 $1,S,S^2$ 实现批量向量化 LSM。
+生产参数为 256 条对偶路径、48 个行权时点与按日期固定的随机种子。
+到期收益取转股价值与到期赎回价之较大者；回溯时比较即时转股与回归继续价值。
+为避免与 ZL 中已含的转股权重复加总，组合价格取两个独立价值的较大者。
+首轮历史回测覆盖 392 个周度截面和 138,820 个定价样本；后续运行由
+\texttt{LSM\_Model\_Manifest.json} 校验参数、历史输入指纹和输出哈希，严格只算新增日期。
 
 \sectionbar{七、风险提示与结论}
 
@@ -214,7 +240,7 @@ ZL 定价偏差因子。不过，这些结果来自同一历史样本内的描�
         不可收敛的定价偏离。
   \item 中国可转债卖空和对冲机制有限，理论高估不等于可实现的空头收益。
   \item 回测存在样本内选择、存续样本结构变化、流动性和容量约束。
-  \item 当前结果支持将 BS 与 ZL 作为互补定价锚，但仍需风险预算、市场状态
+  \item 当前结果支持将 BS、ZL 与 LSM 作为互补定价锚，但仍需风险预算、市场状态
         约束和样本外检验。
 \end{itemize}
 

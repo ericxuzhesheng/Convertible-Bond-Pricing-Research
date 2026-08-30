@@ -1,6 +1,6 @@
 @echo off
 :: Convertible-bond weekly update:
-:: market data -> BS -> ZL -> benchmark -> research outputs -> Git publish
+:: market data -> BS -> ZL -> LSM -> benchmark -> research outputs -> Git publish
 
 setlocal EnableDelayedExpansion
 
@@ -39,42 +39,49 @@ echo Weekly update started: %DATE% %TIME%
 echo ==============================================================
 ) >> "%LOG_FILE%"
 
-echo [1/6] Running data_pipeline.py ... >> "%LOG_FILE%"
+echo [1/7] Running data_pipeline.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%data_pipeline.py" --start "%PIPELINE_START%" --weekly --reuse-clause-cache --reuse-conversion-event-cache >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo [ERROR] data_pipeline.py failed. Stopping. >> "%LOG_FILE%"
     goto :fail
 )
 
-echo [2/6] Running B-S_backtest.py ... >> "%LOG_FILE%"
+echo [2/7] Running B-S_backtest.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%B-S_backtest.py" --weekly --incremental-after "%MODEL_CUTOFF%" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo [ERROR] B-S_backtest.py failed. Stopping. >> "%LOG_FILE%"
     goto :fail
 )
 
-echo [3/6] Running Z-L_backtest_GPU_prod.py ... >> "%LOG_FILE%"
+echo [3/7] Running Z-L_backtest_GPU_prod.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%Z-L_backtest_GPU_prod.py" --backend cuda --weekly --offline-inputs >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo [ERROR] Z-L_backtest_GPU_prod.py failed. Stopping. >> "%LOG_FILE%"
     goto :fail
 )
 
-echo [4/6] Running update_benchmark.py ... >> "%LOG_FILE%"
+echo [4/7] Running LSM_backtest.py ... >> "%LOG_FILE%"
+"%PYTHON%" "%BACKTEST_DIR%LSM_backtest.py" --weekly >> "%LOG_FILE%" 2>&1
+if errorlevel 1 (
+    echo [ERROR] LSM_backtest.py failed. Stopping. >> "%LOG_FILE%"
+    goto :fail
+)
+
+echo [5/7] Running update_benchmark.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%REPO_DIR%\long-short strategy\update_benchmark.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo [ERROR] update_benchmark.py failed. Stopping. >> "%LOG_FILE%"
     goto :fail
 )
 
-echo [5/6] Running rebuild_research_outputs.py ... >> "%LOG_FILE%"
+echo [6/7] Running rebuild_research_outputs.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%rebuild_research_outputs.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo [ERROR] rebuild_research_outputs.py failed. Stopping. >> "%LOG_FILE%"
     goto :fail
 )
 
-echo [6/6] Publishing verified outputs ... >> "%LOG_FILE%"
+echo [7/7] Publishing verified outputs ... >> "%LOG_FILE%"
 cd /d "%REPO_DIR%"
 
 git add -u >> "%LOG_FILE%" 2>&1

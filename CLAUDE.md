@@ -5,12 +5,13 @@ layout, data contracts, commands, and operational safeguards.
 
 ## Current published state
 
-- Data and BS/ZL model outputs are updated through **2026-08-28**.
+- Data and BS/ZL/LSM model outputs are updated through **2026-08-28**.
 - The production ZL increment was run with CUDA; the supported local environment
   uses `numba==0.62.1` and `numba-cuda`.
 - Routine weekly execution is **incremental only**. `backtest/weekly_update.bat`
   reads `backtest/ZL_Model_Manifest.json`, starts data ingestion on the following
-  day, and prices only dates strictly after the verified cutoff.
+  day, and prices only dates strictly after the verified cutoff. LSM then verifies
+  its own `backtest/LSM_Model_Manifest.json` and prices only later ZL dates.
 - Historical NaNs are valid skipped cells, not permission to reprice history.
 - `cb_price_chg` may be calculated from adjacent closes when the paid/source field
   is unavailable, with optional correction from a free quote source.
@@ -20,7 +21,7 @@ layout, data contracts, commands, and operational safeguards.
 ## Routine commands
 
 ```powershell
-# Local weekly CUDA update: data -> BS -> ZL -> benchmark -> factors -> plots -> publish
+# Local weekly CUDA update: data -> BS -> ZL -> LSM -> benchmark -> factors -> plots -> publish
 cd backtest
 .\weekly_update.bat
 
