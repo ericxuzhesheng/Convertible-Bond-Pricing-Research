@@ -36,6 +36,23 @@ MIN_DAILY_TURNOVER_WAN = 500.0
 MIN_OUTSTANDING_BALANCE_WAN = 3_000.0
 MIN_IC_CROSS_SECTION = 10
 FACTOR_DIAGNOSTICS_VERSION = 1
+FACTOR_CORRELATION_ORDER = (
+    "liquidity",
+    "volatility",
+    "price_volume",
+    "valuation",
+    "momentum",
+)
+FACTOR_CORRELATION_LABELS = {
+    "liquidity": "Liquidity",
+    "volatility": "Volatility",
+    "price_volume": "Price-volume",
+    "valuation": "Valuation",
+    "momentum": "Momentum",
+    "bs_deviation": "Mispricing",
+    "zl_deviation": "Mispricing",
+    "lsm_deviation": "Mispricing",
+}
 sys.path.insert(0, str(BACKTEST_DIR))
 
 from market_data_contracts import (  # noqa: E402
@@ -263,6 +280,14 @@ class MultiFactorBacktest:
         pearson = merged_df.corr(method="pearson")
         spearman = merged_df.corr(method="spearman")
 
+        correlation_order = [
+            name
+            for name in (*FACTOR_CORRELATION_ORDER, self.dev_key)
+            if name in pearson.columns
+        ]
+        pearson = pearson.loc[correlation_order, correlation_order]
+        spearman = spearman.loc[correlation_order, correlation_order]
+
         print("  Pearson 因子相关性矩阵:")
         print(pearson)
         print("  Spearman 因子相关性矩阵:")
@@ -292,16 +317,30 @@ class MultiFactorBacktest:
             2,
             figsize=(16, 7),
             constrained_layout=True,
+            facecolor="white",
         )
         image = None
         for ax, matrix, title in (
             (axes[0], pearson, "Pearson linear correlation"),
             (axes[1], spearman, "Spearman rank correlation"),
         ):
-            image = ax.imshow(matrix.to_numpy(), cmap="RdBu_r", vmin=-1, vmax=1)
-            ax.set_xticks(np.arange(len(matrix.columns)), matrix.columns)
-            ax.set_yticks(np.arange(len(matrix.index)), matrix.index)
-            ax.tick_params(axis="x", rotation=45)
+            display_labels = [
+                FACTOR_CORRELATION_LABELS.get(name, name)
+                for name in matrix.columns
+            ]
+            ax.set_facecolor("white")
+            ax.grid(False)
+            image = ax.imshow(
+                matrix.to_numpy(),
+                cmap="RdBu_r",
+                vmin=-1,
+                vmax=1,
+                interpolation="nearest",
+            )
+            ax.set_xticks(np.arange(len(display_labels)), display_labels)
+            ax.set_yticks(np.arange(len(display_labels)), display_labels)
+            ax.tick_params(axis="x", rotation=40, labelsize=9)
+            ax.tick_params(axis="y", labelsize=9)
             for row in range(len(matrix.index)):
                 for column in range(len(matrix.columns)):
                     value = matrix.iloc[row, column]
@@ -314,15 +353,22 @@ class MultiFactorBacktest:
                         color="white" if abs(value) >= 0.55 else "#222222",
                         fontsize=8,
                     )
-            ax.set_title(title)
-        fig.colorbar(image, ax=axes, shrink=0.8, pad=0.02)
+            ax.set_title(title, fontsize=13, pad=10)
+        colorbar = fig.colorbar(image, ax=axes, shrink=0.82, pad=0.025)
+        colorbar.ax.tick_params(labelsize=9)
         fig.suptitle(
-            f"{self.model} factor correlation, common date-bond observations",
-            fontsize=14,
+            f"{self.model} factor correlations",
+            fontsize=15,
+            fontweight="bold",
         )
 
         save_path = self.data_dir / f"{self.model}_factor_correlation.png"
-        plt.savefig(save_path)
+        plt.savefig(
+            save_path,
+            dpi=300,
+            bbox_inches="tight",
+            facecolor="white",
+        )
         print(f"  相关性热力图已保存至: {save_path}")
         plt.close()
 

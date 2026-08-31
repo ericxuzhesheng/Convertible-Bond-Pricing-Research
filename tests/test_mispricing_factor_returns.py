@@ -143,6 +143,11 @@ def test_factor_correlation_exports_pearson_and_spearman(tmp_path) -> None:
     matrices = backtest.check_factor_correlation()
 
     assert set(matrices) == {"pearson", "spearman"}
+    assert matrices["pearson"].columns.tolist() == [
+        "liquidity",
+        "valuation",
+        "momentum",
+    ]
     assert (tmp_path / "BS_factor_correlation_pearson.csv").exists()
     assert (tmp_path / "BS_factor_correlation_spearman.csv").exists()
     assert (tmp_path / "BS_factor_correlation.png").exists()

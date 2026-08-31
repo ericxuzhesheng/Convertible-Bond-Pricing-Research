@@ -2,7 +2,7 @@
 regenerate_plots.py — 一键重生成 README 全部图表
 
 从现有模型输出 XLSX / CSV 读取数据，不重跑模型计算。
-生成 9 张 README 引用图片：
+生成 README 引用的模型、策略、相关性及 IC 图表：
   backtest/Fig1_BS_Price_Time_Series.png
   backtest/Fig1_ZL_Price_Time_Series.png
   backtest/Fig1_LSM_Price_Time_Series.png
@@ -44,6 +44,23 @@ ZL_XLSX = os.path.join(SCRIPT_DIR, "ZL_Model_Summary.xlsx")
 LSM_XLSX = os.path.join(SCRIPT_DIR, "LSM_Model_Summary.xlsx")
 LS_DIR = os.path.join(REPO_ROOT, "long-short strategy")
 MF_DIR = os.path.join(REPO_ROOT, "mispricing factor")
+FACTOR_CORRELATION_ORDER = (
+    "liquidity",
+    "volatility",
+    "price_volume",
+    "valuation",
+    "momentum",
+)
+FACTOR_CORRELATION_LABELS = {
+    "liquidity": "Liquidity",
+    "volatility": "Volatility",
+    "price_volume": "Price-volume",
+    "valuation": "Valuation",
+    "momentum": "Momentum",
+    "bs_deviation": "Mispricing",
+    "zl_deviation": "Mispricing",
+    "lsm_deviation": "Mispricing",
+}
 
 # XLSX sheet 名称（理论价格 / 市场价格 / 绝对偏差 / 相对偏差）
 SHEET_MODEL = "理论价格"
@@ -471,12 +488,24 @@ def _load_factor_csvs(factor_dir: str, xlsx_reldev: pd.DataFrame, model_label: s
     return merged
 
 
-def _plot_factor_corr(merged: pd.DataFrame, title: str, out_path: str) -> None:
+def _plot_factor_corr(
+    merged: pd.DataFrame,
+    model_label: str,
+    out_path: str,
+) -> None:
     if "valuation" in merged.columns:
         merged = merged.copy()
         merged["valuation"] = -merged["valuation"]
     pearson = merged.corr(method="pearson")
     spearman = merged.corr(method="spearman")
+    dev_key = f"{model_label.lower()}_deviation"
+    correlation_order = [
+        name
+        for name in (*FACTOR_CORRELATION_ORDER, dev_key)
+        if name in pearson.columns
+    ]
+    pearson = pearson.loc[correlation_order, correlation_order]
+    spearman = spearman.loc[correlation_order, correlation_order]
     stem, _ = os.path.splitext(out_path)
     pearson.to_csv(f"{stem}_pearson.csv", encoding="utf-8-sig")
     spearman.to_csv(f"{stem}_spearman.csv", encoding="utf-8-sig")
@@ -486,16 +515,30 @@ def _plot_factor_corr(merged: pd.DataFrame, title: str, out_path: str) -> None:
         2,
         figsize=(16, 7),
         constrained_layout=True,
+        facecolor="white",
     )
     image = None
     for ax, matrix, method in (
         (axes[0], pearson, "Pearson linear correlation"),
         (axes[1], spearman, "Spearman rank correlation"),
     ):
-        image = ax.imshow(matrix.to_numpy(), cmap="RdBu_r", vmin=-1, vmax=1)
-        ax.set_xticks(np.arange(len(matrix.columns)), matrix.columns)
-        ax.set_yticks(np.arange(len(matrix.index)), matrix.index)
-        ax.tick_params(axis="x", rotation=45)
+        display_labels = [
+            FACTOR_CORRELATION_LABELS.get(name, name)
+            for name in matrix.columns
+        ]
+        ax.set_facecolor("white")
+        ax.grid(False)
+        image = ax.imshow(
+            matrix.to_numpy(),
+            cmap="RdBu_r",
+            vmin=-1,
+            vmax=1,
+            interpolation="nearest",
+        )
+        ax.set_xticks(np.arange(len(display_labels)), display_labels)
+        ax.set_yticks(np.arange(len(display_labels)), display_labels)
+        ax.tick_params(axis="x", rotation=40, labelsize=9)
+        ax.tick_params(axis="y", labelsize=9)
         for row in range(len(matrix.index)):
             for column in range(len(matrix.columns)):
                 value = matrix.iloc[row, column]
@@ -508,9 +551,14 @@ def _plot_factor_corr(merged: pd.DataFrame, title: str, out_path: str) -> None:
                     color="white" if abs(value) >= 0.55 else "#222222",
                     fontsize=8,
                 )
-        ax.set_title(method)
-    fig.colorbar(image, ax=axes, shrink=0.8, pad=0.02)
-    fig.suptitle(title)
+        ax.set_title(method, fontsize=13, pad=10)
+    colorbar = fig.colorbar(image, ax=axes, shrink=0.82, pad=0.025)
+    colorbar.ax.tick_params(labelsize=9)
+    fig.suptitle(
+        f"{model_label} factor correlations",
+        fontsize=15,
+        fontweight="bold",
+    )
     _save(out_path)
 
 
@@ -523,7 +571,7 @@ def plot_factor_correlation() -> None:
         if merged_bs is not None:
             _plot_factor_corr(
                 merged_bs,
-                title="BS 因子相关性，Pearson 与 Spearman",
+                model_label="BS",
                 out_path=os.path.join(MF_DIR, "BS_factor_correlation.png"),
             )
 
@@ -533,7 +581,7 @@ def plot_factor_correlation() -> None:
         if merged_zl is not None:
             _plot_factor_corr(
                 merged_zl,
-                title="ZL 因子相关性，Pearson 与 Spearman",
+                model_label="ZL",
                 out_path=os.path.join(MF_DIR, "ZL_factor_correlation.png"),
             )
 
@@ -543,7 +591,7 @@ def plot_factor_correlation() -> None:
         if merged_lsm is not None:
             _plot_factor_corr(
                 merged_lsm,
-                title="LSM 因子相关性，Pearson 与 Spearman",
+                model_label="LSM",
                 out_path=os.path.join(MF_DIR, "LSM_factor_correlation.png"),
             )
 
