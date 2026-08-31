@@ -28,7 +28,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
-import seaborn as sns
 
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
@@ -418,8 +417,15 @@ def _load_factor_csvs(factor_dir: str, xlsx_reldev: pd.DataFrame, model_label: s
     返回用于相关性计算的 DataFrame。
     """
     factor_files = [
-        f for f in glob.glob(os.path.join(factor_dir, "*.csv"))
-        if "alpha_strategy_results" not in f
+        os.path.join(factor_dir, filename)
+        for filename in (
+            "流动性因子等权和.csv",
+            "波动率因子等权和.csv",
+            "量价相关性因子等权和.csv",
+            "估值因子等权和.csv",
+            "动量因子等权和.csv",
+        )
+        if os.path.exists(os.path.join(factor_dir, filename))
     ]
     if not factor_files:
         print(f"  [跳过] {factor_dir} 中无因子 CSV")
@@ -427,9 +433,18 @@ def _load_factor_csvs(factor_dir: str, xlsx_reldev: pd.DataFrame, model_label: s
 
     stacked_factors: dict[str, pd.Series] = {}
 
+    dev_key = f"{model_label.lower()}_deviation"
     dev_stacked = xlsx_reldev.stack()
-    dev_stacked.name = f"{model_label}_deviation"
-    stacked_factors[f"{model_label}_deviation"] = dev_stacked
+    dev_stacked.name = dev_key
+    stacked_factors[dev_key] = dev_stacked
+
+    canonical_names = {
+        "流动性因子": "liquidity",
+        "波动率因子": "volatility",
+        "量价相关性因子": "price_volume",
+        "估值因子": "valuation",
+        "动量因子": "momentum",
+    }
 
     for fpath in sorted(factor_files):
         try:
@@ -441,7 +456,10 @@ def _load_factor_csvs(factor_dir: str, xlsx_reldev: pd.DataFrame, model_label: s
             df.columns = [_standardize_code(c) for c in df.columns]
             df = df.apply(pd.to_numeric, errors="coerce")
             stacked = df.stack()
-            factor_name = os.path.splitext(os.path.basename(fpath))[0].replace("等权和", "")
+            source_name = os.path.splitext(os.path.basename(fpath))[0].replace(
+                "等权和", ""
+            )
+            factor_name = canonical_names[source_name]
             stacked_factors[factor_name] = stacked
         except Exception as e:
             print(f"  [警告] 加载因子 {fpath} 失败: {e}")
@@ -454,11 +472,45 @@ def _load_factor_csvs(factor_dir: str, xlsx_reldev: pd.DataFrame, model_label: s
 
 
 def _plot_factor_corr(merged: pd.DataFrame, title: str, out_path: str) -> None:
-    corr = merged.corr()
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(corr, annot=True, cmap="RdBu_r", center=0, vmin=-1, vmax=1, fmt=".2f")
-    plt.title(title)
-    plt.tight_layout()
+    if "valuation" in merged.columns:
+        merged = merged.copy()
+        merged["valuation"] = -merged["valuation"]
+    pearson = merged.corr(method="pearson")
+    spearman = merged.corr(method="spearman")
+    stem, _ = os.path.splitext(out_path)
+    pearson.to_csv(f"{stem}_pearson.csv", encoding="utf-8-sig")
+    spearman.to_csv(f"{stem}_spearman.csv", encoding="utf-8-sig")
+
+    fig, axes = plt.subplots(
+        1,
+        2,
+        figsize=(16, 7),
+        constrained_layout=True,
+    )
+    image = None
+    for ax, matrix, method in (
+        (axes[0], pearson, "Pearson linear correlation"),
+        (axes[1], spearman, "Spearman rank correlation"),
+    ):
+        image = ax.imshow(matrix.to_numpy(), cmap="RdBu_r", vmin=-1, vmax=1)
+        ax.set_xticks(np.arange(len(matrix.columns)), matrix.columns)
+        ax.set_yticks(np.arange(len(matrix.index)), matrix.index)
+        ax.tick_params(axis="x", rotation=45)
+        for row in range(len(matrix.index)):
+            for column in range(len(matrix.columns)):
+                value = matrix.iloc[row, column]
+                ax.text(
+                    column,
+                    row,
+                    f"{value:.2f}",
+                    ha="center",
+                    va="center",
+                    color="white" if abs(value) >= 0.55 else "#222222",
+                    fontsize=8,
+                )
+        ax.set_title(method)
+    fig.colorbar(image, ax=axes, shrink=0.8, pad=0.02)
+    fig.suptitle(title)
     _save(out_path)
 
 
@@ -471,7 +523,7 @@ def plot_factor_correlation() -> None:
         if merged_bs is not None:
             _plot_factor_corr(
                 merged_bs,
-                title="BS 因子相关性热力图",
+                title="BS 因子相关性，Pearson 与 Spearman",
                 out_path=os.path.join(MF_DIR, "BS_factor_correlation.png"),
             )
 
@@ -481,7 +533,7 @@ def plot_factor_correlation() -> None:
         if merged_zl is not None:
             _plot_factor_corr(
                 merged_zl,
-                title="ZL 因子相关性热力图",
+                title="ZL 因子相关性，Pearson 与 Spearman",
                 out_path=os.path.join(MF_DIR, "ZL_factor_correlation.png"),
             )
 
@@ -491,9 +543,79 @@ def plot_factor_correlation() -> None:
         if merged_lsm is not None:
             _plot_factor_corr(
                 merged_lsm,
-                title="LSM 因子相关性热力图",
+                title="LSM 因子相关性，Pearson 与 Spearman",
                 out_path=os.path.join(MF_DIR, "LSM_factor_correlation.png"),
             )
+
+
+def plot_factor_ic_comparison() -> None:
+    """Plot mean Pearson IC and Spearman Rank IC for all model factors."""
+    summaries = {}
+    for model in ("BS", "ZL", "LSM"):
+        path = os.path.join(MF_DIR, f"{model}_factor_ic_summary.csv")
+        if not os.path.exists(path):
+            print(f"  [skip] missing factor IC summary: {path}")
+            return
+        summaries[model] = pd.read_csv(path)
+
+    display_names = {
+        "liquidity": "Liquidity",
+        "volatility": "Volatility",
+        "price_volume": "Price-volume",
+        "valuation": "Valuation",
+        "momentum": "Momentum",
+        "bs_deviation": "Mispricing",
+        "zl_deviation": "Mispricing",
+        "lsm_deviation": "Mispricing",
+    }
+    order = [
+        "liquidity",
+        "volatility",
+        "price_volume",
+        "valuation",
+        "momentum",
+        "mispricing",
+    ]
+    fig, axes = plt.subplots(
+        1,
+        3,
+        figsize=(15, 7),
+        sharex=True,
+        constrained_layout=True,
+    )
+    height = 0.36
+    for ax, (model, summary) in zip(axes, summaries.items()):
+        summary = summary.copy()
+        summary["sort_key"] = summary["factor"].map(
+            lambda value: "mispricing" if value.endswith("_deviation") else value
+        )
+        summary["sort_order"] = summary["sort_key"].map(order.index)
+        summary = summary.sort_values("sort_order")
+        y = np.arange(len(summary))
+        ax.barh(
+            y - height / 2,
+            summary["mean_ic"],
+            height,
+            color="#2F5597",
+            label="Mean IC",
+        )
+        ax.barh(
+            y + height / 2,
+            summary["mean_rank_ic"],
+            height,
+            color="#C99A2E",
+            label="Mean Rank IC",
+        )
+        ax.axvline(0, color="#333333", linewidth=0.8)
+        ax.set_yticks(y, [display_names[value] for value in summary["factor"]])
+        ax.invert_yaxis()
+        ax.set_title(model)
+        ax.grid(axis="x", color="#D9DDE3", linewidth=0.6, alpha=0.8)
+    axes[0].set_ylabel("Direction-adjusted factor")
+    fig.supxlabel("Correlation with next holding-period return")
+    fig.suptitle("Monthly factor IC and Rank IC, 2019-01-25 to 2026-08-28")
+    axes[1].legend(loc="lower right", frameon=False)
+    _save(os.path.join(MF_DIR, "factor_ic_comparison.png"))
 
 
 # ── 入口 ──────────────────────────────────────────────────────────────────────
@@ -508,6 +630,7 @@ def main() -> None:
     plot_lsm_timeseries()
     plot_strategy_performance()
     plot_factor_correlation()
+    plot_factor_ic_comparison()
 
     print("=" * 60)
     print("完成。")

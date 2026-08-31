@@ -26,9 +26,19 @@
 
 同期中证转债指数年化收益为 7.08%。定价拟合改善没有机械地转化为更强的策略表现。LSM 的价格误差更低，但其组合未稳定超越 ZL，最大回撤也更高。这一区分避免用单一回测指标为模型复杂度背书。
 
+因子预测检验覆盖相同的 91 个持有期。月末因子只对应下一持有期收益，并在每个模型内使用六因子数据完整且通过交易筛选的共同截面。
+
+| 定价偏差 | IC | Rank IC | ICIR | Rank ICIR | IC 为正比例 | Rank IC 为正比例 |
+| --- | --- | --- | --- | --- | --- | --- |
+| BS | 0.077 | 0.044 | 0.48 | 0.27 | 65.9% | 58.2% |
+| ZL | 0.096 | 0.081 | 0.50 | 0.51 | 72.5% | 70.3% |
+| LSM | 0.076 | 0.051 | 0.50 | 0.34 | 65.9% | 61.5% |
+
+ZL 定价偏差的 IC 与 Rank IC 最稳定。估值因子也呈正预测关系，流动性、波动率和量价因子的平均 Rank IC 则为负。这些结果与定价偏差单因子策略优于机械六因子等权组合的表现一致。完整的 18 组因子汇总和逐期列表见 [README](../README.md#因子相关性与预测检验)。
+
 ### 结论边界
 
-定价偏差与流动性、波动率、量价、传统估值及动量因子的线性相关性较低，说明它提供了不同于常见风格指标的信息，但这不等于因果独立。结果仍受波动率与信用利差估计、条款行为假设、样本内选择、交易容量和卖空约束影响。当前证据支持把三种模型视为互补的估值工具，不支持将其解释为无风险套利。
+定价偏差与流动性、动量和量价因子的相关性较弱，但与估值因子的 Pearson 相关为 0.465 至 0.558，Spearman 相关为 0.571 至 0.683。定价信号含有额外信息，也与传统估值部分重合。IC 与显著性统计仍属于样本内描述，结果还受波动率与信用利差估计、条款行为假设、交易容量和卖空约束影响。当前证据支持把三种模型视为互补的估值工具，不支持将其解释为无风险套利。
 
 ## English
 
@@ -50,9 +60,11 @@ Across 91 return observations from 2019-01-25 to 2026-08-28, the net-of-cost equ
 
 The most informative result is that better pricing fit does not mechanically produce a stronger investment strategy. LSM reduces valuation error, yet it does not consistently outperform ZL and experiences a larger drawdown. This distinction prevents model complexity from being justified by a single favorable metric.
 
+The factor-predictive test covers the same 91 holding periods. Month-end factors are matched only to next-period returns and use a common eligible cross-section within each model. ZL mispricing has the strongest IC and Rank IC at 0.096 and 0.081, with positive ratios of 72.5% and 70.3%. BS and LSM mispricing also remain positive. Valuation is positive, while liquidity, volatility, and price-volume have negative average Rank IC. The full 18-factor summary and period-level lists are available in the [README](../README.md#factor-correlation-and-predictive-tests).
+
 ### Interpretation limits
 
-Mispricing has low linear correlation with liquidity, volatility, price-volume, conventional valuation, and momentum factors. It therefore adds information beyond common style measures, but low correlation does not establish causal independence. The findings remain sensitive to volatility and credit-spread estimates, clause-behavior assumptions, in-sample selection, capacity, and short-sale constraints. The evidence supports complementary valuation anchors, not a claim of risk-free arbitrage.
+Mispricing has weak correlation with liquidity, momentum, and price-volume, but its Pearson correlation with valuation ranges from 0.465 to 0.558 and its Spearman correlation ranges from 0.571 to 0.683. It contributes information while partly overlapping with conventional valuation. IC and significance statistics remain descriptive in-sample evidence. The findings are also sensitive to volatility and credit-spread estimates, clause-behavior assumptions, capacity, and short-sale constraints. The evidence supports complementary valuation anchors, not a claim of risk-free arbitrage.
 
 ## Update Contract | 更新约束
 

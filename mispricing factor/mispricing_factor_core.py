@@ -16,11 +16,12 @@ mispricing_factor_core.py — 6因子复合策略回测（共享核心，BS/ZL/L
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
 import warnings
 from datetime import timedelta
 import glob
+import hashlib
+import json
 import re
 import sys
 
@@ -33,6 +34,8 @@ BACKTEST_DIR = REPO_ROOT / "backtest"
 LS_DIR = REPO_ROOT / "long-short strategy"
 MIN_DAILY_TURNOVER_WAN = 500.0
 MIN_OUTSTANDING_BALANCE_WAN = 3_000.0
+MIN_IC_CROSS_SECTION = 10
+FACTOR_DIAGNOSTICS_VERSION = 1
 sys.path.insert(0, str(BACKTEST_DIR))
 
 from market_data_contracts import (  # noqa: E402
@@ -73,6 +76,7 @@ class MultiFactorBacktest:
         self.rebalance_dates = None
         self.bond_filters_data = None  # 转债筛选数据
         self.ic_history_df = None  # IC 历史数据
+        self.factor_ic_records = []
         self.risk_free_curve = None
         self.aligned_factors = {}  # 对齐后的原始因子
         self.normalized_factors = {}  # 对齐且Z-Score后的因子
@@ -223,7 +227,10 @@ class MultiFactorBacktest:
 
     def check_factor_correlation(self):
         """
-        检查因子相关性并绘制热力图
+        计算因子 Pearson/Spearman 相关性并绘制双面板热力图。
+
+        相关性使用相同 date × bond 单元的完整观测。估值因子反向后，
+        所有因子均统一为数值越高越有利于下一期收益。
         """
         print("\n" + "=" * 60)
         print("检查因子相关性")
@@ -250,31 +257,76 @@ class MultiFactorBacktest:
             print("  警告: 无法计算相关性，有效数据为空")
             return
 
-        # 2. 计算相关性矩阵
-        corr_matrix = merged_df.corr()
+        if "valuation" in merged_df.columns:
+            merged_df["valuation"] = -merged_df["valuation"]
 
-        print("  因子相关性矩阵:")
-        print(corr_matrix)
+        pearson = merged_df.corr(method="pearson")
+        spearman = merged_df.corr(method="spearman")
+
+        print("  Pearson 因子相关性矩阵:")
+        print(pearson)
+        print("  Spearman 因子相关性矩阵:")
+        print(spearman)
+
+        pearson_path = self.data_dir / (
+            f"{self.model}_factor_correlation_pearson.csv"
+        )
+        spearman_path = self.data_dir / (
+            f"{self.model}_factor_correlation_spearman.csv"
+        )
+        pearson.to_csv(pearson_path, encoding="utf-8-sig")
+        spearman.to_csv(spearman_path, encoding="utf-8-sig")
 
         # 3. 检查高相关性
         high_corr_pairs = []
-        for i in range(len(corr_matrix.columns)):
-            for j in range(i + 1, len(corr_matrix.columns)):
-                val = corr_matrix.iloc[i, j]
+        for i in range(len(pearson.columns)):
+            for j in range(i + 1, len(pearson.columns)):
+                val = pearson.iloc[i, j]
                 if abs(val) > 0.8:
-                    pair = (corr_matrix.columns[i], corr_matrix.columns[j])
+                    pair = (pearson.columns[i], pearson.columns[j])
                     high_corr_pairs.append((pair, val))
                     print(f"  [警告] 因子高度相关: {pair[0]} - {pair[1]} = {val:.4f}")
 
-        # 4. 绘制热力图
-        plt.figure(figsize=(10, 8))
-        sns.heatmap(corr_matrix, annot=True, cmap="RdBu_r", center=0, vmin=-1, vmax=1)
-        plt.title("因子相关性热力图")
+        fig, axes = plt.subplots(
+            1,
+            2,
+            figsize=(16, 7),
+            constrained_layout=True,
+        )
+        image = None
+        for ax, matrix, title in (
+            (axes[0], pearson, "Pearson linear correlation"),
+            (axes[1], spearman, "Spearman rank correlation"),
+        ):
+            image = ax.imshow(matrix.to_numpy(), cmap="RdBu_r", vmin=-1, vmax=1)
+            ax.set_xticks(np.arange(len(matrix.columns)), matrix.columns)
+            ax.set_yticks(np.arange(len(matrix.index)), matrix.index)
+            ax.tick_params(axis="x", rotation=45)
+            for row in range(len(matrix.index)):
+                for column in range(len(matrix.columns)):
+                    value = matrix.iloc[row, column]
+                    ax.text(
+                        column,
+                        row,
+                        f"{value:.2f}",
+                        ha="center",
+                        va="center",
+                        color="white" if abs(value) >= 0.55 else "#222222",
+                        fontsize=8,
+                    )
+            ax.set_title(title)
+        fig.colorbar(image, ax=axes, shrink=0.8, pad=0.02)
+        fig.suptitle(
+            f"{self.model} factor correlation, common date-bond observations",
+            fontsize=14,
+        )
 
         save_path = self.data_dir / f"{self.model}_factor_correlation.png"
         plt.savefig(save_path)
         print(f"  相关性热力图已保存至: {save_path}")
         plt.close()
+
+        return {"pearson": pearson, "spearman": spearman}
 
     def get_rebalance_dates(self, start_date="2019-01-01"):
         """获取月度再平衡日期（每月最后一个交易日）"""
@@ -513,61 +565,213 @@ class MultiFactorBacktest:
             return data * 0  # 如果标准差为0，返回0
         return (data - mean) / std
 
-    def calculate_rank_ic(self, date, next_date):
-        """
-        计算指定周期的 Rank IC
-        """
-        # 1. 获取当期因子值 (原始值)
-        factor_values = {}
-
-        # 优先使用预处理过的对齐因子
-        if self.aligned_factors:
-            for name, df in self.aligned_factors.items():
-                if date in df.index:
-                    factor_values[name] = df.loc[date]
-        else:
-            for name, df in self.factors.items():
-                if date in df.index:
-                    factor_values[name] = df.loc[date]
-                else:
-                    # Forward fill logic
-                    valid_dates = df.index[df.index <= date]
-                    if len(valid_dates) > 0:
-                        factor_values[name] = df.loc[valid_dates[-1]]
-                    else:
-                        continue
-
-        if not factor_values:
-            return None
-
-        factors_df = pd.DataFrame(factor_values)
-
-        # 2. 获取下期收益率
+    def calculate_forward_bond_returns(self, date, next_date, bond_codes):
+        """Return per-bond holding-period returns without survivorship drops."""
         if date not in self.prices.index or next_date not in self.prices.index:
-            return None
+            return pd.Series(dtype=float, name="forward_return")
 
-        p0 = self.prices.loc[date]
-        p1 = self.prices.loc[next_date]
-        # 计算收益率
-        returns = (p1 - p0) / p0
-        returns.name = "return"
+        available = [code for code in bond_codes if code in self.prices.columns]
+        if not available:
+            return pd.Series(dtype=float, name="forward_return")
 
-        # 3. 合并数据
-        # 确保只计算都有数据的转债
-        data = pd.concat([factors_df, returns], axis=1).dropna()
+        price_t0 = self.prices.loc[date, available]
+        price_t1 = self.prices.loc[next_date, available].copy()
 
-        if len(data) < 10:  # 样本太少
-            return None
+        for bond_code in price_t1.index[price_t1.isna()]:
+            observed_daily_prices = getattr(
+                self, "observed_daily_prices", None
+            )
+            delist_dates = getattr(self, "delist_dates", None)
+            known_delist_date = (
+                delist_dates.get(bond_code)
+                if delist_dates is not None
+                else None
+            )
+            exit_prices = (
+                observed_daily_prices
+                if observed_daily_prices is not None
+                and bond_code in observed_daily_prices.columns
+                else self.prices
+                if pd.notna(known_delist_date)
+                and known_delist_date <= next_date
+                else None
+            )
+            if exit_prices is None:
+                continue
+            observed = exit_prices.loc[
+                (exit_prices.index >= date)
+                & (exit_prices.index <= next_date),
+                bond_code,
+            ].dropna()
+            if not observed.empty:
+                price_t1.loc[bond_code] = observed.iloc[-1]
 
-        # 4. 计算 Rank IC (Spearman correlation)
-        ic = {}
-        for name in self.factors.keys():
-            if name in data.columns:
-                ic[name] = data[name].corr(data["return"], method="spearman")
-            else:
-                ic[name] = 0.0  # 缺失因子 IC 设为 0
+        returns = (price_t1 - price_t0) / price_t0
+        returns = returns.replace([np.inf, -np.inf], np.nan)
+        returns.name = "forward_return"
+        return returns
 
-        return pd.Series(ic, name=date)
+    def calculate_factor_ic_period(self, date, next_date, eligible_codes):
+        """Calculate Pearson IC and Spearman Rank IC for one holding period."""
+        returns = self.calculate_forward_bond_returns(
+            date,
+            next_date,
+            eligible_codes,
+        )
+        if returns.empty:
+            return []
+
+        records = []
+        for factor_name, factor_df in self.normalized_factors.items():
+            factor_values = factor_df.loc[date, eligible_codes].copy()
+            if factor_name == "valuation":
+                factor_values = -factor_values
+            factor_values.name = "factor_value"
+            paired = pd.concat([factor_values, returns], axis=1).dropna()
+            if len(paired) < MIN_IC_CROSS_SECTION:
+                continue
+            records.append(
+                {
+                    "model": self.model,
+                    "factor": factor_name,
+                    "rebalance_date": date,
+                    "return_date": next_date,
+                    "n_obs": len(paired),
+                    "ic": paired["factor_value"].corr(
+                        paired["forward_return"],
+                        method="pearson",
+                    ),
+                    "rank_ic": paired["factor_value"].rank().corr(
+                        paired["forward_return"].rank()
+                    ),
+                }
+            )
+        return records
+
+    def _factor_ic_paths(self):
+        prefix = f"{self.model}_factor_ic"
+        return {
+            "history": self.data_dir / f"{prefix}_history.csv",
+            "summary": self.data_dir / f"{prefix}_summary.csv",
+            "manifest": self.data_dir / f"{prefix}_manifest.json",
+        }
+
+    @staticmethod
+    def _file_sha256(path):
+        digest = hashlib.sha256()
+        with Path(path).open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    def _factor_history_fingerprint(self, cutoff):
+        digest = hashlib.sha256()
+        digest.update(
+            f"{self.model}|{FACTOR_DIAGNOSTICS_VERSION}".encode("utf-8")
+        )
+        frames = {"prices": self.prices, **self.aligned_factors}
+        for name in sorted(frames):
+            frame = frames[name].loc[frames[name].index <= cutoff]
+            digest.update(name.encode("utf-8"))
+            digest.update(
+                pd.util.hash_pandas_object(frame, index=True)
+                .to_numpy(dtype="uint64")
+                .tobytes()
+            )
+            digest.update("|".join(map(str, frame.columns)).encode("utf-8"))
+        return digest.hexdigest()
+
+    def _load_factor_ic_history(self):
+        paths = self._factor_ic_paths()
+        history_exists = paths["history"].exists()
+        manifest_exists = paths["manifest"].exists()
+        if history_exists != manifest_exists:
+            raise DataContractError(
+                "factor IC history and manifest must exist together"
+            )
+        if not history_exists:
+            return pd.DataFrame(), None
+
+        manifest = json.loads(paths["manifest"].read_text(encoding="utf-8"))
+        if manifest.get("methodology_version") != FACTOR_DIAGNOSTICS_VERSION:
+            raise DataContractError(
+                "factor IC methodology changed; explicit diagnostics rebuild required"
+            )
+        if manifest.get("model") != self.model:
+            raise DataContractError("factor IC manifest model mismatch")
+        if self._file_sha256(paths["history"]) != manifest.get("history_sha256"):
+            raise DataContractError("factor IC history hash mismatch")
+
+        history = pd.read_csv(paths["history"])
+        for column in ("rebalance_date", "return_date"):
+            history[column] = pd.to_datetime(history[column])
+        cutoff = pd.Timestamp(manifest["last_rebalance_date"])
+        if self._factor_history_fingerprint(cutoff) != manifest.get(
+            "historical_input_fingerprint"
+        ):
+            raise DataContractError(
+                "factor IC historical inputs changed; explicit diagnostics rebuild required"
+            )
+        return history, pd.Timestamp(manifest["last_return_date"])
+
+    def save_factor_diagnostics(self):
+        """Append new IC periods, refresh summaries, and write a verified manifest."""
+        paths = self._factor_ic_paths()
+        if self.ic_history_df is None or self.ic_history_df.empty:
+            raise DataContractError("factor IC history is empty")
+
+        summary_rows = []
+        for factor_name, group in self.ic_history_df.groupby("factor"):
+            row = {
+                "model": self.model,
+                "factor": factor_name,
+                "periods": len(group),
+                "mean_cross_section_n": group["n_obs"].mean(),
+            }
+            for metric in ("ic", "rank_ic"):
+                values = group[metric].dropna()
+                count = len(values)
+                mean = values.mean()
+                std = values.std(ddof=1)
+                row[f"mean_{metric}"] = mean
+                row[f"std_{metric}"] = std
+                row[f"{metric}ir"] = mean / std if std > 0 else np.nan
+                row[f"{metric}_t_stat"] = (
+                    mean / (std / np.sqrt(count))
+                    if std > 0 and count > 1
+                    else np.nan
+                )
+                row[f"{metric}_positive_ratio"] = (values > 0).mean()
+            summary_rows.append(row)
+
+        summary = pd.DataFrame(summary_rows).sort_values("factor")
+        history = self.ic_history_df.sort_values(
+            ["return_date", "factor"]
+        ).reset_index(drop=True)
+        history.to_csv(paths["history"], index=False, encoding="utf-8-sig")
+        summary.to_csv(paths["summary"], index=False, encoding="utf-8-sig")
+
+        last_row = history.sort_values("return_date").iloc[-1]
+        manifest = {
+            "model": self.model,
+            "methodology_version": FACTOR_DIAGNOSTICS_VERSION,
+            "last_rebalance_date": pd.Timestamp(
+                last_row["rebalance_date"]
+            ).strftime("%Y-%m-%d"),
+            "last_return_date": pd.Timestamp(last_row["return_date"]).strftime(
+                "%Y-%m-%d"
+            ),
+            "history_sha256": self._file_sha256(paths["history"]),
+            "historical_input_fingerprint": self._factor_history_fingerprint(
+                pd.Timestamp(last_row["rebalance_date"])
+            ),
+        }
+        paths["manifest"].write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"  Factor IC history saved to: {paths['history']}")
+        print(f"  Factor IC summary saved to: {paths['summary']}")
 
     def calculate_dynamic_weights(self, date):
         """
@@ -679,60 +883,21 @@ class MultiFactorBacktest:
         计算组合收益率
         holdings: 持仓列表
         """
-        if date not in self.prices.index or next_date not in self.prices.index:
-            return np.nan
-
         if len(holdings) == 0:
             return np.nan
-
-        # 过滤出在价格数据中存在的转债
-        available_holdings = [h for h in holdings if h in self.prices.columns]
-
-        if len(available_holdings) == 0:
-            return np.nan
-
-        price_t0 = self.prices.loc[date, available_holdings]
-        price_t1 = self.prices.loc[next_date, available_holdings].copy()
-
-        # If the rebalance date is not a trading day for a held bond, mark it
-        # to the last observed daily close available as of that date. This
-        # keeps the original holding in the portfolio without survivorship
-        # filtering or inventing a future price.
-        for bond_code in price_t1.index[price_t1.isna()]:
-            observed_daily_prices = getattr(
-                self, "observed_daily_prices", None
-            )
-            delist_dates = getattr(self, "delist_dates", None)
-            known_delist_date = (
-                delist_dates.get(bond_code)
-                if delist_dates is not None
-                else None
-            )
-            exit_prices = (
-                observed_daily_prices
-                if observed_daily_prices is not None
-                and bond_code in observed_daily_prices.columns
-                else self.prices
-                if pd.notna(known_delist_date)
-                and known_delist_date <= next_date
-                else None
-            )
-            if exit_prices is None:
-                continue
-            observed = exit_prices.loc[
-                (exit_prices.index >= date)
-                & (exit_prices.index <= next_date),
-                bond_code,
-            ].dropna()
-            if not observed.empty:
-                price_t1.loc[bond_code] = observed.iloc[-1]
-
-        # 计算收益率
-        returns = (price_t1 - price_t0) / price_t0
+        returns = self.calculate_forward_bond_returns(
+            date,
+            next_date,
+            holdings,
+        )
 
         # A held bond with no end price is not silently removed from the
         # portfolio; doing so creates survivorship bias.
-        if returns.isna().any() or not np.isfinite(returns).all():
+        if (
+            returns.empty
+            or returns.isna().any()
+            or not np.isfinite(returns).all()
+        ):
             return np.nan
 
         return returns.mean()
@@ -920,6 +1085,8 @@ class MultiFactorBacktest:
         print("=" * 60)
 
         self.preprocess_factors()
+        existing_ic_history, ic_cutoff = self._load_factor_ic_history()
+        self.factor_ic_records = []
         results = []
         
         prev_holdings = {"ew": set()}
@@ -945,6 +1112,15 @@ class MultiFactorBacktest:
             signal_ew = signal_ew[signal_ew.index.isin(self.prices.columns)]
             eligible_bonds_ew = self.filter_bonds(date, signal_ew.index.tolist())
             signal_ew = signal_ew[signal_ew.index.isin(eligible_bonds_ew)]
+
+            if ic_cutoff is None or next_date > ic_cutoff:
+                self.factor_ic_records.extend(
+                    self.calculate_factor_ic_period(
+                        date,
+                        next_date,
+                        signal_ew.index.tolist(),
+                    )
+                )
             
             # 单因子测试
             factor_returns = {}
@@ -1006,6 +1182,20 @@ class MultiFactorBacktest:
             raise DataContractError(
                 "backtest return unavailable: "
                 f"{first_column} at {pd.Timestamp(first_date).date()}"
+            )
+
+        new_ic_history = pd.DataFrame(self.factor_ic_records)
+        if existing_ic_history.empty:
+            self.ic_history_df = new_ic_history
+        elif new_ic_history.empty:
+            self.ic_history_df = existing_ic_history
+        else:
+            self.ic_history_df = pd.concat(
+                [existing_ic_history, new_ic_history],
+                ignore_index=True,
+            ).drop_duplicates(
+                subset=["model", "factor", "rebalance_date", "return_date"],
+                keep="last",
             )
 
         print(f"\n回测完成！共 {len(self.results_df)} 期")
@@ -1303,6 +1493,12 @@ def main(model="BS"):
 
     # 运行回测
     backtest.run_backtest(top_pct=0.2, bottom_pct=0.2)
+
+    # 首次初始化全历史；之后只追加 Manifest 截止日后的新持有期。
+    if backtest.factor_ic_records:
+        backtest.save_factor_diagnostics()
+    else:
+        print("  Factor IC diagnostics are current; no history files rewritten")
 
     # 计算指标
     backtest.calculate_metrics()

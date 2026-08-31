@@ -255,6 +255,41 @@ $$
 
 ---
 
+## 因子相关性与预测检验
+
+因子间冗余使用 Pearson 线性相关和 Spearman 秩相关共同检查。所有因子先统一方向，数值越高代表预期收益越高。定价偏差与流动性、动量和量价因子的相关性较弱，但与估值因子存在清晰重合。BS、ZL 与 LSM 定价偏差对估值因子的 Pearson 相关分别为 0.558、0.535 和 0.465，Spearman 相关分别为 0.612、0.683 和 0.571。因此，定价偏差信号提供了额外信息，但不能被描述为与传统估值正交。
+
+预测检验使用月末可得因子和下一持有期个券收益。每个模型的六个因子共享同一筛选后截面，共覆盖 91 个持有期。IC 为 Pearson 截面相关，Rank IC 为 Spearman 截面相关，ICIR 均按月度均值除以月度标准差计算，未年化。
+
+| 模型 | 因子 | IC | Rank IC | ICIR | Rank ICIR | IC 为正比例 |
+| --- | --- | --- | --- | --- | --- | --- |
+| BS | 流动性 | -0.021 | -0.070 | -0.10 | -0.39 | 46.2% |
+| BS | 波动率 | -0.016 | -0.069 | -0.06 | -0.26 | 45.1% |
+| BS | 量价 | -0.003 | -0.058 | -0.02 | -0.37 | 47.3% |
+| BS | 估值 | 0.047 | 0.057 | 0.24 | 0.33 | 61.5% |
+| BS | 动量 | 0.017 | -0.010 | 0.09 | -0.06 | 59.3% |
+| BS | 定价偏差 | 0.077 | 0.044 | 0.48 | 0.27 | 65.9% |
+| ZL | 流动性 | -0.018 | -0.071 | -0.08 | -0.36 | 47.3% |
+| ZL | 波动率 | -0.019 | -0.071 | -0.07 | -0.28 | 49.5% |
+| ZL | 量价 | -0.005 | -0.058 | -0.03 | -0.35 | 45.1% |
+| ZL | 估值 | 0.049 | 0.059 | 0.25 | 0.34 | 64.8% |
+| ZL | 动量 | 0.017 | -0.012 | 0.08 | -0.08 | 58.2% |
+| ZL | 定价偏差 | 0.096 | 0.081 | 0.50 | 0.51 | 72.5% |
+| LSM | 流动性 | -0.018 | -0.071 | -0.08 | -0.36 | 47.3% |
+| LSM | 波动率 | -0.019 | -0.071 | -0.07 | -0.28 | 49.5% |
+| LSM | 量价 | -0.005 | -0.058 | -0.03 | -0.35 | 45.1% |
+| LSM | 估值 | 0.049 | 0.059 | 0.25 | 0.34 | 64.8% |
+| LSM | 动量 | 0.017 | -0.012 | 0.08 | -0.08 | 58.2% |
+| LSM | 定价偏差 | 0.076 | 0.051 | 0.50 | 0.34 | 65.9% |
+
+ZL 定价偏差的平均 IC 和 Rank IC 最高，分别为 0.096 和 0.081，两个正值比例分别为 72.5% 和 70.3%。BS 与 LSM 定价偏差也保持正 IC，但秩相关较弱。流动性、波动率和量价因子的平均 Rank IC 为负，说明预设方向在当前样本中缺乏稳定支持。这一结果与定价偏差单因子优于机械六因子等权组合的回测表现一致。
+
+逐期明细与完整统计见 [BS](mispricing%20factor/BS_factor_ic_history.csv)、[ZL](mispricing%20factor/ZL_factor_ic_history.csv)、[LSM](mispricing%20factor/LSM_factor_ic_history.csv) IC 历史，以及对应的 [BS 汇总](mispricing%20factor/BS_factor_ic_summary.csv)、[ZL 汇总](mispricing%20factor/ZL_factor_ic_summary.csv) 和 [LSM 汇总](mispricing%20factor/LSM_factor_ic_summary.csv)。
+
+![三模型因子 IC 与 Rank IC](mispricing%20factor/factor_ic_comparison.png)
+
+---
+
 ## 关键图表
 
 ### 定价误差与市场价格时序（BS / ZL / LSM）
@@ -273,7 +308,7 @@ $$
 
 ![LSM 多空策略绩效](long-short%20strategy/LSM_model_performance.png)
 
-### 错误定价因子相关性（BS / ZL / LSM）
+### 因子 Pearson 与 Spearman 相关性（BS / ZL / LSM）
 
 ![BS 错误定价因子相关性](mispricing%20factor/BS_factor_correlation.png)
 
@@ -285,7 +320,7 @@ $$
 
 ## 研究判断
 
-BS、ZL 与 LSM 提供了不同的估值视角。BS 对权益价格和波动率更敏感，ZL 更重视条款约束和债券现金流，LSM 补充自愿提前转股与继续持有决策。错误定价因子与常见风格因子的线性相关性较低，说明它含有额外信息，但不能据此声称因果独立。
+BS、ZL 与 LSM 提供了不同的估值视角。BS 对权益价格和波动率更敏感，ZL 更重视条款约束和债券现金流，LSM 补充自愿提前转股与继续持有决策。三种定价偏差都与估值因子部分重合，其中 ZL 的预测稳定性最高。相关性和 IC 共同表明，模型定价含有额外信息，也暴露了机械等权合成会被方向不稳定的传统因子稀释的问题。
 
 ---
 
@@ -562,6 +597,41 @@ Summary: LSM narrows mean full-sample pricing bias from ZL's -12.85 CNY to -2.32
 
 ---
 
+## Factor correlation and predictive tests
+
+Factor redundancy is evaluated with both Pearson linear correlation and Spearman rank correlation. All factors are direction-adjusted so that a higher value represents a higher expected return. Mispricing has weak correlation with liquidity, momentum, and price-volume factors, but overlaps materially with valuation. The Pearson correlations between valuation and BS, ZL, and LSM mispricing are 0.558, 0.535, and 0.465. Their Spearman correlations are 0.612, 0.683, and 0.571. Mispricing therefore contributes information beyond a simple valuation measure, but it is not orthogonal to conventional valuation.
+
+The predictive test relates each month-end factor to individual-bond returns over the next holding period. The six factors for each model use the same filtered cross-section across 91 periods. IC is the Pearson cross-sectional correlation, Rank IC is its Spearman counterpart, and both ICIR measures are monthly means divided by monthly standard deviations without annualization.
+
+| Model | Factor | IC | Rank IC | ICIR | Rank ICIR | Positive IC |
+| --- | --- | --- | --- | --- | --- | --- |
+| BS | Liquidity | -0.021 | -0.070 | -0.10 | -0.39 | 46.2% |
+| BS | Volatility | -0.016 | -0.069 | -0.06 | -0.26 | 45.1% |
+| BS | Price-volume | -0.003 | -0.058 | -0.02 | -0.37 | 47.3% |
+| BS | Valuation | 0.047 | 0.057 | 0.24 | 0.33 | 61.5% |
+| BS | Momentum | 0.017 | -0.010 | 0.09 | -0.06 | 59.3% |
+| BS | Mispricing | 0.077 | 0.044 | 0.48 | 0.27 | 65.9% |
+| ZL | Liquidity | -0.018 | -0.071 | -0.08 | -0.36 | 47.3% |
+| ZL | Volatility | -0.019 | -0.071 | -0.07 | -0.28 | 49.5% |
+| ZL | Price-volume | -0.005 | -0.058 | -0.03 | -0.35 | 45.1% |
+| ZL | Valuation | 0.049 | 0.059 | 0.25 | 0.34 | 64.8% |
+| ZL | Momentum | 0.017 | -0.012 | 0.08 | -0.08 | 58.2% |
+| ZL | Mispricing | 0.096 | 0.081 | 0.50 | 0.51 | 72.5% |
+| LSM | Liquidity | -0.018 | -0.071 | -0.08 | -0.36 | 47.3% |
+| LSM | Volatility | -0.019 | -0.071 | -0.07 | -0.28 | 49.5% |
+| LSM | Price-volume | -0.005 | -0.058 | -0.03 | -0.35 | 45.1% |
+| LSM | Valuation | 0.049 | 0.059 | 0.25 | 0.34 | 64.8% |
+| LSM | Momentum | 0.017 | -0.012 | 0.08 | -0.08 | 58.2% |
+| LSM | Mispricing | 0.076 | 0.051 | 0.50 | 0.34 | 65.9% |
+
+ZL mispricing has the strongest average IC and Rank IC at 0.096 and 0.081. Its positive IC and Rank IC ratios are 72.5% and 70.3%. BS and LSM mispricing also remain positive, although their rank relationships are weaker. Liquidity, volatility, and price-volume record negative mean Rank IC, so their assumed directions are not stable in this sample. This result is consistent with the pricing-factor portfolios outperforming the mechanical equal-weight six-factor combinations.
+
+Period-level observations are available for [BS](mispricing%20factor/BS_factor_ic_history.csv), [ZL](mispricing%20factor/ZL_factor_ic_history.csv), and [LSM](mispricing%20factor/LSM_factor_ic_history.csv). Full summaries are available for [BS](mispricing%20factor/BS_factor_ic_summary.csv), [ZL](mispricing%20factor/ZL_factor_ic_summary.csv), and [LSM](mispricing%20factor/LSM_factor_ic_summary.csv).
+
+![Factor IC and Rank IC across the three models](mispricing%20factor/factor_ic_comparison.png)
+
+---
+
 ## 🖼️ Key Figures
 
 ### Pricing vs Market Time Series (BS / ZL / LSM)
@@ -580,7 +650,7 @@ Summary: LSM narrows mean full-sample pricing bias from ZL's -12.85 CNY to -2.32
 
 ![LSM Long-Short Strategy Performance](long-short%20strategy/LSM_model_performance.png)
 
-### Mispricing Factor Correlation (BS / ZL / LSM)
+### Factor Pearson and Spearman Correlation (BS / ZL / LSM)
 
 ![BS Mispricing Factor Correlation](mispricing%20factor/BS_factor_correlation.png)
 
@@ -592,7 +662,7 @@ Summary: LSM narrows mean full-sample pricing bias from ZL's -12.85 CNY to -2.32
 
 ## Research interpretation
 
-BS, ZL, and LSM offer different valuation perspectives. BS is more sensitive to equity value and volatility. ZL emphasizes contractual constraints and bond cash flows. LSM adds voluntary early-conversion and continuation decisions. Mispricing has low linear correlation with common style factors, which suggests incremental information but does not establish causal independence.
+BS, ZL, and LSM offer different valuation perspectives. BS is more sensitive to equity value and volatility. ZL emphasizes contractual constraints and bond cash flows. LSM adds voluntary early-conversion and continuation decisions. All three mispricing measures overlap partly with valuation, while ZL has the most stable predictive relationship. Correlation and IC jointly show incremental model information and the dilution caused by mechanically combining conventional factors whose directions are unstable in this sample.
 
 ---
 

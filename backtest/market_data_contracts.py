@@ -16,7 +16,6 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
-from scipy.optimize import brentq
 
 
 CHINA_MARKET_TIMEZONE = ZoneInfo("Asia/Shanghai")
@@ -954,6 +953,8 @@ def implied_credit_spread(
     max_spread: float = 5.0,
 ) -> float:
     """Calibrate a non-negative spread to Tushare's observed pure-bond value."""
+
+    from scipy.optimize import brentq
 
     observed = float(observed_bond_value)
     times = np.asarray(cashflow_times, dtype=float)

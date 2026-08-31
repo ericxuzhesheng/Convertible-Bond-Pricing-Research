@@ -34,7 +34,7 @@ Convertible-Bond-Pricing-Research/
 │   ├── lsm_backend.py                  ← batched quadratic Longstaff-Schwartz engine
 │   ├── Z-L_backtest_GPU.py            ← disabled legacy entrypoint
 │   ├── full_history_rebuild.py        ← fail-closed full-history rebuild
-│   ├── regenerate_plots.py            ← 一键重生成 README 全部图表（无需重跑模型）
+│   ├── regenerate_plots.py            ← 一键重生成 README 图表（无需重跑模型）
 │   ├── weekly_update.bat              ← 周更新主入口（数据→模型→图表→Git推送）
 │   ├── setup_weekly_task.ps1          ← 一次性注册 Windows 任务计划程序
 │   ├── logs/                          ← weekly_update.bat 日志
@@ -71,7 +71,7 @@ python backtest/full_history_rebuild.py
 ### Regenerate README plots only (no model recomputation)
 
 ```bash
-# Reads existing XLSX outputs, regenerates all 9 README images in seconds
+# Reads existing XLSX/CSV outputs and regenerates the README images in seconds
 python backtest/regenerate_plots.py
 ```
 
@@ -96,7 +96,7 @@ The GitHub `weekly-incremental-cpu.yml` pipeline:
 1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_CPU_prod.py` — incrementally update weekly observed inputs and BS/ZL prices
 2. `LSM_backtest.py --weekly` — verifies its independent manifest and prices only later ZL dates
 3. `long-short strategy/update_benchmark.py` — updates the 000832.CSI benchmark
-4. `rebuild_research_outputs.py` — regenerates three model factors, strategies, and nine README plots
+4. `rebuild_research_outputs.py` — updates three model factors, append-only IC histories, strategies, and README plots
 5. validation + `git commit && git push origin main` — publishes only complete verified changes
 
 The Windows `weekly_update.bat` remains available as a manual CUDA path, but
@@ -164,6 +164,14 @@ parameters, and summary-workbook SHA-256 before calculating dates strictly later
 than its verified cutoff. If there are no later dates, it exits without rewriting
 outputs. Never pass `--initialize-history` in routine automation.
 
+### Factor diagnostics incremental logic
+
+Each BS, ZL, and LSM factor run stores period-level IC/Rank IC history, a summary,
+and an independent manifest under `mispricing factor/`. The manifest verifies the
+method version, historical-input fingerprint, and history-file SHA-256. Once the
+baseline exists, routine runs append only holding periods after `last_return_date`.
+Do not delete or bypass a factor IC manifest to force a historical rewrite.
+
 ### Windows console encoding
 
 All scripts that `print()` Chinese or emoji must include this header:
@@ -225,7 +233,7 @@ batch calls. Do not remove these sleeps.
   │     ├─ build_observed_factors.py  ← 从 Tushare 日频缓存重建五个非定价因子
   │     ├─ BS/ZL/LSM factor backtests
   │     ├─ monthly long-short strategy
-  │     └─ regenerate_plots.py        ← 重生成 README 全部 9 张图
+  │     └─ regenerate_plots.py        ← 重生成 README 图表与三模型 IC 对比图
   │
   └─ git add -u               ← 暂存所有已追踪的变更文件
        git commit              ← 仅在有实际变更时提交（跳过空提交）
@@ -242,9 +250,10 @@ batch calls. Do not remove these sleeps.
 | BS_model_performance.png | mispricing factor/B-S_alpha_strategy_results.csv | benchmark_nav, long_nav, bs_deviation_nav |
 | ZL_model_performance.png | mispricing factor/Z-L_alpha_strategy_results.csv | benchmark_nav, long_nav, zl_deviation_nav |
 | LSM_model_performance.png | mispricing factor/LSM_alpha_strategy_results.csv | benchmark_nav, long_nav, lsm_deviation_nav |
-| BS_factor_correlation.png | BS_Model_Summary.xlsx + mispricing factor/*.csv | 相对偏差 + 5 因子等权和 |
-| ZL_factor_correlation.png | ZL_Model_Summary.xlsx + mispricing factor/*.csv | 相对偏差 + 5 因子等权和 |
-| LSM_factor_correlation.png | LSM_Model_Summary.xlsx + mispricing factor/*.csv | 相对偏差 + 5 因子等权和 |
+| BS_factor_correlation.png | BS_Model_Summary.xlsx + five observed factor CSVs | Pearson + Spearman, direction-adjusted |
+| ZL_factor_correlation.png | ZL_Model_Summary.xlsx + five observed factor CSVs | Pearson + Spearman, direction-adjusted |
+| LSM_factor_correlation.png | LSM_Model_Summary.xlsx + five observed factor CSVs | Pearson + Spearman, direction-adjusted |
+| factor_ic_comparison.png | BS/ZL/LSM_factor_ic_summary.csv | mean IC + mean Rank IC |
 
 Factor CSV bond code format: `sh110030` → normalized to `110030.SH` by `_standardize_code()`.
 

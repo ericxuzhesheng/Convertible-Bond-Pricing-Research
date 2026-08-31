@@ -180,29 +180,73 @@ ZL 定价偏差因子。LSM 多因子组合的年化超额与 ZL 接近，但回
 \clearpage
 \sectionbar{四、因子关系与解释边界}
 
-错误定价因子与流动性、波动率、量价、传统估值及动量因子共同进入组合。
-相关性图用于判断定价偏差是否仅仅复制已有风格暴露。相关性较低只能说明
-线性重合有限，不能替代因果识别、样本外检验或容量分析。
+因子冗余同时使用 Pearson 线性相关与 Spearman 秩相关检验。估值因子先调整
+方向，使所有因子的数值越高都代表预期收益越高。定价偏差与流动性、动量和
+量价因子的关系较弱，但与估值因子有明显重合，因而不能将定价信号描述为
+与传统估值正交。
+
+\begin{table}[h!]
+  \centering
+  \caption{定价偏差与估值因子的相关性}
+  \begin{tabular}{lrr}
+    \toprule
+    模型 & Pearson & Spearman \\
+    \midrule
+    BS  & 0.558 & 0.612 \\
+    ZL  & 0.535 & 0.683 \\
+    LSM & 0.465 & 0.571 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+预测检验把每个月末的因子值只与下一持有期的单券收益配对，并在每个模型内
+保留六因子数据完整且通过交易筛选的共同截面。2019-01-25 至 2026-08-28
+共有 91 个可检验持有期。下表的 ICIR 与 Rank ICIR 为逐期均值除以逐期标准差，
+未作年化。
+
+\begin{table}[h!]
+  \centering
+  \caption{逐因子 IC 与 Rank IC 汇总}
+  \scriptsize
+  \setlength{\tabcolsep}{3.3pt}
+  \begin{tabular}{llrrrrr}
+    \toprule
+    模型 & 因子 & IC & Rank IC & ICIR & Rank ICIR & IC 为正 \\
+    \midrule
+    BS & 流动性 & -0.021 & -0.070 & -0.10 & -0.39 & 46.2\% \\
+       & 波动率 & -0.016 & -0.069 & -0.06 & -0.26 & 45.1\% \\
+       & 量价 & -0.003 & -0.058 & -0.02 & -0.37 & 47.3\% \\
+       & 估值 & 0.047 & 0.057 & 0.24 & 0.33 & 61.5\% \\
+       & 动量 & 0.017 & -0.010 & 0.09 & -0.06 & 59.3\% \\
+       & 定价偏差 & 0.077 & 0.044 & 0.48 & 0.27 & 65.9\% \\
+    \midrule
+    ZL & 流动性 & -0.018 & -0.071 & -0.08 & -0.36 & 47.3\% \\
+       & 波动率 & -0.019 & -0.071 & -0.07 & -0.28 & 49.5\% \\
+       & 量价 & -0.005 & -0.058 & -0.03 & -0.35 & 45.1\% \\
+       & 估值 & 0.049 & 0.059 & 0.25 & 0.34 & 64.8\% \\
+       & 动量 & 0.017 & -0.012 & 0.08 & -0.08 & 58.2\% \\
+       & 定价偏差 & 0.096 & 0.081 & 0.50 & 0.51 & 72.5\% \\
+    \midrule
+    LSM & 流动性 & -0.018 & -0.071 & -0.08 & -0.36 & 47.3\% \\
+        & 波动率 & -0.019 & -0.071 & -0.07 & -0.28 & 49.5\% \\
+        & 量价 & -0.005 & -0.058 & -0.03 & -0.35 & 45.1\% \\
+        & 估值 & 0.049 & 0.059 & 0.25 & 0.34 & 64.8\% \\
+        & 动量 & 0.017 & -0.012 & 0.08 & -0.08 & 58.2\% \\
+        & 定价偏差 & 0.076 & 0.051 & 0.50 & 0.34 & 65.9\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \begin{figure}[h!]
   \centering
-  \begin{minipage}{0.32\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{../mispricing factor/BS_factor_correlation.png}\\
-    \small (a) BS
-  \end{minipage}\hfill
-  \begin{minipage}{0.32\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{../mispricing factor/ZL_factor_correlation.png}\\
-    \small (b) ZL
-  \end{minipage}\hfill
-  \begin{minipage}{0.32\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{../mispricing factor/LSM_factor_correlation.png}\\
-    \small (c) LSM
-  \end{minipage}
-  \caption{三种模型定价偏差与五类传统因子的相关性}
+  \includegraphics[width=0.94\textwidth]{../mispricing factor/factor_ic_comparison.png}
+  \caption{三种模型六因子的平均 IC 与 Rank IC}
 \end{figure}
+
+ZL 定价偏差的预测关系最稳定，平均 IC 为 0.096，平均 Rank IC 为 0.081，
+两者为正的比例分别为 72.5\% 和 70.3\%。估值因子也呈正预测关系，流动性、
+波动率与量价因子的平均 Rank IC 则为负。这个结果与定价偏差单因子策略优于
+机械六因子等权组合的表现一致，但仍属于样本内描述，不能作为因果证据。
 
 \clearpage
 \sectionbar{五、数据与复现口径}
@@ -219,7 +263,8 @@ ZL 定价偏差因子。LSM 多因子组合的年化超额与 ZL 接近，但回
   交易成本 & 多头因子回测扣除双边 0.06\% 交易成本。 \\
   夏普口径 & 使用回测期内实际观测的一年期国债收益率均值作为无风险利率。 \\
   输出依据 & \texttt{BS/ZL/LSM\_Model\_Summary.xlsx}、
-             \texttt{B-S/Z-L/LSM\_alpha\_strategy\_results.csv} 与对应绩效表。 \\
+             \texttt{B-S/Z-L/LSM\_alpha\_strategy\_results.csv}、因子相关性矩阵、
+             逐期 IC/Rank IC 列表及其 Manifest。 \\
   增量约束 & 日常周更新从 \texttt{ZL\_Model\_Manifest.json} 读取已验证截止日，
              LSM 使用独立 Manifest；各模型只定价后续新增交易周。 \\
   \bottomrule
@@ -245,6 +290,7 @@ ZL 定价偏差因子。LSM 多因子组合的年化超额与 ZL 接近，但回
         不可收敛的定价偏离。
   \item 中国可转债卖空和对冲机制有限，理论高估不等于可实现的空头收益。
   \item 回测存在样本内选择、存续样本结构变化、流动性和容量约束。
+  \item IC、Rank IC 及其显著性统计是样本内描述；因子相关性也不等同于因果识别。
   \item 当前结果支持将 BS、ZL 与 LSM 作为互补定价锚，但仍需风险预算、市场状态
         约束和样本外检验。
 \end{itemize}

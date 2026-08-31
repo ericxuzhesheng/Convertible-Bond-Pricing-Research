@@ -82,3 +82,67 @@ def test_delisted_holding_uses_daily_exit_between_weekly_dates() -> None:
     )
 
     assert result == (167.56 - 152.68) / 152.68
+
+
+def test_factor_ic_uses_next_period_return_and_direction_adjustment() -> None:
+    codes = [f"12{i:04d}.SZ" for i in range(12)]
+    dates = pd.to_datetime(["2024-01-31", "2024-02-29"])
+    expected_returns = pd.Series(
+        np.linspace(-0.06, 0.08, len(codes)),
+        index=codes,
+    )
+    prices = pd.DataFrame(
+        [np.full(len(codes), 100.0), 100.0 * (1 + expected_returns)],
+        index=dates,
+        columns=codes,
+    )
+    increasing = pd.DataFrame(
+        [np.arange(len(codes)), np.arange(len(codes))],
+        index=dates,
+        columns=codes,
+    )
+
+    backtest = MODULE.MultiFactorBacktest(model="BS")
+    backtest.prices = prices
+    backtest.observed_daily_prices = prices
+    backtest.normalized_factors = {
+        "momentum": increasing,
+        "valuation": -increasing,
+    }
+
+    records = backtest.calculate_factor_ic_period(
+        dates[0],
+        dates[1],
+        codes,
+    )
+    by_factor = {record["factor"]: record for record in records}
+
+    assert by_factor["momentum"]["n_obs"] == len(codes)
+    assert by_factor["momentum"]["ic"] > 0.99
+    assert by_factor["momentum"]["rank_ic"] > 0.99
+    assert by_factor["valuation"]["ic"] > 0.99
+    assert by_factor["valuation"]["rank_ic"] > 0.99
+
+
+def test_factor_correlation_exports_pearson_and_spearman(tmp_path) -> None:
+    codes = [f"12{i:04d}.SZ" for i in range(12)]
+    dates = pd.to_datetime(["2024-01-31", "2024-02-29"])
+    base = pd.DataFrame(
+        [np.arange(len(codes)), np.arange(len(codes)) + 1],
+        index=dates,
+        columns=codes,
+        dtype=float,
+    )
+    backtest = MODULE.MultiFactorBacktest(data_dir=tmp_path, model="BS")
+    backtest.factors = {
+        "liquidity": base,
+        "momentum": base**2,
+        "valuation": -base,
+    }
+
+    matrices = backtest.check_factor_correlation()
+
+    assert set(matrices) == {"pearson", "spearman"}
+    assert (tmp_path / "BS_factor_correlation_pearson.csv").exists()
+    assert (tmp_path / "BS_factor_correlation_spearman.csv").exists()
+    assert (tmp_path / "BS_factor_correlation.png").exists()

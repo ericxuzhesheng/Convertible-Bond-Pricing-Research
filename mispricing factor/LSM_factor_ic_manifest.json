@@ -1,0 +1,8 @@
+{
+  "model": "LSM",
+  "methodology_version": 1,
+  "last_rebalance_date": "2026-07-31",
+  "last_return_date": "2026-08-28",
+  "history_sha256": "01f49907c2550070f508f72015d246bcb254f7e6162cc88e5be20d740c8cf0b5",
+  "historical_input_fingerprint": "dece52d4f9659d9c5288edf21ff74105f9315a77d7498e43d2fa92eb6cefe1e7"
+}
