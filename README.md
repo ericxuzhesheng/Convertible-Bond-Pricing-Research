@@ -21,15 +21,24 @@
 
 **当前语言：中文 | [Switch to English](#english-version)**
 
-👉 快速了解研究结论：[核心发现](summary/key_findings.md) · [完整报告](report/CB_pricing_full.pdf)
+👉 招生与面试快速阅读：[研究摘要](summary/key_findings.md) · [完整报告](report/CB_pricing_full.pdf)
 
 ---
 
 ## 项目概述
 
-- 本项目以 **Black-Scholes（BS）**、**郑-林（ZL）** 与 **最小二乘蒙特卡罗（LSM）** 构建三模型绝对定价框架，研究中国 A 股可转债。
-- 研究链路覆盖真实市场数据、理论定价、错误定价因子、横截面组合与自动化发布。
-- 核心目标是识别市场价格相对理论价值的偏离，并检验其能否形成可解释、可交易的 Alpha。
+本项目研究一个具体问题。可转债的市场价格偏离理论价值时，这种偏离究竟是模型遗漏、条款影响，还是可以转化为投资信号的信息？为回答这个问题，项目在统一样本上比较 **Black-Scholes（BS）**、**郑-林（ZL）** 与 **最小二乘蒙特卡罗（LSM）**，并把模型价格接入错误定价因子和月度组合回测。
+
+项目完整呈现了从研究假设到可复现证据的过程。数据更新、周度定价、因子构建、交易成本和结果发布均由同一套管道管理。定价误差与策略收益分别检验，避免把“拟合更准”直接等同于“投资表现更好”。
+
+### 招生官可以快速核验的证据
+
+| 研究能力 | 仓库中的可核验证据 |
+| --- | --- |
+| 模型理解 | 从闭式 BS 扩展到含条款路径的 ZL，再到继续价值回归的 LSM |
+| 实证判断 | 同时比较价格误差、风险调整收益和最大回撤，不用单一指标下结论 |
+| 研究工程 | 建立数据、定价、因子、回测和发布的端到端流程 |
+| 可复现性 | 固定随机种子、记录输入指纹与输出哈希，日常只运行新增交易周 |
 
 ---
 
@@ -73,26 +82,9 @@ Convertible-Bond-Pricing-Research/
 
 ---
 
-## 核心标签
-
-- 可转债定价
-- 绝对估值
-- 错误定价 Alpha
-- 多因子融合
-- 横截面多空策略
-- 蒙特卡洛路径依赖定价
-
----
-
 ## 研究动机
 
-在当前中国可转债市场中：
-
-- 高估值与拥挤交易导致价格扭曲。
-- 相对估值指标（如转股溢价率）失效。
-- 条款复杂且路径依赖显著。
-
-→ 需要构建统一的**绝对定价锚**。
+中国可转债兼具债券现金流、股票期权和发行条款。转股溢价率等相对指标易受市场整体估值与拥挤交易影响，也难以单独识别赎回、回售和下修条款的价值。绝对定价模型提供了一个可比较的理论锚，但模型复杂度本身不保证更好的投资结果。本研究因此同时检验定价拟合与组合表现。
 
 ---
 
@@ -243,10 +235,9 @@ $$
 - **多头组合**：RD 前 20%（低估标的）。
 - **空头组合**：RD 后 20%（高估标的）。
 
-### 交易逻辑
+### 研究假设
 
-- 临时性错误定价的价值回归带来超额收益。
-- 市场价格向理论价值收敛是核心 Alpha 来源。
+策略检验市场价格是否会向理论价值收敛。若偏离只是模型误差或不可交易的条款风险，回测结果不应被解释为稳定 Alpha。
 
 ---
 
@@ -260,7 +251,7 @@ $$
 
 > **回测口径**：2019-01-25 至 2026-08-28，共 91 个收益观察期，月末调仓，展示扣除交易成本后的多因子等权多头组合；夏普比率使用同期观测的一年期国债收益率均值。同期中证转债基准年化收益为 7.08%。
 
-结论摘要：LSM 将全样本定价偏差从 ZL 的 -12.85 元收窄至 -2.32 元，且 MAPE 降至 9.23%。三种多因子组合的年化超额接近，LSM 未在策略端稳定超越 ZL，且最大回撤略高。
+结论摘要：LSM 将全样本平均定价偏差从 ZL 的 -12.85 元收窄至 -2.32 元，MAPE 也降至 9.23%。但三种多因子组合的年化超额收益接近，LSM 未在策略端稳定超越 ZL，最大回撤也更高。模型拟合与投资价值需要分别检验，这是本项目最重要的实证结论。
 
 ---
 
@@ -292,14 +283,9 @@ $$
 
 ---
 
-## 核心洞察
+## 研究判断
 
-- BS 捕捉**估值扩张 + 动量**。
-- ZL 捕捉**价值回归 + 下行防御**。
-- LSM 补充**自愿提前转股 + 继续持有决策**。
-- 错误定价因子与传统风格因子呈显著**正交性**。
-
-→ 三者结合为组合提供互补的进攻、防守与提前转股决策信息。
+BS、ZL 与 LSM 提供了不同的估值视角。BS 对权益价格和波动率更敏感，ZL 更重视条款约束和债券现金流，LSM 补充自愿提前转股与继续持有决策。错误定价因子与常见风格因子的线性相关性较低，说明它含有额外信息，但不能据此声称因果独立。
 
 ---
 
@@ -312,12 +298,9 @@ $$
 
 ---
 
-## 后续优化
+## 后续研究
 
-- 事件驱动条款建模。
-- 基于机器学习的概率估计。
-- 动态参数校准。
-- 融入多因子体系。
+下一步最有价值的工作是把发行人条款行为纳入同一联合路径模型，并开展滚动样本外检验。动态参数校准和交易容量分析也需要在增加模型复杂度前完成。
 
 ---
 
@@ -329,10 +312,7 @@ $$
 
 ## 项目贡献
 
-- 统一的绝对定价框架。
-- 可交易的错误定价信号设计。
-- 完整的回测研究流程。
-- 清晰区分进攻型与防守型 Alpha。
+本仓库交付了一套可审计的三模型比较研究。它把理论定价转化为可检验的横截面信号，也保留了数据边界、模型假设、交易成本和失败条件。实证证据表明，定价精度、策略收益与风险之间并非单调关系，模型复杂度也不能直接证明投资价值。
 
 ---
 
@@ -348,15 +328,24 @@ $$
 
 **Current Language: English | [切换到中文](#简体中文)**
 
-👉 Start here: [Key Findings](summary/key_findings.md) · [Full Report](report/CB_pricing_full.pdf)
+👉 Admissions and interview reading: [Research Brief](summary/key_findings.md) · [Full Report](report/CB_pricing_full.pdf)
 
 ---
 
-## 📌 Overview
+## Overview
 
-- This project studies Chinese A-share convertible bonds through a three-model absolute-pricing framework: **Black-Scholes (BS)**, **Zheng-Lin (ZL)**, and **Least-Squares Monte Carlo (LSM)**.
-- The research chain covers observed market data, theoretical pricing, mispricing factors, cross-sectional portfolios, and automated publication.
-- The objective is to identify deviations from theoretical value and test whether they produce interpretable, tradable alpha.
+This project asks a focused question. When a convertible bond trades away from theoretical value, does the gap reflect model omission, contractual clauses, or information that can support an investment signal? The study compares **Black-Scholes (BS)**, **Zheng-Lin (ZL)**, and **Least-Squares Monte Carlo (LSM)** on one sample, then carries their valuations into mispricing factors and monthly portfolio tests.
+
+The work documents the full path from a research hypothesis to reproducible evidence. One pipeline manages data updates, weekly valuation, factor construction, transaction costs, and publication. Pricing fit and strategy performance are evaluated separately, so a more accurate model is not assumed to be a better investment model.
+
+### Evidence an admissions reader can verify quickly
+
+| Capability | Evidence in this repository |
+| --- | --- |
+| Model reasoning | Progression from closed-form BS to clause-aware ZL and continuation-regression LSM |
+| Empirical judgment | Joint evaluation of pricing error, risk-adjusted return, and drawdown |
+| Research engineering | End-to-end data, pricing, factor, backtest, and publication pipeline |
+| Reproducibility | Deterministic seeds, input fingerprints, output hashes, and incremental-only routine runs |
 
 ---
 
@@ -400,26 +389,9 @@ Suggested reading order
 
 ---
 
-## 🏷️ Core Tags
+## Motivation
 
-- Convertible bond pricing
-- Absolute valuation
-- Mispricing alpha
-- Multi-factor integration
-- Cross-sectional long-short strategy
-- Monte Carlo path-dependent pricing
-
----
-
-## 🎯 Motivation
-
-In the Chinese convertible bond market:
-
-- High valuation and crowded trading distort pricing.
-- Relative valuation metrics (e.g., conversion premium) become unreliable.
-- Embedded clauses create strong path dependency.
-
-→ A unified **absolute pricing anchor** is required.
+Chinese convertible bonds combine fixed-income cash flows, equity optionality, and issuer-specific clauses. Relative measures such as conversion premium can move with broad valuation regimes and crowded positioning, while revealing little about the value of call, put, and reset provisions. Absolute pricing supplies a comparable theoretical anchor, but greater model complexity does not guarantee better investment outcomes. The study therefore tests both valuation fit and portfolio performance.
 
 ---
 
@@ -570,10 +542,9 @@ The strategy is constructed based on **mispricing (RD)** defined above.
 - **Long portfolio**: top 20% (undervalued bonds).
 - **Short portfolio**: bottom 20% (overvalued bonds).
 
-### 🔹 Trading Logic
+### Research hypothesis
 
-- Mean reversion of temporary mispricing drives excess return.
-- Convergence from market price to theoretical value is the core alpha source.
+The strategy tests whether market prices converge toward theoretical value. If the gap mainly reflects model error or non-tradable clause risk, the backtest should not be interpreted as persistent alpha.
 
 ---
 
@@ -587,7 +558,7 @@ The strategy is constructed based on **mispricing (RD)** defined above.
 
 > **Backtest scope**: 2019-01-25 to 2026-08-28, 91 return observations, month-end rebalancing, and net-of-cost equal-weight multi-factor long portfolios. Sharpe ratios use the observed average one-year government-bond yield over the same window. The CSI Convertible Bond Index annualized return is 7.08% over the same period.
 
-Summary: LSM narrows full-sample pricing bias from ZL's -12.85 CNY to -2.32 CNY and reduces MAPE to 9.23%. Annualized excess returns are similar across the three multi-factor portfolios; LSM does not consistently beat ZL at the strategy level and has a slightly larger drawdown.
+Summary: LSM narrows mean full-sample pricing bias from ZL's -12.85 CNY to -2.32 CNY and reduces MAPE to 9.23%. Yet annualized excess returns remain similar across the three multi-factor portfolios. LSM does not consistently beat ZL and records a larger maximum drawdown. The project's central empirical lesson is that pricing fit and investment value must be tested separately.
 
 ---
 
@@ -619,14 +590,9 @@ Summary: LSM narrows full-sample pricing bias from ZL's -12.85 CNY to -2.32 CNY 
 
 ---
 
-## 🧩 Key Insight
+## Research interpretation
 
-- BS captures **valuation expansion + momentum**.
-- ZL captures **mean reversion + downside protection**.
-- LSM adds **voluntary early conversion + continuation decisions**.
-- Mispricing factor is highly **orthogonal** to traditional style factors.
-
-→ Together, the three models provide complementary offensive, defensive, and early-conversion decision information.
+BS, ZL, and LSM offer different valuation perspectives. BS is more sensitive to equity value and volatility. ZL emphasizes contractual constraints and bond cash flows. LSM adds voluntary early-conversion and continuation decisions. Mispricing has low linear correlation with common style factors, which suggests incremental information but does not establish causal independence.
 
 ---
 
@@ -639,12 +605,9 @@ Summary: LSM narrows full-sample pricing bias from ZL's -12.85 CNY to -2.32 CNY 
 
 ---
 
-## 🔮 Future Work
+## Future research
 
-- Event-driven clause modeling.
-- ML-based probability estimation.
-- Dynamic parameter calibration.
-- Integration into multi-factor system.
+The next priority is a joint path model that represents issuer clause behavior and investor conversion decisions together, followed by rolling out-of-sample evaluation. Dynamic calibration and capacity analysis should precede any further increase in model complexity.
 
 ---
 
@@ -654,12 +617,9 @@ Full research report: [report/CB_pricing_full.pdf](report/CB_pricing_full.pdf)
 
 ---
 
-## 🧩 Contribution
+## Contribution
 
-- Unified absolute pricing framework.
-- Tradable mispricing signal design.
-- Full backtesting pipeline.
-- Clear separation of offensive vs defensive alpha.
+The repository delivers an auditable three-model comparison. It converts theoretical valuation into testable cross-sectional signals while preserving data boundaries, assumptions, transaction costs, and failure conditions. Rather than presenting complexity as automatic progress, the evidence shows that pricing accuracy, portfolio return, and risk do not improve monotonically together.
 
 ---
 
