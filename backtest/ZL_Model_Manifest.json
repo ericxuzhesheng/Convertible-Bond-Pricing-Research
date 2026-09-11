@@ -1,6 +1,6 @@
 {
   "contract_version": "weekly-observed-v2",
-  "execution_backend": "cuda",
+  "execution_backend": "cpu",
   "verified_dates": [
     "2019-01-04",
     "2019-01-11",
@@ -393,11 +393,13 @@
     "2026-08-07",
     "2026-08-14",
     "2026-08-21",
-    "2026-08-28"
+    "2026-08-28",
+    "2026-09-04",
+    "2026-09-11"
   ],
-  "input_cutoff": "2026-08-28",
-  "input_fingerprint": "d7697f0c06e922da59d8f7e7f9a373ad3825501227c33b161aa247bc3a36ca43",
-  "output_sha256": "b94f9f1f737dc4ccee5b96f04ea7471bce4699b850aeb87e9cdf66715a40bf62",
+  "input_cutoff": "2026-09-11",
+  "input_fingerprint": "4f22a615a0ea14599131dd003a13b6ce22a9c44768176dd2518ac760b7b196cf",
+  "output_sha256": "2ecd40879fb7dd0dde5ae94cef9d1b1a797c24340e8390bd2ba55a5013384fff",
   "model_parameters": {
     "mc_paths": 10000,
     "weekly_only": true,

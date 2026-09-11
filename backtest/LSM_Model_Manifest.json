@@ -393,11 +393,13 @@
     "2026-08-07",
     "2026-08-14",
     "2026-08-21",
-    "2026-08-28"
+    "2026-08-28",
+    "2026-09-04",
+    "2026-09-11"
   ],
-  "input_cutoff": "2026-08-28",
-  "input_fingerprint": "a62cff824bbeaa0b7c55dbeafa1140bc5793a2d59adbba6f478b2589b25ab921",
-  "output_sha256": "bdb6121eead8255cab937ba7457d8804d37a494e70f056c92e842641057f1f56",
+  "input_cutoff": "2026-09-11",
+  "input_fingerprint": "a5191a25a9e4378c1e6de38bc9e36ad497eec0ae9d57706c9ad3d931a36a9e19",
+  "output_sha256": "e20e5e63f8ddd3874cecaa0ae8cf0edd4c6b4e1714488242d398733aa4fe73b7",
   "model_parameters": {
     "paths": 256,
     "exercise_steps": 48,
