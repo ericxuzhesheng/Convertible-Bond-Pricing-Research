@@ -661,7 +661,13 @@ def plot_factor_ic_comparison() -> None:
         ax.grid(axis="x", color="#D9DDE3", linewidth=0.6, alpha=0.8)
     axes[0].set_ylabel("Direction-adjusted factor")
     fig.supxlabel("Correlation with next holding-period return")
-    fig.suptitle("Monthly factor IC and Rank IC, 2019-01-25 to 2026-08-28")
+    histories = [
+        pd.read_csv(os.path.join(MF_DIR, f"{model}_factor_ic_history.csv"))
+        for model in summaries
+    ]
+    start = min(pd.to_datetime(h["rebalance_date"]).min() for h in histories)
+    end = min(pd.to_datetime(h["return_date"]).max() for h in histories)
+    fig.suptitle(f"Monthly factor IC and Rank IC, {start:%Y-%m-%d} to {end:%Y-%m-%d}")
     axes[1].legend(loc="lower right", frameon=False)
     _save(os.path.join(MF_DIR, "factor_ic_comparison.png"))
 

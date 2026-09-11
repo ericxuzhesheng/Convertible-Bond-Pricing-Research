@@ -1,8 +1,8 @@
 {
   "model": "BS",
   "methodology_version": 1,
-  "last_rebalance_date": "2026-07-31",
-  "last_return_date": "2026-08-28",
-  "history_sha256": "2874de6bc10edeeaf5ab6bfbca584ed43000fc9bfdd005ba5c861290adbf423d",
-  "historical_input_fingerprint": "34f14332c4d19638e1042d57726f056b6667563e39bd034ba99c0928b602d526"
+  "last_rebalance_date": "2026-08-28",
+  "last_return_date": "2026-09-11",
+  "history_sha256": "b28d77f2a8d3ca86c8dba107471402460de633e7c1f3348cf82b863ddb9c45b1",
+  "historical_input_fingerprint": "256167e8fdb95f2f02292a53f9b8df5554bc2a2bfe988c304100dd47fec8c0f7"
 }
