@@ -9,8 +9,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/定价模型-BS · ZL · LSM-F2C94C?style=for-the-badge" alt="BS + ZL + LSM">
-  <img src="https://img.shields.io/badge/数据区间-2017--2026 · 更新至 2026--08--28-4CAF50?style=for-the-badge" alt="Data through 2026-08-28">
-  <img src="https://img.shields.io/badge/研究频率-周度定价 · 月度调仓-9B51E0?style=for-the-badge" alt="Weekly pricing and monthly rebalance">
+  <img src="https://img.shields.io/badge/数据缓存-2017--2026 · 更新至 2026--09--11-4CAF50?style=for-the-badge" alt="Cached data through 2026-09-11; historical tables retain their stated vintages">
+  <img src="https://img.shields.io/badge/研究频率-周度定价 · 周度均价策略-9B51E0?style=for-the-badge" alt="Weekly pricing and ensemble strategy">
 </p>
 
 ---
@@ -21,13 +21,15 @@
 
 **当前语言：中文 | [Switch to English](#english-version)**
 
-👉 招生与面试快速阅读：[研究摘要](summary/key_findings.md) · [完整报告](report/CB_pricing_full.pdf)
+👉 快速阅读：[独立周度策略报告](summary/weekly_value_strategy_20260912.md) · [研究摘要](summary/key_findings.md) · [报告版本索引](report/README.md)
 
 ---
 
 ## 项目概述
 
-本项目研究一个具体问题。可转债的市场价格偏离理论价值时，这种偏离究竟是模型遗漏、条款影响，还是可以转化为投资信号的信息？为回答这个问题，项目在统一样本上比较 **Black-Scholes（BS）**、**郑-林（ZL）** 与 **最小二乘蒙特卡罗（LSM）**，并把模型价格接入错误定价因子和月度组合回测。
+新增独立的[周度均价安全边际策略](long-short%20strategy/WEEKLY_VALUE_STRATEGY.md)：单边5bp综合成本、扣费后2%买入门槛、每只最多10%；只有3只合格就配置30%。使用每日行情和持仓账本，周度选券、下一交易日开盘复核买入上限，同时输出多头和理论多空。旧相对排名与六因子月度结果保留并标明版本。
+
+本项目研究一个具体问题。可转债的市场价格偏离理论价值时，这种偏离究竟是模型遗漏、条款影响，还是可以转化为投资信号的信息？为回答这个问题，项目在统一样本上比较 **Black-Scholes（BS）**、**郑-林（ZL）** 与 **最小二乘蒙特卡罗（LSM）**，并分别开展六因子月度研究与独立周度安全边际策略。后者直接读取已保存模型均价和基本面，不调用错误定价因子脚本。
 
 项目完整呈现了从研究假设到可复现证据的过程。数据更新、周度定价、因子构建、交易成本和结果发布均由同一套管道管理。定价误差与策略收益分别检验，避免把“拟合更准”直接等同于“投资表现更好”。
 
@@ -220,20 +222,26 @@ $$
 Mispricing = V_{model} - V_{market}
 $$
 
-- 正值 → 低估 → 做多。
-- 负值 → 高估 → 做空。
+- 正值表示模型估值高于市价，负值表示低于市价。
+- 估值差不直接等于交易指令；新策略还要求风险准入和扣费后2%买入余量。
 
 ---
 
 ## 策略构建
 
-### 横截面多空策略
+### 独立周度均价安全边际策略
 
-策略基于上文定义的错误定价指标（RD）构建。
+V=(BS+ZL+LSM)/3，S=V/P−1。风险筛选后按S降序、代码升序，最多使用前20%的席位；多头还要求 V×0.9995÷(P×1.0005)−1≥2%，空余席位留现金。单券目标上限10%，不为凑仓买负价差或薄价差券。
 
-- 按月调仓并在全市场按 RD 横截面排序。
-- **多头组合**：RD 前 20%（低估标的）。
-- **空头组合**：RD 后 20%（高估标的）。
+采用评级≥AA、价格≤150元、纯债溢价≤40%、期限≥半年、余额≥3亿元、上市超过30天以及20日成交额与财务准入。财报按公告时点生效，完整跟踪要求事件风险已知。模型分歧展示但不改变等权。
+
+下个交易日用有效开盘报价复核冻结的买入上限；每日计价、计费及检查风险。理论空头取合格池末20%，总目标金额匹配多头，披露实际敞口和券源限制。正常成本5bp/边，压力情景10/20bp。
+
+独立入口：`python "long-short strategy/weekly_value_strategy.py" --start 2019-01-01`。结果目录 `long-short strategy/weekly_value_results`。这条命令不运行定价或错误定价因子。
+
+### 历史策略版本
+
+六因子月度研究与旧周度相对排名策略属于其他方法。相对排名前20%仅表示更便宜，不能都称为绝对低估；旧结果不覆盖，也不能套用到新策略。
 
 ### 研究假设
 
@@ -241,7 +249,18 @@ $$
 
 ---
 
-## 回测结果
+## 独立周度策略回测
+
+|独立策略（5bp/边）|年化研究收益|夏普|最大回撤|平均现金|
+|---|---:|---:|---:|---:|
+|多头|16.22%|1.13|-15.91%|26.03%|
+|理论多空|12.68%|1.19|-11.75%|26.25%|
+
+区间2019-01-07至2026-09-11，1865个日收益观察值；事件采用修正后的v2分类。多头收益略低于同成本相对排名对照，夏普略高；不能声称全面改善。现金流未全部核验，结果为研究估计。
+
+结果、成本对照和年度分解见[2026-09-12独立策略报告](summary/weekly_value_strategy_20260912.md)。历史线是估值＋基本面研究版，现金流尚未全部核验，不称为完整总收益。完整跟踪仅从交易前冻结输入开始。
+
+## 历史六因子月度结果（2026-08-28版本）
 
 | Strategy | Annualized Excess Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
@@ -256,6 +275,8 @@ $$
 ---
 
 ## 因子相关性与预测检验
+
+以下属于2026-08-28版六因子研究；本次独立策略回测未重跑或改变该口径。
 
 因子间冗余使用 Pearson 线性相关和 Spearman 秩相关共同检查。所有因子先统一方向，数值越高代表预期收益越高。定价偏差与流动性、动量和量价因子的相关性较弱，但与估值因子存在清晰重合。BS、ZL 与 LSM 定价偏差对估值因子的 Pearson 相关分别为 0.558、0.535 和 0.465，Spearman 相关分别为 0.612、0.683 和 0.571。因此，定价偏差信号提供了额外信息，但不能被描述为与传统估值正交。
 
@@ -363,13 +384,15 @@ BS、ZL 与 LSM 提供了不同的估值视角。BS 对权益价格和波动率�
 
 **Current Language: English | [切换到中文](#简体中文)**
 
-👉 Admissions and interview reading: [Research Brief](summary/key_findings.md) · [Full Report](report/CB_pricing_full.pdf)
+👉 Read first: [Independent Weekly Strategy](summary/weekly_value_strategy_20260912.md) · [Research Brief](summary/key_findings.md) · [Report Versions](report/README.md)
 
 ---
 
 ## Overview
 
-This project asks a focused question. When a convertible bond trades away from theoretical value, does the gap reflect model omission, contractual clauses, or information that can support an investment signal? The study compares **Black-Scholes (BS)**, **Zheng-Lin (ZL)**, and **Least-Squares Monte Carlo (LSM)** on one sample, then carries their valuations into mispricing factors and monthly portfolio tests.
+The independent [weekly value strategy](long-short%20strategy/WEEKLY_VALUE_STRATEGY.md) uses equal BS/ZL/LSM valuation, 5bp one-way total friction and a 2% valuation margin after round-trip costs. Each long target is capped at 10%; three qualifying bonds imply 30% exposure and approximately 70% cash. Daily accounting and next-session open execution are separate from weekly selection.
+
+This project asks a focused question. When a convertible bond trades away from theoretical value, does the gap reflect model omission, contractual clauses, or information that can support an investment signal? The study compares **Black-Scholes (BS)**, **Zheng-Lin (ZL)**, and **Least-Squares Monte Carlo (LSM)** on one sample, then evaluates a historical six-factor monthly study and an independent weekly value strategy. The latter reads saved model prices and fundamentals without executing mispricing-factor scripts.
 
 The work documents the full path from a research hypothesis to reproducible evidence. One pipeline manages data updates, weekly valuation, factor construction, transaction costs, and publication. Pricing fit and strategy performance are evaluated separately, so a more accurate model is not assumed to be a better investment model.
 
@@ -562,20 +585,24 @@ $$
 Mispricing = V_{model} - V_{market}
 $$
 
-- Positive → undervalued → long.
-- Negative → overvalued → short.
+- Positive means model value exceeds market price; negative means it is lower.
+- A valuation gap is not an automatic trade: the new long strategy also requires risk eligibility and a 2% net valuation margin.
 
 ---
 
 ## 🚀 Strategy Design
 
-### 🔹 Cross-sectional Long-Short Strategy
+### Independent weekly value strategy
 
-The strategy is constructed based on **mispricing (RD)** defined above.
+Average V=(BS+ZL+LSM)/3 and rank S=V/P−1 after fundamental, credit, liquidity and event screening. The highest quintile supplies at most floor(N×20%) long slots. A long additionally requires V×0.9995/[P×1.0005]−1≥2%; unused capital stays cash. Three names produce 30% target exposure.
 
-- Monthly rebalancing and cross-sectional ranking by RD.
-- **Long portfolio**: top 20% (undervalued bonds).
-- **Short portfolio**: bottom 20% (overvalued bonds).
+Freeze valuations at the completed-week signal and recheck the buy limit at the next session open. Account daily and charge 5bp only on actual simulated trades; test 10/20bp separately. The theoretical short portfolio uses the lowest eligible quintile with total target notional matched to the long leg. Actual exposures can drift or remain locked; matched amounts do not imply beta neutrality.
+
+Run `python "long-short strategy/weekly_value_strategy.py" --start 2019-01-01`. Outputs are separate in `long-short strategy/weekly_value_results`. No pricing, mispricing-factor or IC script is invoked.
+
+### Historical strategy versions
+
+The monthly six-factor study and original weekly relative-ranking experiment are retained as distinct methods. A relatively cheap bond is not necessarily below absolute model value. Their performance must not be attributed to the new entry rule.
 
 ### Research hypothesis
 
@@ -583,7 +610,18 @@ The strategy tests whether market prices converge toward theoretical value. If t
 
 ---
 
-## 📈 Results
+## Independent weekly results
+
+|Independent strategy (5bp/side)|Annualized research return|Sharpe|Maximum drawdown|Average unused long capital|
+|---|---:|---:|---:|---:|
+|Long-only|16.22%|1.13|-15.91%|26.03%|
+|Theoretical long-short|12.68%|1.19|-11.75%|26.25%|
+
+Period: 2019-01-07 to 2026-09-11, with 1,865 daily return observations and corrected v2 event classification. Long-only earns slightly less than the same-cost relative-ranking control, with a slightly higher Sharpe. The change is not a broad performance improvement; cashflow verification remains incomplete.
+
+See the [2026-09-12 strategy report](summary/weekly_value_strategy_20260912.md) for cost scenarios, yearly returns, current targets and validation. Historical event/ST and financial-vintage coverage is incomplete, and not all coupon cashflows are verified. Results are research estimates, not certified total returns or a live track record.
+
+## Historical monthly six-factor results (2026-08-28 vintage)
 
 | Strategy | Annualized Excess Return | Sharpe | Max Drawdown |
 | -------- | ------------- | ------ | ------------ |
@@ -598,6 +636,8 @@ Summary: LSM narrows mean full-sample pricing bias from ZL's -12.85 CNY to -2.32
 ---
 
 ## Factor correlation and predictive tests
+
+This section retains the 2026-08-28 six-factor study. The independent strategy run does not recompute or change these factor definitions.
 
 Factor redundancy is evaluated with both Pearson linear correlation and Spearman rank correlation. All factors are direction-adjusted so that a higher value represents a higher expected return. Mispricing has weak correlation with liquidity, momentum, and price-volume factors, but overlaps materially with valuation. The Pearson correlations between valuation and BS, ZL, and LSM mispricing are 0.558, 0.535, and 0.465. Their Spearman correlations are 0.612, 0.683, and 0.571. Mispricing therefore contributes information beyond a simple valuation measure, but it is not orthogonal to conventional valuation.
 

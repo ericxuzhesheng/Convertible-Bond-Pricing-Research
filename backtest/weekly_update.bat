@@ -84,6 +84,7 @@ if errorlevel 1 (
 echo [7/7] Publishing verified outputs ... >> "%LOG_FILE%"
 cd /d "%REPO_DIR%"
 
+git add "backtest\strategy_inputs" "long-short strategy\weekly_results" "long-short strategy\weekly_value_results" >> "%LOG_FILE%" 2>&1
 git add -u >> "%LOG_FILE%" 2>&1
 git add "backtest\regenerate_plots.py" >> "%LOG_FILE%" 2>&1
 git add "backtest\weekly_update.bat" >> "%LOG_FILE%" 2>&1

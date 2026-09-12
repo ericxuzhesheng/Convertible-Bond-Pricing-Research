@@ -584,6 +584,11 @@ class CBStrategy:
         }
 
 if __name__ == "__main__":
+    if "--legacy-monthly" not in sys.argv:
+        from weekly_ensemble_strategy import main as weekly_main
+        weekly_main()
+        raise SystemExit(0)
+    sys.argv.remove("--legacy-monthly")
     models = [
         "BS_Model_Summary.xlsx",
         "ZL_Model_Summary.xlsx",

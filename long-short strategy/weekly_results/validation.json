@@ -1,0 +1,16 @@
+{
+  "targeted_tests_passed": 53,
+  "real_repeat_run": "passed",
+  "verified_unchanged_files": [
+    "long-short strategy\\weekly_results\\research\\long_only_trades.csv",
+    "long-short strategy\\weekly_results\\research\\long_short_trades.csv",
+    "long-short strategy\\weekly_results\\research\\long_only_daily_nav.csv",
+    "long-short strategy\\weekly_results\\research\\rankings.csv",
+    "long-short strategy\\weekly_results\\tracking\\targets.csv",
+    "long-short strategy\\weekly_results\\tracking\\signals\\2026-09-11.json",
+    "long-short strategy\\weekly_results\\comparison_metrics.csv"
+  ],
+  "engine_revision": 4,
+  "plots_visually_checked": true,
+  "total_return_certified": false
+}

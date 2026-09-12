@@ -38,7 +38,8 @@ def test_research_output_rebuild_runs_all_downstream_stages(
         "B-S_mispricing_factor.py",
         "Z-L_mispricing_factor.py",
         "LSM_mispricing_factor.py",
-        "BS_ZL_LSM_strategy.py",
+        "strategy_data.py",
+        "weekly_value_strategy.py",
         "regenerate_plots.py",
     ]
 

@@ -22,3 +22,9 @@ backtest/.cb_daily_checkpoint/
 # Large data files (kept locally, not in repo)
 backtest/【浙商固收】转债资产端特征数据库【周更新外发】.xlsx
 backtest/转债错误定价数据.xlsx
+
+# Provider checkpoints; normalized daily strategy inputs are retained
+backtest/strategy_inputs/raw/
+backtest/strategy_inputs/**/*.tmp
+tmp/strategy-python-deps/
+tmp/akshare-deps/

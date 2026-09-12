@@ -1,0 +1,32 @@
+{
+  "engine_revision": 4,
+  "input_vintage": {
+    "daily": "2026-09-12T13:33:20.058119+08:00",
+    "events": "2026-09-12T13:51:30.063725+08:00",
+    "cashflows": 1789192757387214700,
+    "suspensions": 1789192757384214200
+  },
+  "specification": {
+    "method": "weekly-ensemble-v1",
+    "config": {
+      "model": "mean",
+      "frequency": "weekly",
+      "risk_mode": "research",
+      "fundamentals": true,
+      "transaction_bps": 10.0,
+      "borrow_rate": 0.03,
+      "single_cap": 0.1,
+      "select_ratio": 0.2
+    },
+    "start": "2019-01-01",
+    "mode": "both"
+  },
+  "input_cutoff": "2026-09-11",
+  "requested_end": "2026-09-11",
+  "last_signal": "2026-09-11",
+  "total_return_certified": false,
+  "limitations": [
+    "cb_call: 抱歉，您没有接口(cb_call)访问权限，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。",
+    "Coupon rate periods alone do not verify record/ex/payment dates; total return needs verified cashflow_events.csv"
+  ]
+}

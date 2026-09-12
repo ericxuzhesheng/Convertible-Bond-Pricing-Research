@@ -13,7 +13,7 @@ Absolute pricing research for Chinese A-share convertible bonds using three mode
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
 
-Current published vintage: **2026-08-28**. Routine weekly work is strictly
+Current verified local model/daily-input cutoff: **2026-09-11**. Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
 incremental; do not run a full-history rebuild unless a maintainer explicitly
 requests one.
 
@@ -45,7 +45,9 @@ Convertible-Bond-Pricing-Research/
 │   ├── ZL_Model_*.csv / .xlsx         ← ZL model outputs
 │   └── LSM_Model_*.csv / .xlsx        ← LSM outputs + independent manifest
 ├── long-short strategy/
-│   └── BS_ZL_LSM_strategy.py          ← three-model monthly rebalancing backtest
+│   ├── weekly_value_strategy.py      ← independent weekly mean-value + 2% net-margin strategy
+│   ├── weekly_value_results/         ← separate daily research and frozen tracking outputs
+│   └── BS_ZL_LSM_strategy.py          ← legacy relative-ranking / monthly research
 ├── mispricing factor/
 │   ├── B-S_mispricing_factor.py       ← 6-factor BS composite
 │   ├── Z-L_mispricing_factor.py       ← 6-factor ZL composite
@@ -58,6 +60,28 @@ Convertible-Bond-Pricing-Research/
 ---
 
 ## How to Run
+
+### Independent strategy-only backtest
+
+~~~powershell
+python "long-short strategy/weekly_value_strategy.py" --start 2019-01-01
+~~~
+
+This reads existing BS/ZL/LSM prices and DAILY strategy inputs only. Do not run
+pricing, mispricing factors, IC rebuilds, or the full publishing pipeline for a
+strategy-only request. Keep weekly_value_results separate from legacy results.
+Methodology: [WEEKLY_VALUE_STRATEGY.md](long-short%20strategy/WEEKLY_VALUE_STRATEGY.md).
+
+Defaults: 5bp one-way total friction; 2% valuation margin AFTER round-trip cost;
+highest eligible quintile supplies at most floor(N*20%) long slots. Each long is
+capped at 10%, so three names imply 30% target exposure. Unused capital stays cash.
+Recheck frozen fair-value limits at the next session OPEN. The theoretical short
+leg has matched target notional; disclose actual drift and locked positions.
+Account DAILY and withhold formal metrics for unexplained marks. Never claim
+complete total returns while historical coupons remain unverified. The 2% margin
+is a predeclared research parameter, not a calibrated error bound.
+
+AGENTS.md is the repository instruction source; no separate CLAUDE.md is maintained.
 
 ### Explicit maintenance only: full-history rebuild
 
@@ -96,7 +120,7 @@ The GitHub `weekly-incremental-cpu.yml` pipeline:
 1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_CPU_prod.py` — incrementally update weekly observed inputs and BS/ZL prices
 2. `LSM_backtest.py --weekly` — verifies its independent manifest and prices only later ZL dates
 3. `long-short strategy/update_benchmark.py` — updates the 000832.CSI benchmark
-4. `rebuild_research_outputs.py` — updates three model factors, append-only IC histories, strategies, and README plots
+4. `rebuild_research_outputs.py` — updates factors, append-only IC histories, daily strategy inputs, the independent weekly value strategy, and README plots
 5. validation + `git commit && git push origin main` — publishes only complete verified changes
 
 The Windows `weekly_update.bat` remains available as a manual CUDA path, but
@@ -193,13 +217,18 @@ if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8"
 
 ## Data Source
 
-All market data is fetched via **Tushare Pro API**:
+Pricing uses **Tushare Pro API** as the main market-data source:
 - `pro.cb_daily()` — bond prices, conversion values, balance, volume; when `cb_price_chg` is unavailable, calculate it from adjacent closes and optionally correct it with a free quote source
 - `pro.cb_basic()` — static info (coupon rate, maturity date, stock mapping)
 - `pro.daily_basic()` — stock market cap
 - `pro.rating()` — credit ratings
 - `pro.fina_indicator()` — BPS (quarterly, forward-filled to daily)
 - `akshare.bond_zh_us_rate()` — risk-free yield curve
+
+The independent strategy additionally caches DAILY OHLCV, financial vintages,
+redemption notices, verified cashflows and suspensions in backtest/strategy_inputs.
+AkShare-backed Sina, Eastmoney, Jisilu and CNInfo provide cross-checks and event
+supplements. Current snapshots must not be projected backward onto old signals.
 
 Tushare has per-minute rate limits. `data_pipeline.py` uses `time.sleep()` between
 batch calls. Do not remove these sleeps.
@@ -232,7 +261,8 @@ batch calls. Do not remove these sleeps.
   ├─ rebuild_research_outputs.py
   │     ├─ build_observed_factors.py  ← 从 Tushare 日频缓存重建五个非定价因子
   │     ├─ BS/ZL/LSM factor backtests
-  │     ├─ monthly long-short strategy
+  │     ├─ strategy_data.py          ← 每日行情、财务及事件增量输入
+  │     ├─ weekly_value_strategy.py  ← 独立5bp/2%安全边际策略、每日账本
   │     └─ regenerate_plots.py        ← 重生成 README 图表与三模型 IC 对比图
   │
   └─ git add -u               ← 暂存所有已追踪的变更文件

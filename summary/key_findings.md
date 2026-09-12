@@ -2,6 +2,14 @@
 
 ## 中文
 
+### 新增独立策略（2026-09-12）
+
+2019-01-07至2026-09-11，多头年化研究收益16.22%、夏普1.13、最大回撤-15.91%；理论多空为12.68%、1.19、-11.75%。现金流未全部核验，不能称为完整总收益；事件误分类已修正。
+
+新策略使用三模型等权均价、基本面和事件准入，单边综合成本5bp、扣费后至少2%的买入余量，单券目标最多10%，3只满足就配置30%。每日计价，周度选券，下个交易日开盘检查价格上限。理论多空匹配两腿目标金额，实际敞口另行披露。
+
+独立入口 weekly_value_strategy.py，结果保存到 weekly_value_results。[最新回测报告](weekly_value_strategy_20260912.md)列出2019年以来研究结果、成本压力和年度分解。以下定价/六因子统计保留2026-08-28版本，不能当作新策略结果。
+
 ### 研究问题
 
 可转债同时具有债券现金流、股票期权和路径依赖条款。单一相对估值指标很难分辨价格偏离来自基本价值、条款约束还是市场风格。本项目因此提出一个可检验的问题。不同复杂度的绝对定价模型能否识别具有投资信息的错误定价，并在计入交易成本后形成稳定的横截面信号？
@@ -41,6 +49,14 @@ ZL 定价偏差的 IC 与 Rank IC 最稳定。估值因子也呈正预测关系�
 定价偏差与流动性、动量和量价因子的相关性较弱，但与估值因子的 Pearson 相关为 0.465 至 0.558，Spearman 相关为 0.571 至 0.683。定价信号含有额外信息，也与传统估值部分重合。IC 与显著性统计仍属于样本内描述，结果还受波动率与信用利差估计、条款行为假设、交易容量和卖空约束影响。当前证据支持把三种模型视为互补的估值工具，不支持将其解释为无风险套利。
 
 ## English
+
+### Independent strategy added on 2026-09-12
+
+From 2019-01-07 to 2026-09-11, long-only annualized research return is 16.22%, Sharpe 1.13, and maximum drawdown -15.91%. Theoretical long-short returns 12.68% annualized. Event classification is corrected; incomplete cashflow verification prevents a certified total-return claim.
+
+The new weekly strategy uses the equal BS/ZL/LSM mean, fundamental/event eligibility, 5bp one-way total friction and a 2% valuation margin after round-trip costs. Each long is capped at 10%; three qualifying names imply 30% target exposure. It uses daily accounting, next-session open limits and matched target notionals for the theoretical long-short portfolio.
+
+The separate entrypoint is weekly_value_strategy.py, with outputs in weekly_value_results. The [new report](weekly_value_strategy_20260912.md) presents research since 2019 and its data limitations. Pricing and six-factor statistics below retain their 2026-08-28 vintage.
 
 ### Research question
 
@@ -89,20 +105,11 @@ Mispricing = Model Price - Market Price
 
 错误定价 = 模型价格 - 市场价格
 
-### Strategy | 策略
+### Independent weekly strategy | 独立周度策略
 
-- Long bottom 20% (undervalued)
-- Short top 20% (overvalued)
-
-- 做多低估值后 20%
-- 做空高估值前 20%
-
-### Constraints | 约束条件
-
-- Liquidity filter
-- Rating >= AA-
-- Maturity > 1 year
-
-- 流动性过滤
-- 评级 >= AA-
-- 剩余期限 > 1 年
+- V=(BS+ZL+LSM)/3; S=V/P−1. Risk-filter first, then rank descending.
+- Long: at most the top 20%, requiring at least 2% net valuation margin after round-trip costs; 10% per-name cap, unused capital in cash.
+- Theoretical short: bottom 20%, with target notional scaled to the long leg. No historical borrow availability is assumed.
+- 单边综合成本5bp，扣费后2%买入门槛；周度信号、下个交易日开盘、每日账本。
+- 评级≥AA、价格≤150元、纯债溢价≤40%、期限≥半年、余额≥3亿元、上市超过30天，以及20日流动性、财务和事件准入。
+- 旧六因子及相对排名研究为独立历史版本，规则和结果不混用。

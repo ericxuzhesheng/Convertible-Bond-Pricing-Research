@@ -1,0 +1,74 @@
+{
+  "tests_passed": 68,
+  "real_repeat_unchanged": true,
+  "protected_files_unchanged": {
+    "backtest\\BS_Model_Prices.csv": {
+      "size": 3050778,
+      "mtime_ns": 1789141201406190000
+    },
+    "backtest\\ZL_Model_Prices.csv": {
+      "size": 2751685,
+      "mtime_ns": 1789141481243871100
+    },
+    "backtest\\LSM_Model_Prices.csv": {
+      "size": 2750970,
+      "mtime_ns": 1789141524717731500
+    },
+    "backtest\\ZL_Model_Manifest.json": {
+      "size": 7923,
+      "mtime_ns": 1789141487925805200
+    },
+    "backtest\\LSM_Model_Manifest.json": {
+      "size": 8056,
+      "mtime_ns": 1789142243376940600
+    },
+    "mispricing factor\\BS_factor_ic_manifest.json": {
+      "size": 321,
+      "mtime_ns": 1789144192069293800
+    },
+    "mispricing factor\\ZL_factor_ic_manifest.json": {
+      "size": 321,
+      "mtime_ns": 1789144196343075800
+    },
+    "mispricing factor\\LSM_factor_ic_manifest.json": {
+      "size": 322,
+      "mtime_ns": 1789144200611840700
+    },
+    "long-short strategy\\weekly_results\\research\\manifest.json": {
+      "size": 1023,
+      "mtime_ns": 1789193435404290700
+    },
+    "long-short strategy\\weekly_results\\research\\targets.csv": {
+      "size": 1699312,
+      "mtime_ns": 1789192950011438700
+    },
+    "long-short strategy\\weekly_results\\research\\long_only_daily_nav.csv": {
+      "size": 399105,
+      "mtime_ns": 1789193434850574500
+    },
+    "long-short strategy\\weekly_results\\tracking\\manifest.json": {
+      "size": 1023,
+      "mtime_ns": 1789193537608174100
+    },
+    "long-short strategy\\weekly_results\\tracking\\targets.csv": {
+      "size": 2976,
+      "mtime_ns": 1789193255029518100
+    },
+    "long-short strategy\\weekly_results\\tracking\\long_only_daily_nav.csv": {
+      "size": 2,
+      "mtime_ns": 1789191602126249600
+    },
+    "long-short strategy\\strategy_operations.csv": {
+      "size": 231793,
+      "mtime_ns": 1789142474316256500
+    }
+  },
+  "elapsed_seconds": 255.03861309999775,
+  "input_cutoff": "2026-09-11",
+  "strategy": "weekly-value-v1",
+  "total_return_certified": false,
+  "event_normalization_revision": 2,
+  "plot_visually_checked": true,
+  "event_fix_regression_tests": 52,
+  "other_unchanged_contract_tests": 16
+}

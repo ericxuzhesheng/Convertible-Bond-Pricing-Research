@@ -192,6 +192,9 @@ jobs:
             backtest/Market_Prices.csv
             backtest/Fig*.png
             long-short strategy/000832_CSI_close_price.csv
+            backtest/strategy_inputs/
+            long-short strategy/weekly_results/
+            long-short strategy/weekly_value_results/
 
       - name: Commit and publish the complete weekly update
         shell: bash
@@ -199,6 +202,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -u
+          git add backtest/strategy_inputs "long-short strategy/weekly_results" "long-short strategy/weekly_value_results"
           if git diff --cached --quiet; then
             echo "No weekly changes to publish."
           else
