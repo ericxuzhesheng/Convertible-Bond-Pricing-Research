@@ -28,6 +28,7 @@ from market_data_contracts import (
     build_risk_free_rate_matrix,
     calculate_accrued_interest,
     load_rebuildable_matrix_cache,
+    merge_incremental_history,
     parse_coupon_schedule,
     select_completed_weekly_dates,
     select_dates_after_checkpoint,
@@ -1059,7 +1060,20 @@ df_diff = df_zl_model - df_price
 safe_price = df_price.replace(0, np.nan)
 df_diff_pct = df_diff / safe_price
 
-df_zl_model.to_csv(os.path.join(PIPELINE_DIR, "ZL_Model_Prices.csv"))
+zl_prices_path = os.path.join(PIPELINE_DIR, "ZL_Model_Prices.csv")
+model_prices_to_write = df_zl_model
+if WEEKLY_ONLY and can_reuse_history:
+    # XLSX stores less precision than CSV; retain the published CSV prefix
+    # because the independent LSM manifest fingerprints those exact inputs.
+    csv_history = pd.read_csv(
+        zl_prices_path, index_col=0, parse_dates=True,
+        float_precision="round_trip",
+    )
+    model_prices_to_write = merge_incremental_history(
+        csv_history.loc[csv_history.index <= verified_cutoff],
+        df_zl_model.loc[df_zl_model.index > verified_cutoff],
+    ).reindex_like(df_zl_model)
+model_prices_to_write.to_csv(zl_prices_path)
 # 注意: 不可写 Market_Prices.csv —— 那是 B-S 脚本的输出，两边 df_price 列集不同会互相覆盖
 df_price.to_csv(os.path.join(PIPELINE_DIR, "ZL_Market_Prices.csv"))
 df_diff.to_csv(os.path.join(PIPELINE_DIR, "ZL_Model_Deviation_Abs.csv"))

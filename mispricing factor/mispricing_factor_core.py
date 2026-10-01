@@ -710,7 +710,7 @@ class MultiFactorBacktest:
                 digest.update(chunk)
         return digest.hexdigest()
 
-    def _factor_history_fingerprint(self, cutoff):
+    def _factor_history_fingerprint(self, cutoff, *, columns=None):
         digest = hashlib.sha256()
         digest.update(
             f"{self.model}|{FACTOR_DIAGNOSTICS_VERSION}".encode("utf-8")
@@ -718,6 +718,13 @@ class MultiFactorBacktest:
         frames = {"prices": self.prices, **self.aligned_factors}
         for name in sorted(frames):
             frame = frames[name].loc[frames[name].index <= cutoff]
+            if columns is not None:
+                added = frame.columns.difference(columns)
+                if frame.reindex(columns=added).notna().any().any():
+                    raise DataContractError(
+                        "factor IC new columns contain historical observations"
+                    )
+                frame = frame.reindex(columns=columns)
             digest.update(name.encode("utf-8"))
             digest.update(
                 pd.util.hash_pandas_object(frame, index=True)
@@ -752,7 +759,9 @@ class MultiFactorBacktest:
         for column in ("rebalance_date", "return_date"):
             history[column] = pd.to_datetime(history[column])
         cutoff = pd.Timestamp(manifest["last_rebalance_date"])
-        if self._factor_history_fingerprint(cutoff) != manifest.get(
+        if self._factor_history_fingerprint(
+            cutoff, columns=manifest.get("historical_columns")
+        ) != manifest.get(
             "historical_input_fingerprint"
         ):
             raise DataContractError(
@@ -808,6 +817,7 @@ class MultiFactorBacktest:
                 "%Y-%m-%d"
             ),
             "history_sha256": self._file_sha256(paths["history"]),
+            "historical_columns": list(self.prices.columns),
             "historical_input_fingerprint": self._factor_history_fingerprint(
                 pd.Timestamp(last_row["rebalance_date"])
             ),

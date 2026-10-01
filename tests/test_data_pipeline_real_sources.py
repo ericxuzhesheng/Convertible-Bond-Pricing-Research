@@ -877,3 +877,104 @@ def test_conversion_event_cache_can_be_reused_without_api_call(
     )
 
     assert result["ts_code"].tolist() == ["110084.SH"]
+
+
+def test_holiday_weekly_end_validation_includes_thursday_session():
+    cutoff = data_pipeline.weekly_validation_cutoff("20260924")
+    assert cutoff == pd.Timestamp("2026-09-25 16:00:00")
+    dates = data_pipeline.select_completed_weekly_dates(
+        pd.bdate_range("2026-09-21", "2026-09-24"), as_of=cutoff)
+    assert dates.tolist() == [pd.Timestamp("2026-09-24")]
+
+
+@pytest.mark.parametrize("rebuild_all", [False, True])
+def test_incremental_conversion_price_write_preserves_observed_history(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    rebuild_all: bool,
+) -> None:
+    code = "123001.SZ"
+    old_dates = pd.to_datetime(["2026-09-23", "2026-09-24"])
+    new_dates = pd.to_datetime(["2026-09-30"])
+    old_conversion = pd.DataFrame({code: [np.nan, 6.42]}, index=old_dates)
+    price = pd.DataFrame({code: [110.]}, index=new_dates)
+    observed = pd.DataFrame({code: [5.9]}, index=new_dates)
+    event_prices = pd.DataFrame({code: [7.1, 7.1, 7.1]}, index=old_dates.append(new_dates))
+    for name in ("OUT_BASIC", "OUT_PRICE", "OUT_AMOUNT", "OUT_CONV_EVENTS", "OUT_CONV_PRICE"):
+        monkeypatch.setattr(data_pipeline, name, str(tmp_path / f"{name}.csv"))
+    old_conversion.to_csv(data_pipeline.OUT_CONV_PRICE)
+    pd.DataFrame({code: [100., 101.]}, index=old_dates).to_csv(data_pipeline.OUT_PRICE)
+    monkeypatch.setattr(data_pipeline, "init_tushare", lambda: object())
+    monkeypatch.setattr(data_pipeline, "fetch_cb_basic", lambda _: pd.DataFrame({"ts_code": [code]}))
+    monkeypatch.setattr(data_pipeline, "fetch_cb_daily", lambda *_: {
+        "price": price, "amount": price, "convert_value": price,
+    })
+    monkeypatch.setattr(data_pipeline, "load_conversion_price_events", lambda *_, **__: pd.DataFrame())
+    monkeypatch.setattr(data_pipeline, "build_conversion_price_matrix", lambda **_: event_prices)
+    monkeypatch.setattr(data_pipeline, "fetch_stock_close_matrix", lambda *_: price)
+    monkeypatch.setattr(data_pipeline, "derive_observed_conversion_price", lambda **_: observed)
+
+    class PipelineStopped(Exception):
+        pass
+
+    def stop_after_conversion(*_, **__):
+        raise PipelineStopped
+
+    monkeypatch.setattr(data_pipeline, "load_clause_terms", stop_after_conversion)
+    with pytest.raises(PipelineStopped):
+        data_pipeline.run_pipeline("20260925", "20260930", rebuild_all=rebuild_all)
+    result = pd.read_csv(data_pipeline.OUT_CONV_PRICE, index_col=0, parse_dates=True)
+    assert result.loc[new_dates[0], code] == 5.9
+    if rebuild_all:
+        assert result.index.equals(new_dates)
+    else:
+        pd.testing.assert_frame_equal(result.loc[old_dates], old_conversion)
+
+
+def test_existing_matrix_csv_roundtrip_preserves_history(tmp_path: Path) -> None:
+    path = tmp_path / "matrix.csv"
+    path.write_text(",113051.SH\n2026-09-24,219.50617283950615\n", encoding="utf-8")
+    expected = pd.read_csv(path, index_col=0, parse_dates=True)
+    existing = data_pipeline._load_existing(str(path))
+    new = pd.DataFrame({"113051.SH": [220.]}, index=pd.to_datetime(["2026-09-30"]))
+    data_pipeline._merge_wide(existing, new).to_csv(path)
+    result = pd.read_csv(path, index_col=0, parse_dates=True)
+    pd.testing.assert_frame_equal(result.loc[expected.index], expected, check_exact=True)
+
+
+def test_incremental_basic_snapshot_preserves_verified_contract_terms(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    fields = ["par_value", "value_date", "maturity_date", "maturity_call_price", "rate_clause"]
+    existing = pd.DataFrame({
+        "ts_code": ["123001.SZ"], "par_value": [100.], "value_date": [20200101],
+        "maturity_date": [20260101], "maturity_call_price": [110.],
+        "rate_clause": ["original complete coupons"], "remain_size": [10.],
+    })
+    fresh = pd.DataFrame({
+        "ts_code": ["123001.SZ", "123002.SZ"], "par_value": [200., 100.],
+        "value_date": [20210101, 20260930], "maturity_date": [20270101, 20320930],
+        "maturity_call_price": [120., 115.], "rate_clause": ["truncated coupons", "new coupons"],
+        "remain_size": [20., 30.],
+    })
+    path = tmp_path / "basic.csv"
+    existing.to_csv(path, index=False)
+    monkeypatch.setattr(data_pipeline, "OUT_BASIC", str(path))
+    monkeypatch.setattr(data_pipeline, "init_tushare", lambda: object())
+    monkeypatch.setattr(data_pipeline, "fetch_cb_basic", lambda _: fresh)
+
+    class PipelineStopped(Exception):
+        pass
+
+    def stop_after_basic(*_):
+        raise PipelineStopped
+
+    monkeypatch.setattr(data_pipeline, "fetch_cb_daily", stop_after_basic)
+    with pytest.raises(PipelineStopped):
+        data_pipeline.run_pipeline("20260925", "20260930")
+    result = pd.read_csv(path).set_index("ts_code")
+    pd.testing.assert_series_equal(result.loc["123001.SZ", fields], existing.iloc[0][fields],
+                                   check_dtype=False, check_names=False)
+    assert result.loc["123001.SZ", "remain_size"] == 20.
+    assert result.loc["123002.SZ", "rate_clause"] == "new coupons"

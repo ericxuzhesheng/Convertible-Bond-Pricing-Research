@@ -1,0 +1,6 @@
+event_id,ts_code,kind,record_date,ex_date,payment_date,amount_per_bond,verified,source,ann_date
+110054.SH-redemption,110054.SH,redemption,2020-03-16,2020-03-17,2020-03-17,100.499,True,https://static.cninfo.com.cn/finalpage/2020-03-14/1207371821.PDF,2020-03-14
+110046.SH-redemption,110046.SH,redemption,2020-03-20,2020-03-23,2020-03-23,100.27,True,https://static.cninfo.com.cn/finalpage/2020-03-18/1207380352.PDF,2020-03-18
+113517.SH-redemption,113517.SH,redemption,2020-03-30,2020-03-31,2020-03-31,100.39,True,https://static.cninfo.com.cn/finalpage/2020-03-13/1207368445.PDF,2020-03-13
+113051.SH-coupon-2022,113051.SH,coupon,2022-06-20,2022-06-21,2022-06-21,0.2,True,https://static.cninfo.com.cn/finalpage/2022-06-14/1213688716.PDF,2022-06-14
+113051.SH-coupon-2023,113051.SH,coupon,2023-06-20,2023-06-21,2023-06-21,0.4,True,https://static.cninfo.com.cn/finalpage/2023-06-14/1217051966.PDF,2023-06-14

@@ -4,11 +4,11 @@
 
 ### 新增独立策略（2026-09-12）
 
-2019-01-07至2026-09-11，多头年化研究收益16.22%、夏普1.13、最大回撤-15.91%；理论多空为12.68%、1.19、-11.75%。现金流未全部核验，不能称为完整总收益；事件误分类已修正。
+2019-01-07至2026-09-30，多头年化研究收益16.04%、夏普1.12、最大回撤-15.91%；理论多空为12.51%、1.18、-11.75%。现金流未全部核验，不能称为完整总收益；事件误分类已修正。
 
 新策略使用三模型等权均价、基本面和事件准入，单边综合成本5bp、扣费后至少2%的买入余量，单券目标最多10%，3只满足就配置30%。每日计价，周度选券，下个交易日开盘检查价格上限。理论多空匹配两腿目标金额，实际敞口另行披露。
 
-独立入口 weekly_value_strategy.py，结果保存到 weekly_value_results。[最新回测报告](weekly_value_strategy_20260912.md)列出2019年以来研究结果、成本压力和年度分解。以下定价/六因子统计保留2026-08-28版本，不能当作新策略结果。
+独立入口 weekly_value_strategy.py，结果保存到 weekly_value_results。[2026-09-12 归档回测报告](weekly_value_strategy_20260912.md)列出2019年以来研究结果、成本压力和年度分解。以下定价/六因子统计保留2026-08-28版本，不能当作新策略结果。
 
 ### 研究问题
 
@@ -52,11 +52,11 @@ ZL 定价偏差的 IC 与 Rank IC 最稳定。估值因子也呈正预测关系�
 
 ### Independent strategy added on 2026-09-12
 
-From 2019-01-07 to 2026-09-11, long-only annualized research return is 16.22%, Sharpe 1.13, and maximum drawdown -15.91%. Theoretical long-short returns 12.68% annualized. Event classification is corrected; incomplete cashflow verification prevents a certified total-return claim.
+From 2019-01-07 to 2026-09-30, long-only annualized research return is 16.04%, Sharpe 1.12, and maximum drawdown -15.91%. Theoretical long-short returns 12.51% annualized. Event classification is corrected; incomplete cashflow verification prevents a certified total-return claim.
 
 The new weekly strategy uses the equal BS/ZL/LSM mean, fundamental/event eligibility, 5bp one-way total friction and a 2% valuation margin after round-trip costs. Each long is capped at 10%; three qualifying names imply 30% target exposure. It uses daily accounting, next-session open limits and matched target notionals for the theoretical long-short portfolio.
 
-The separate entrypoint is weekly_value_strategy.py, with outputs in weekly_value_results. The [new report](weekly_value_strategy_20260912.md) presents research since 2019 and its data limitations. Pricing and six-factor statistics below retain their 2026-08-28 vintage.
+The separate entrypoint is weekly_value_strategy.py, with outputs in weekly_value_results. The [2026-09-12 archived report](weekly_value_strategy_20260912.md) presents research since 2019 and its data limitations. Pricing and six-factor statistics below retain their 2026-08-28 vintage.
 
 ### Research question
 

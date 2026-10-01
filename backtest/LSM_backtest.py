@@ -20,6 +20,7 @@ from tqdm import tqdm
 
 from lsm_backend import price_lsm_enhanced_zl_batch
 from market_data_contracts import (
+    merge_incremental_history,
     DataContractError,
     PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
     build_risk_free_rate_matrix,
@@ -330,6 +331,17 @@ def main() -> None:
     model = model.reindex_like(zl_price)
     absolute = model - market
     relative = absolute / market.replace(0, np.nan)
+    if can_reuse:
+        historical_deviations = pd.read_excel(
+            SUMMARY_FILE, sheet_name=["绝对偏差", "相对偏差"], index_col=0,
+        )
+        new_dates = model.index > verified_dates.max()
+        absolute = merge_incremental_history(
+            historical_deviations["绝对偏差"], absolute.loc[new_dates],
+        ).reindex_like(model)
+        relative = merge_incremental_history(
+            historical_deviations["相对偏差"], relative.loc[new_dates],
+        ).reindex_like(model)
     validation_dates = calculation_dates if len(calculation_dates) else zl_price.index[-1:]
     validate_pricing_coverage(
         market_price=zl_price,

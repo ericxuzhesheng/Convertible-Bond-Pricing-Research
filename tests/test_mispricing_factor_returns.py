@@ -151,3 +151,48 @@ def test_factor_correlation_exports_pearson_and_spearman(tmp_path) -> None:
     assert (tmp_path / "BS_factor_correlation_pearson.csv").exists()
     assert (tmp_path / "BS_factor_correlation_spearman.csv").exists()
     assert (tmp_path / "BS_factor_correlation.png").exists()
+
+
+def test_ic_manifest_accepts_only_new_columns_without_history(tmp_path):
+    import json
+    import pytest
+
+    dates = pd.to_datetime(["2026-09-18", "2026-09-24"])
+    obj = MODULE.MultiFactorBacktest(data_dir=tmp_path, model="BS")
+    obj.prices = pd.DataFrame({"OLD": [100., 101.]}, index=dates)
+    obj.aligned_factors = {"signal": obj.prices / 100}
+    cutoff = dates[0]
+    expected = obj._factor_history_fingerprint(cutoff)
+    paths = obj._factor_ic_paths()
+    pd.DataFrame({"rebalance_date": ["2026-09-18"],
+                  "return_date": ["2026-09-18"]}).to_csv(paths["history"], index=False)
+    manifest = {"model": "BS", "methodology_version": MODULE.FACTOR_DIAGNOSTICS_VERSION,
+                "last_rebalance_date": "2026-09-18", "last_return_date": "2026-09-18",
+                "historical_columns": ["OLD"], "historical_input_fingerprint": expected,
+                "history_sha256": obj._file_sha256(paths["history"])}
+    paths["manifest"].write_text(json.dumps(manifest), encoding="utf-8")
+    obj.prices["NEW"] = [np.nan, 99.]
+    obj.aligned_factors["signal"]["NEW"] = [np.nan, .99]
+    history, last = obj._load_factor_ic_history()
+    assert len(history) == 1 and last == cutoff
+    obj.prices.loc[cutoff, "OLD"] = 102.
+    with pytest.raises(MODULE.DataContractError, match="historical inputs changed"):
+        obj._load_factor_ic_history()
+    obj.prices.loc[cutoff, "OLD"] = 100.
+    for frame in (obj.prices, obj.aligned_factors["signal"]):
+        frame.loc[cutoff, "NEW"] = 1.
+        with pytest.raises(MODULE.DataContractError, match="new columns contain historical"):
+            obj._load_factor_ic_history()
+        frame.loc[cutoff, "NEW"] = np.nan
+    # Missing old columns must also fail; they cannot disappear from the digest.
+    obj.prices = obj.prices.drop(columns="OLD")
+    with pytest.raises(MODULE.DataContractError, match="historical inputs changed"):
+        obj._load_factor_ic_history()
+
+
+def test_ic_manifest_without_column_metadata_keeps_original_fingerprint():
+    obj = MODULE.MultiFactorBacktest(model="BS")
+    obj.prices = pd.DataFrame({"OLD": [100.]}, index=pd.to_datetime(["2026-09-18"]))
+    cutoff = obj.prices.index[0]
+    assert obj._factor_history_fingerprint(cutoff) == obj._factor_history_fingerprint(
+        cutoff, columns=["OLD"])

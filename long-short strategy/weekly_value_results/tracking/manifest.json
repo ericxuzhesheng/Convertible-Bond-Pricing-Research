@@ -1,8 +1,8 @@
 {
   "engine_revision": 1,
   "input_vintage": {
-    "daily": "2026-09-12T13:33:20.058119+08:00",
-    "events": "2026-09-12T13:51:30.063725+08:00",
+    "daily": "2026-10-01T18:16:34.072364+08:00",
+    "events": "2026-10-01T18:16:34.078568+08:00",
     "event_normalization": 2,
     "cashflows": 1789192757387214700,
     "suspensions": 1789192757384214200
@@ -24,9 +24,9 @@
     "start": "2019-01-01",
     "mode": "both"
   },
-  "input_cutoff": "2026-09-11",
-  "requested_end": "2026-09-11",
-  "last_signal": "2026-09-11",
+  "input_cutoff": "2026-09-30",
+  "requested_end": "2026-09-30",
+  "last_signal": "2026-09-30",
   "total_return_certified": false,
   "limitations": [
     "cb_call: 抱歉，您没有接口(cb_call)访问权限，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。",

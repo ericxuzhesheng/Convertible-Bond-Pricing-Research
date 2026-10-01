@@ -189,7 +189,7 @@ def _quarter_ranges(start: str, end: str) -> list:
 def _load_existing(path: str):
     if not os.path.exists(path):
         return None
-    return pd.read_csv(path, index_col=0, parse_dates=True)
+    return pd.read_csv(path, index_col=0, parse_dates=True, float_precision="round_trip")
 
 
 def _merge_wide(existing, new: pd.DataFrame) -> pd.DataFrame:
@@ -305,7 +305,7 @@ def resolve_completed_weekly_end(
 def weekly_validation_cutoff(end: str) -> pd.Timestamp:
     """Return the publication cutoff for an already-resolved weekly end."""
 
-    return pd.Timestamp(end).normalize() + pd.Timedelta(
+    return pd.Timestamp(end).to_period("W-FRI").end_time.normalize() + pd.Timedelta(
         hours=WEEKLY_DATA_READY_HOUR
     )
 
@@ -1428,12 +1428,19 @@ def run_pipeline(
     # 合并已有 cb_basic_info（保留 maturity_price 等引导数据）
     if os.path.exists(OUT_BASIC) and not rebuild_all:
         existing_basic = pd.read_csv(OUT_BASIC)   # 不用 index_col，ts_code 是普通列
-        # 新数据字段优先，旧数据补充缺失列（如 maturity_price 来自 Excel 引导）
-        merged_basic = (
-            cb_basic.set_index('ts_code')
-            .combine_first(existing_basic.set_index('ts_code'))
-            .reset_index()
-        )
+        # Preserve verified contractual terms; providers can truncate coupons
+        # after redemption. Mutable fields still prefer the latest snapshot.
+        current_basic = cb_basic.set_index('ts_code')
+        existing_basic = existing_basic.set_index('ts_code')
+        for field in (
+            "par_value", "value_date", "maturity_date",
+            "maturity_call_price", "rate_clause",
+        ):
+            if field in existing_basic and field in current_basic:
+                current_basic[field] = existing_basic[field].combine_first(
+                    current_basic[field]
+                )
+        merged_basic = current_basic.combine_first(existing_basic).reset_index()
         cb_basic = merged_basic
     original_bond_count = len(cb_basic)
     cb_basic = filter_exchangeable_bonds(cb_basic)
@@ -1502,8 +1509,17 @@ def run_pipeline(
         stock_close=stock_close,
         cb_basic=cb_basic,
     )
-    conversion_price = observed_conversion_price_new.combine_first(
-        event_conversion_price
+    conversion_price_new = observed_conversion_price_new.combine_first(
+        event_conversion_price.reindex_like(df_price_new)
+    )
+    conversion_price = (
+        conversion_price_new
+        if rebuild_all
+        else _merge_bond_wide(
+            _load_existing(OUT_CONV_PRICE),
+            conversion_price_new,
+            bond_codes=bond_codes,
+        )
     )
     conversion_price.to_csv(OUT_CONV_PRICE)
     clause_terms = load_clause_terms(

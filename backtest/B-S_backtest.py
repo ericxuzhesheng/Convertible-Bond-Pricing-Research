@@ -395,6 +395,17 @@ if INCREMENTAL_AFTER is not None:
     )
     df_diff = df_theoretical - df_price
     df_diff_pct = df_diff / df_price.replace(0, np.nan)
+    historical_deviations = pd.read_excel(
+        os.path.join(PIPELINE_DIR, "BS_Model_Summary.xlsx"),
+        sheet_name=["绝对偏差", "相对偏差"], index_col=0,
+    )
+    new_dates = df_theoretical.index > pd.Timestamp(INCREMENTAL_AFTER)
+    df_diff = merge_incremental_history(
+        historical_deviations["绝对偏差"], df_diff.loc[new_dates],
+    ).reindex_like(df_theoretical)
+    df_diff_pct = merge_incremental_history(
+        historical_deviations["相对偏差"], df_diff_pct.loc[new_dates],
+    ).reindex_like(df_theoretical)
 
 df_theoretical.to_csv(os.path.join(PIPELINE_DIR, "BS_Model_Prices.csv"))
 df_price.to_csv(os.path.join(PIPELINE_DIR, "Market_Prices.csv"))
