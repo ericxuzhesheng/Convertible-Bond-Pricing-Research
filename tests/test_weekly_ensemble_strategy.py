@@ -1,5 +1,6 @@
 from __future__ import annotations
 import sys
+import json
 from pathlib import Path
 from types import SimpleNamespace
 import numpy as np
@@ -11,7 +12,7 @@ sys.path.insert(0, str(ROOT/"backtest"))
 sys.path.insert(0, str(ROOT/"long-short strategy"))
 from strategy_data import SourceError, validate_daily, merge_financial_versions, download_daily
 from weekly_strategy_core import (Config, prepare_financial, financial_asof, next_session,
-    select_targets, simulate, validate_cashflows, performance, build_ranking)
+    select_targets, simulate, validate_cashflows, performance, build_ranking, Inputs)
 from weekly_ensemble_strategy import certify_append
 
 def calendar():
@@ -194,7 +195,7 @@ def ranking_data():
     features = {k:pd.DataFrame(v,index=ix,columns=codes)
                 for k,v in {"rating":"AA","floor":100.,"term":1.,"balance":30000.}.items()}
     basic = pd.DataFrame({"bond_short_name":codes,"stk_cd":codes,"bond_full_name":["公司"]*10,
-                          "list_date":["2020-01-01"]*10},index=codes)
+                          "list_date":["2020-01-01"]*10, "delist_date":[""]*10},index=codes)
     fin = pd.DataFrame([dict(ts_code=c,ann_date="20240101",end_date="20231231",bps=2,eps=1,
         profit_dedt=2,roe=1,debt_to_assets=70,ocfps=1) for c in codes])
     obj = SimpleNamespace(price=px, model={m:px+10 for m in ("BS","ZL","LSM")},
@@ -219,6 +220,58 @@ def test_ranking_mean_units_and_fundamentals():
 def test_tracking_unknown_events_are_not_safe():
     data,date,codes=ranking_data()
     assert not build_ranking(data,date,Config(risk_mode="tracking")).eligible.any()
+
+def test_listing_and_delisting_are_applied_at_signal_date():
+    data,date,codes=ranking_data()
+    data.basic.loc[codes[0], "delist_date"] = str(date.date())
+    data.basic.loc[codes[1], "delist_date"] = str((date+pd.Timedelta(days=1)).date())
+    data.basic.loc[codes[2], "list_date"] = str(date.date())
+    data.basic.loc[codes[3], "list_date"] = str((date+pd.Timedelta(days=1)).date())
+    ranked = build_ranking(data,date,Config())
+    assert not ranked.loc[codes[0], "eligible"]
+    assert "not_delisted" in ranked.loc[codes[0], "excluded_by"]
+    assert ranked.loc[codes[1], "eligible"]  # Future delisting must not erase history.
+    assert not ranked.loc[codes[2:4], "eligible"].any()
+    assert ranked.loc[codes[4:], "eligible"].all()
+
+
+@pytest.mark.parametrize("model_date,cutoff,valid", [
+    ("2026-10-09", "2026-10-14", True),
+    ("2026-09-30", "2026-10-14", False),
+    ("2026-10-09", "2026-10-16", False),
+    ("2026-10-16", "2026-10-16", True),
+])
+def test_daily_inputs_require_latest_completed_week(tmp_path, model_date, cutoff, valid):
+    base, inputs = tmp_path/"models", tmp_path/"inputs"
+    base.mkdir(); (inputs/"daily").mkdir(parents=True)
+    dates = pd.bdate_range("2026-10-08", cutoff)
+    (inputs/"acquisition.json").write_text(json.dumps({
+        "start":"2026-10-08", "cutoff":cutoff, "status":"complete"}), encoding="utf-8")
+    pd.DataFrame({"cal_date":pd.bdate_range("2026-10-08", "2026-10-23").strftime("%Y%m%d")}).to_csv(inputs/"calendar.csv",index=False)
+    model = pd.DataFrame({"A":[100.]},index=pd.to_datetime([model_date]))
+    for name in ("BS_Model_Prices", "ZL_Model_Prices", "LSM_Model_Prices",
+                 "Market_Prices", "ZL_Market_Prices", "LSM_Market_Prices"):
+        model.to_csv(base/f"{name}.csv")
+    for name in ("ZL", "LSM"):
+        (base/f"{name}_Model_Manifest.json").write_text(json.dumps({"input_cutoff":model_date}),encoding="utf-8")
+    if not valid:
+        with pytest.raises(ValueError,match="latest completed market week"):
+            Inputs(base,inputs)
+        return
+    daily = pd.DataFrame({"A":100.}, index=dates)
+    for name in ("price", "rating", "bond_floor", "maturity", "balance", "amount"):
+        daily.to_csv(base/f"cb_{name}_cache.csv")
+    pd.DataFrame({"1":.02},index=dates).to_csv(base/"rf_yield_cache.csv")
+    pd.DataFrame({"ts_code":["A"],"bond_full_name":["Company"],"stk_cd":["S"]}).to_csv(base/"cb_basic_info.csv",index=False)
+    pd.DataFrame(columns=["ann_date","end_date"]).to_csv(inputs/"financial_events.csv",index=False)
+    pd.DataFrame({"trade_date":dates.strftime("%Y%m%d"),"close":100.}).to_csv(inputs/"benchmark_daily.csv",index=False)
+    for date in dates:
+        pd.DataFrame([dict(ts_code="A",trade_date=date.strftime("%Y%m%d"),
+            open=100.,high=101.,low=99.,close=100.,vol=10.,amount=1000.)]).to_csv(inputs/"daily"/f"{date:%Y%m%d}.csv",index=False)
+    data = Inputs(base,inputs)
+    assert data.bars["close"].index.max() == pd.Timestamp(cutoff)
+    assert data.model["BS"].index.max() == pd.Timestamp(model_date)
+
 
 def test_drift_is_not_daily_rebalancing():
     d=pd.to_datetime(["2024-01-05","2024-01-08","2024-01-09"])

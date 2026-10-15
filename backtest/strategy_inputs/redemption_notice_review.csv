@@ -9,7 +9,7 @@ SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_
 111000,111000.SH,起帆转债,2026-04-21 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 111012,111012.SH,福新转债,2026-07-11 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 111017,111017.SH,蓝天转债,2024-11-05 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
-113046,113046.SH,金田转债,2026-09-23 00:00:00,,,,,2,announcement_date_alone_not_redemption_evidence
+111024,111024.SH,澳弘转债,2026-10-15 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 113048,113048.SH,晶科转债,2026-05-07 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 113051,113051.SH,节能转债,2026-05-20 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 113058,113058.SH,友发转债,2026-02-25 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
@@ -37,7 +37,7 @@ SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_
 118050,118050.SH,航宇转债,2026-06-18 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118051,118051.SH,皓元转债,2026-06-10 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118056,118056.SH,路维转债,2026-08-20 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
-118058,118058.SH,微导转债,2026-03-13 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
+118058,118058.SH,微导转债,2026-10-13 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118059,118059.SH,颀中转债,2026-06-18 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118060,118060.SH,瑞可转债,2026-06-10 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118061,118061.SH,茂莱转债,2026-07-04 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence

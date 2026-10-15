@@ -13,7 +13,7 @@ Absolute pricing research for Chinese A-share convertible bonds using three mode
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
 
-Current verified local model/daily-input cutoff: **2026-09-30**. Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
+Current verified local model cutoff: **2026-10-09**; daily-input cutoff: **2026-10-14** (updated intraday on 2026-10-15, before that day’s close was available). Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
 incremental; do not run a full-history rebuild unless a maintainer explicitly
 requests one.
 
@@ -132,6 +132,17 @@ The routine scripts read the verified Manifest cutoff and compute only dates
 strictly after it. Historical NaNs are not missing work and must never trigger a
 weekly reprice. `data_pipeline.py` accepts `--start` / `--end` for an explicitly
 bounded incremental range.
+
+Every update must refresh `cb_basic` and compare the previous and current bond
+universe: identify newly issued/listed bonds and bonds whose delisting date has
+arrived. Include new bonds in pricing only after listing and observed quotes are
+available; retain the strategy's existing listing-age and risk filters. Exclude
+delisted bonds from new selections on or after their delisting date. Preserve
+their historical prices and portfolio records, and never invent a sale for an
+untradeable holding. Verify these changes against daily quotes and report the
+actual pricing and daily-data cutoffs before committing or pushing. A midweek
+update may extend daily accounting beyond the latest completed weekly pricing
+date; do not treat an incomplete trading day as a published daily close.
 
 ---
 

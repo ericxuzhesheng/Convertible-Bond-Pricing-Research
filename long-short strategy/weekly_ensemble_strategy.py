@@ -16,9 +16,9 @@ from market_data_contracts import observed_average_risk_free_rate
 from weekly_strategy_core import Config, ValueConfig, net_valuation_upside, Inputs, build_ranking, next_session, select_targets, simulate, performance, timestamp
 
 METHOD = "weekly-ensemble-v1"
-ENGINE_REVISION = 4
+ENGINE_REVISION = 5
 VALUE_METHOD = "weekly-value-v1"
-VALUE_ENGINE_REVISION = 1
+VALUE_ENGINE_REVISION = 2
 LIMITATION = ("理论多空，无历史券源验证；历史强赎/ST覆盖不完整；初次抓取的财务历史不是原始发布版本。"
               "日净值为价格与已核验现金流的研究估计，尚未验证全部历史付息，不能称为完整总收益。")
 

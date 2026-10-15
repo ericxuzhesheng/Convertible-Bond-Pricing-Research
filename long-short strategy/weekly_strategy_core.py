@@ -152,14 +152,21 @@ class Inputs:
             raise ValueError("Daily/financial acquisition failed, not an empty eligible universe")
         self.calendar = pd.DatetimeIndex(pd.read_csv(
             self.input_dir / "calendar.csv", dtype=str).cal_date.map(timestamp)).sort_values()
+        from market_data_contracts import select_completed_weekly_dates
+        daily_cutoff = pd.Timestamp(self.metadata["cutoff"])
+        completed = select_completed_weekly_dates(
+            self.calendar[self.calendar <= daily_cutoff],
+            as_of=daily_cutoff + pd.Timedelta(hours=16))
+        if completed.empty:
+            raise ValueError("No completed market week in daily acquisition")
         self.model = {m: read_matrix(self.base / f"{m}_Model_Prices.csv") for m in MODELS}
         self.model_market = {m: read_matrix(self.base / f).apply(pd.to_numeric, errors="coerce")
             for m, f in zip(MODELS, ["Market_Prices.csv", "ZL_Market_Prices.csv", "LSM_Market_Prices.csv"])}
         for model in MODELS:
             if not self.model[model].index.equals(self.model_market[model].index):
                 raise ValueError(f"{model}: model and market date axes differ")
-            if self.model[model].index.max() < pd.Timestamp(self.metadata["cutoff"]):
-                raise ValueError(f"{model}: pricing is behind daily acquisition cutoff")
+            if self.model[model].index.max() < completed[-1]:
+                raise ValueError(f"{model}: pricing is behind latest completed market week")
         for model in ("ZL", "LSM"):
             manifest = json.loads((self.base / f"{model}_Model_Manifest.json").read_text(encoding="utf-8"))
             if pd.Timestamp(manifest["input_cutoff"]) != self.model[model].index.max():
@@ -311,6 +318,7 @@ def build_ranking(data, date, config):
     for field in (*FINANCIAL, "ann_date", "end_date"):
         out[field] = stocks.map(financial[field]) if field in financial else np.nan
     listing = data.basic.list_date.map(timestamp).reindex(out.index)
+    delisting = data.basic.delist_date.map(timestamp).reindex(out.index)
     conditions = {
         "finite_risk_inputs": np.isfinite(out[["floor", "term", "balance"]]).all(axis=1),
         "three_models_present": model_ok,
@@ -321,6 +329,7 @@ def build_ranking(data, date, config):
         "maturity_at_least_half_year": out.term.ge(.5),
         "balance_at_least_3yi": out.balance.ge(30000),
         "listed_over_30_days": (date-listing).dt.days.gt(30),
+        "not_delisted": delisting.isna() | delisting.gt(date),
         "liquidity": out.amount_20d.ge(1000) & out.amount_observations.ge(15)
                      & data.bars["amount"].loc[date].reindex(out.index).gt(0),
     }

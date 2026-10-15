@@ -398,11 +398,12 @@
     "2026-09-11",
     "2026-09-18",
     "2026-09-24",
-    "2026-09-30"
+    "2026-09-30",
+    "2026-10-09"
   ],
-  "input_cutoff": "2026-09-30",
-  "input_fingerprint": "a7914d52db7c603d6da45286d24a4ab678aa9101c73021f535415acb3543a37b",
-  "output_sha256": "dd61e3e62540f4e6bca41e837c87de0b2411363cb0f788dec3a4a01d790dd98e",
+  "input_cutoff": "2026-10-09",
+  "input_fingerprint": "40de9b43e1af28323a70f028809006305662a6c20843a4fe41a709a8e59b0133",
+  "output_sha256": "711f9e0e317db14d46bfe34182490b923aeed022b7cba55f5566ca455da16dfe",
   "model_parameters": {
     "mc_paths": 10000,
     "weekly_only": true,
