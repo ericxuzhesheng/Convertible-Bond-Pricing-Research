@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/定价模型-BS · ZL · LSM-F2C94C?style=for-the-badge" alt="BS + ZL + LSM">
-  <img src="https://img.shields.io/badge/数据缓存-2017--2026 · 更新至 2026--10--14-4CAF50?style=for-the-badge" alt="Cached data through 2026-10-14; historical tables retain their stated vintages">
+  <img src="https://img.shields.io/badge/数据缓存-2017--2026 · 更新至 2026--10--16-4CAF50?style=for-the-badge" alt="Cached data through 2026-10-16; historical tables retain their stated vintages">
   <img src="https://img.shields.io/badge/研究频率-周度定价 · 周度均价策略-9B51E0?style=for-the-badge" alt="Weekly pricing and ensemble strategy">
 </p>
 
@@ -214,6 +214,8 @@ MAE/MAPE/SMAPE 越低，模型定价拟合效果越好。
 >
 > 本地目录无法在电脑关机时被物理写入。运行一次 `backtest/setup_main_sync_task.ps1` 后，电脑登录及在线期间会定期获取远端更新；仅当本地处于干净的 `main` 时才执行 fast-forward，避免覆盖未提交工作。
 
+本地连接排查：本机 Clash 全局代理曾导致 Tushare 返回 HTTP 502、HTTPS 握手失败，切换规则模式后恢复。遇到类似情况，先检查代理路由和 HTTP 状态；SDK 可能把 HTTP 错误转为空表，不能据此判断为非交易日。BS 波动率请求间隔为 0.5 秒，以避开每分钟 200 次的接口限额。
+
 ---
 
 ## 错误定价因子
@@ -308,7 +310,7 @@ ZL 定价偏差的平均 IC 和 Rank IC 最高，分别为 0.096 和 0.081，两
 
 周度选券、下一交易日开盘成交，按每日行情核算净值，单边综合成本5bp。策略与本图已纳入常规周更新流程，使用固定结果路径展示最新曲线。
 
-周度定价截至2026-10-09，日频行情和策略账本截至2026-10-14；2026-10-15盘中更新时当日收盘数据尚未发布。当前区间为2019-01-07至2026-10-14。多头年化研究收益15.78%、夏普1.11、最大回撤-15.91%；理论多空分别为12.42%、1.18、-11.75%。历史财务与事件覆盖、现金流核验仍不完整，曲线为研究估计；多空未验证历史券源。2026-09-12 归档的成本对照与年度分解见[回测明细](summary/weekly_value_strategy_20260912.md)。
+周度定价、日频行情和研究策略账本均截至2026-10-16。当前区间为2019-01-07至2026-10-16。多头年化研究收益15.69%、夏普1.10、最大回撤-15.91%；理论多空分别为12.35%、1.17、-11.75%。历史财务与事件覆盖、现金流核验仍不完整，曲线为研究估计；多空未验证历史券源。2026-09-12 归档的成本对照与年度分解见[回测明细](summary/weekly_value_strategy_20260912.md)。
 
 ### 定价误差与市场价格时序（BS / ZL / LSM）
 
@@ -574,6 +576,8 @@ Remote weekly update plan:
 >
 > A powered-off computer cannot receive filesystem writes. Run `backtest/setup_main_sync_task.ps1` once to fetch updates at logon and hourly while online. The sync fast-forwards only a clean local `main`, so uncommitted work is never overwritten.
 
+Local connection troubleshooting: Clash global mode on this machine caused Tushare HTTP 502 responses and HTTPS handshake failures; rule mode restored access. Check proxy routing and HTTP status before interpreting an empty SDK result as a non-trading day. BS volatility requests pause for 0.5 seconds to stay below the endpoint's 200 requests/minute limit.
+
 ---
 
 ## 📊 Mispricing Signal
@@ -666,7 +670,7 @@ Period-level observations are available for [BS](mispricing%20factor/BS_factor_i
 
 Weekly selection, next-session open execution and daily valuation, with 5bp total friction per side. The strategy and this chart are part of the routine weekly update, using a stable output path for the latest curves.
 
-Weekly pricing is through 2026-10-09; daily inputs and accounting are through 2026-10-14. The October 15 close was not yet published during this intraday update. Current period: 2019-01-07 to 2026-10-14. Long-only annualized research return is 15.78%, Sharpe 1.11 and maximum drawdown -15.91%; theoretical long-short figures are 12.42%, 1.18 and -11.75%. Historical financial/event coverage and cashflow verification remain incomplete; these are research estimates, and historical borrow availability is unverified. See the 2026-09-12 archived [backtest details](summary/weekly_value_strategy_20260912.md) for cost scenarios and annual returns.
+Weekly pricing, daily inputs and research strategy accounting are through 2026-10-16. Current period: 2019-01-07 to 2026-10-16. Long-only annualized research return is 15.69%, Sharpe 1.10 and maximum drawdown -15.91%; theoretical long-short figures are 12.35%, 1.17 and -11.75%. Historical financial/event coverage and cashflow verification remain incomplete; these are research estimates, and historical borrow availability is unverified. See the 2026-09-12 archived [backtest details](summary/weekly_value_strategy_20260912.md) for cost scenarios and annual returns.
 
 ### Pricing vs Market Time Series (BS / ZL / LSM)
 

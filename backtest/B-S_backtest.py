@@ -202,7 +202,7 @@ if pending_bonds:
             if vol_series is not None:
                 df_volatility[bond_code] = vol_series
                 updated_count += 1
-            time.sleep(0.05)  # 避免请求过快
+            time.sleep(0.5)  # Respect Tushare's 200 requests/minute limit.
         except Exception as e:
             print(f"   获取 {bond_code} 波动率失败: {e}")
     if updated_count:

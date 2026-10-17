@@ -13,7 +13,7 @@ Absolute pricing research for Chinese A-share convertible bonds using three mode
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
 
-Current verified local model cutoff: **2026-10-09**; daily-input cutoff: **2026-10-14** (updated intraday on 2026-10-15, before that day’s close was available). Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
+Current verified local model cutoff: **2026-10-16**; daily-input cutoff: **2026-10-16** (updated on 2026-10-17 using completed closing data). Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
 incremental; do not run a full-history rebuild unless a maintainer explicitly
 requests one.
 

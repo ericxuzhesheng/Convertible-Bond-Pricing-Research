@@ -4,7 +4,7 @@
 
 ### 新增独立策略（2026-09-12）
 
-2019-01-07至2026-10-14，多头年化研究收益15.78%、夏普1.11、最大回撤-15.91%；理论多空为12.42%、1.18、-11.75%。现金流未全部核验，不能称为完整总收益；事件误分类已修正。
+2019-01-07至2026-10-16，多头年化研究收益15.69%、夏普1.10、最大回撤-15.91%；理论多空为12.35%、1.17、-11.75%。现金流未全部核验，不能称为完整总收益；事件误分类已修正。
 
 新策略使用三模型等权均价、基本面和事件准入，单边综合成本5bp、扣费后至少2%的买入余量，单券目标最多10%，3只满足就配置30%。每日计价，周度选券，下个交易日开盘检查价格上限。理论多空匹配两腿目标金额，实际敞口另行披露。
 
@@ -52,7 +52,7 @@ ZL 定价偏差的 IC 与 Rank IC 最稳定。估值因子也呈正预测关系�
 
 ### Independent strategy added on 2026-09-12
 
-From 2019-01-07 to 2026-10-14, long-only annualized research return is 15.78%, Sharpe 1.11, and maximum drawdown -15.91%. Theoretical long-short returns 12.42% annualized. Event classification is corrected; incomplete cashflow verification prevents a certified total-return claim.
+From 2019-01-07 to 2026-10-16, long-only annualized research return is 15.69%, Sharpe 1.10, and maximum drawdown -15.91%. Theoretical long-short returns 12.35% annualized. Event classification is corrected; incomplete cashflow verification prevents a certified total-return claim.
 
 The new weekly strategy uses the equal BS/ZL/LSM mean, fundamental/event eligibility, 5bp one-way total friction and a 2% valuation margin after round-trip costs. Each long is capped at 10%; three qualifying names imply 30% target exposure. It uses daily accounting, next-session open limits and matched target notionals for the theoretical long-short portfolio.
 
