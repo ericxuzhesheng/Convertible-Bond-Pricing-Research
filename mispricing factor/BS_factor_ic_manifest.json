@@ -2,8 +2,8 @@
   "model": "BS",
   "methodology_version": 1,
   "last_rebalance_date": "2026-09-30",
-  "last_return_date": "2026-10-16",
-  "history_sha256": "472df9b4ea0e12aa4200f23fb4d7f6bf40a4d3ebf174d8628fe7273fdb846429",
+  "last_return_date": "2026-10-23",
+  "history_sha256": "50862e615762a6366a96aa774e5ec0d2b4e531ea2fa1eb9912fd9a632d7c6889",
   "historical_columns": [
     "110030.SH",
     "110031.SH",
@@ -981,7 +981,12 @@
     "123284.SZ",
     "113710.SH",
     "123285.SZ",
-    "127116.SZ"
+    "127116.SZ",
+    "113711.SH",
+    "123286.SZ",
+    "123287.SZ",
+    "123288.SZ",
+    "127117.SZ"
   ],
-  "historical_input_fingerprint": "bb193c9a1d2019be486bf56458d4f7de798f37a61efd52291714d1ea924a91de"
+  "historical_input_fingerprint": "a6bb0a22976ca2b79a1211dc3088a22c6c2c918527ec04fbef534bbe038d9211"
 }

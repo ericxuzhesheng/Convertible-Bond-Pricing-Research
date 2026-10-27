@@ -599,6 +599,34 @@ def test_bps_incremental_cache_reduces_history_to_one_two_year_chunk(
     ]
 
 
+def test_bps_prefilter_keeps_uncached_bonds_without_new_disclosures(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(data_pipeline.time, "sleep", lambda _: None)
+
+    class NoNewDisclosuresPro(FakePro):
+        def disclosure_date(self, **kwargs):
+            return pd.DataFrame(columns=["ts_code", "actual_date"])
+
+    codes = [f"123{i:03d}.SZ" for i in range(51)]
+    stocks = [f"000{i:03d}.SZ" for i in range(51)]
+    cache = tmp_path / "bps.csv"
+    pd.DataFrame(10.0, index=pd.to_datetime(["2023-12-29"]),
+                 columns=codes[:-2]).assign(**{codes[-2]: np.nan}).to_csv(cache)
+    monkeypatch.setattr(data_pipeline, "OUT_BPS", str(cache))
+    price = pd.DataFrame(100.0, index=pd.to_datetime(["2024-01-02"]), columns=codes)
+    pro = NoNewDisclosuresPro()
+
+    result = data_pipeline.fetch_bps(
+        pro, pd.DataFrame({"ts_code": codes, "stk_cd": stocks}), price,
+        "20240101", "20240105", incremental_cache_available=True,
+    )
+
+    assert {call["ts_code"] for call in pro.fina_indicator_calls} == set(stocks[-2:])
+    assert result[codes[-2:]].iloc[0].tolist() == [12.5, 12.5]
+    assert result[codes[:-2]].isna().all().all()
+
+
 def test_bps_query_fails_closed_when_any_underlying_request_fails(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

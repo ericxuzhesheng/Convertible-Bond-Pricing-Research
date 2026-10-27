@@ -400,11 +400,12 @@
     "2026-09-24",
     "2026-09-30",
     "2026-10-09",
-    "2026-10-16"
+    "2026-10-16",
+    "2026-10-23"
   ],
-  "input_cutoff": "2026-10-16",
-  "input_fingerprint": "c45641b92611d37d86ac3b6ef67a2cbdc8de172a546b05f8e3d31b7728650fbc",
-  "output_sha256": "d637afc29bad1d01966af5cbd03eb4e9ba2e8937ef0e173790fe5b6399f9ea46",
+  "input_cutoff": "2026-10-23",
+  "input_fingerprint": "c19980f78db717932fdf65a46d2b8158bf5081563caf342a59d07002c8513f11",
+  "output_sha256": "5999af290aa5e6429d7416a9a0bcde7f78ec70dde77a055202d1a4310207b911",
   "model_parameters": {
     "paths": 256,
     "exercise_steps": 48,

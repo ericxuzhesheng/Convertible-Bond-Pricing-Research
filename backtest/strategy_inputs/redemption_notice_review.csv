@@ -1,7 +1,6 @@
 SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_PRICE_SH,EXECUTE_START_DATESH,DELIST_DATE,REDEEM_TYPE,review_status
 110026,110026.SH,中海转债,2008-02-27 00:00:00,,103.0,2008-03-27 00:00:00,2008-04-09 00:00:00,2,announcement_date_alone_not_redemption_evidence
 110038,110038.SH,济川转债,2022-11-02 00:00:00,,,,2022-11-14 00:00:00,,announcement_date_alone_not_redemption_evidence
-110077,110077.SH,洪城转债,2026-08-01 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 110090,110090.SH,爱迪转债,2023-10-11 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 110095,110095.SH,双良转债,2026-02-24 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 110097,110097.SH,天润转债,2025-08-16 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
@@ -73,7 +72,7 @@ SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_
 123237,123237.SZ,佳禾转债,2025-08-15 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123241,123241.SZ,欧通转债,2026-08-28 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123243,123243.SZ,严牌转债,2026-09-16 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
-123245,123245.SZ,集智转债,2026-06-23 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
+123245,123245.SZ,集智转债,2026-10-22 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123247,123247.SZ,万凯转债,2026-07-08 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123255,123255.SZ,鼎龙转债,2026-04-29 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123259,123259.SZ,锦浪转02,2026-05-21 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence

@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/定价模型-BS · ZL · LSM-F2C94C?style=for-the-badge" alt="BS + ZL + LSM">
-  <img src="https://img.shields.io/badge/数据缓存-2017--2026 · 更新至 2026--10--16-4CAF50?style=for-the-badge" alt="Cached data through 2026-10-16; historical tables retain their stated vintages">
+  <img src="https://img.shields.io/badge/数据缓存-2017--2026 · 更新至 2026--10--23-4CAF50?style=for-the-badge" alt="Cached data through 2026-10-23; historical tables retain their stated vintages">
   <img src="https://img.shields.io/badge/研究频率-周度定价 · 周度均价策略-9B51E0?style=for-the-badge" alt="Weekly pricing and ensemble strategy">
 </p>
 
@@ -310,7 +310,7 @@ ZL 定价偏差的平均 IC 和 Rank IC 最高，分别为 0.096 和 0.081，两
 
 周度选券、下一交易日开盘成交，按每日行情核算净值，单边综合成本5bp。策略与本图已纳入常规周更新流程，使用固定结果路径展示最新曲线。
 
-周度定价、日频行情和研究策略账本均截至2026-10-16。当前区间为2019-01-07至2026-10-16。多头年化研究收益15.69%、夏普1.10、最大回撤-15.91%；理论多空分别为12.35%、1.17、-11.75%。历史财务与事件覆盖、现金流核验仍不完整，曲线为研究估计；多空未验证历史券源。2026-09-12 归档的成本对照与年度分解见[回测明细](summary/weekly_value_strategy_20260912.md)。
+周度定价、日频行情和研究策略账本均截至2026-10-23。当前区间为2019-01-07至2026-10-23。多头年化研究收益15.80%、夏普1.11、最大回撤-15.91%；理论多空分别为12.27%、1.16、-11.75%。历史财务与事件覆盖、现金流核验仍不完整，曲线为研究估计；多空未验证历史券源。2026-09-12 归档的成本对照与年度分解见[回测明细](summary/weekly_value_strategy_20260912.md)。 冻结跟踪账本同样截至2026-10-23；本次风险快照于2026-10-27取得，最新事前有效信号仍为2026-10-16。
 
 ### 定价误差与市场价格时序（BS / ZL / LSM）
 
@@ -670,7 +670,7 @@ Period-level observations are available for [BS](mispricing%20factor/BS_factor_i
 
 Weekly selection, next-session open execution and daily valuation, with 5bp total friction per side. The strategy and this chart are part of the routine weekly update, using a stable output path for the latest curves.
 
-Weekly pricing, daily inputs and research strategy accounting are through 2026-10-16. Current period: 2019-01-07 to 2026-10-16. Long-only annualized research return is 15.69%, Sharpe 1.10 and maximum drawdown -15.91%; theoretical long-short figures are 12.35%, 1.17 and -11.75%. Historical financial/event coverage and cashflow verification remain incomplete; these are research estimates, and historical borrow availability is unverified. See the 2026-09-12 archived [backtest details](summary/weekly_value_strategy_20260912.md) for cost scenarios and annual returns.
+Weekly pricing, daily inputs and research strategy accounting are through 2026-10-23. Current period: 2019-01-07 to 2026-10-23. Long-only annualized research return is 15.80%, Sharpe 1.11 and maximum drawdown -15.91%; theoretical long-short figures are 12.27%, 1.16 and -11.75%. Historical financial/event coverage and cashflow verification remain incomplete; these are research estimates, and historical borrow availability is unverified. See the 2026-09-12 archived [backtest details](summary/weekly_value_strategy_20260912.md) for cost scenarios and annual returns. Frozen tracking accounting also reaches 2026-10-23; the risk snapshot was obtained on 2026-10-27, so its latest prospective signal remains 2026-10-16.
 
 ### Pricing vs Market Time Series (BS / ZL / LSM)
 

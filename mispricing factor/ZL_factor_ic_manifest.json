@@ -2,8 +2,8 @@
   "model": "ZL",
   "methodology_version": 1,
   "last_rebalance_date": "2026-09-30",
-  "last_return_date": "2026-10-16",
-  "history_sha256": "acbd11ea9662a3e324dd4d1e4c04299ea53ef82b333fe60fa63e36acf332d654",
+  "last_return_date": "2026-10-23",
+  "history_sha256": "7e2b534b7f1b8edb0ca8dd311dfca0dc6cd3ca3889cdf46497d6dc62d8d0db4c",
   "historical_columns": [
     "110030.SH",
     "110031.SH",
@@ -370,6 +370,7 @@
     "113708.SH",
     "113709.SH",
     "113710.SH",
+    "113711.SH",
     "118000.SH",
     "118001.SH",
     "118002.SH",
@@ -730,6 +731,9 @@
     "123283.SZ",
     "123284.SZ",
     "123285.SZ",
+    "123286.SZ",
+    "123287.SZ",
+    "123288.SZ",
     "124017.SZ",
     "124024.SZ",
     "127003.SZ",
@@ -846,6 +850,7 @@
     "127114.SZ",
     "127115.SZ",
     "127116.SZ",
+    "127117.SZ",
     "128009.SZ",
     "128010.SZ",
     "128011.SZ",
@@ -983,5 +988,5 @@
     "128144.SZ",
     "128145.SZ"
   ],
-  "historical_input_fingerprint": "a266e5437714ad3c3067b658d907e0835ce1461db055ce0843682b0f9e9a3b0a"
+  "historical_input_fingerprint": "36aaa2a41107c93610c28d8124d35bee4245f723f47684fdffd4e00dca1a3f11"
 }

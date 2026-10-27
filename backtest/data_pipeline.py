@@ -1260,8 +1260,18 @@ def fetch_bps(
     )
 
     # 增量更新加速：通过 disclosure_date 预筛期间有财报披露的正股
-    if start >= "20200101" and len(stock_codes) > 50:
+    if incremental_cache_available and start >= "20200101" and len(stock_codes) > 50:
         try:
+            # Newly listed bonds still need reports announced before this week.
+            cached_bps = _load_existing(OUT_BPS)
+            covered_bonds = (
+                set(cached_bps.columns[cached_bps.loc[cached_bps.index < pd.Timestamp(start)].notna().any()])
+                if cached_bps is not None else set()
+            )
+            uncached_stocks = {
+                bond_to_stock[bond] for bond in df_price.columns
+                if bond in bond_to_stock and bond not in covered_bonds
+            }
             print("   正在通过财报披露日 (disclosure_date) 预筛当期有更新的个股...")
             start_yr = int(start[:4])
             end_yr = int(end[:4])
@@ -1279,8 +1289,8 @@ def fetch_bps(
                 time.sleep(0.1)
             
             orig_len = len(stock_codes)
-            stock_codes = [s for s in stock_codes if s in disclosed_stocks]
-            print(f"   预筛完成：仅 {len(stock_codes)} / {orig_len} 只正股在 [{start}, {end}] 区间内披露了财报。")
+            stock_codes = [s for s in stock_codes if s in disclosed_stocks | uncached_stocks]
+            print(f"   预筛完成：{len(stock_codes)} / {orig_len} 只正股需要财报更新或历史缓存补齐。")
             if not stock_codes:
                 print("   当期无正股财报披露，直接跳过 fina_indicator 耗时网络查询。")
                 return pd.DataFrame(index=df_price.index, columns=df_price.columns, dtype=float)
