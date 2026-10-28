@@ -98,6 +98,11 @@ def rebuild_history(*, promote=False, refresh_inputs=False):
     if metrics[['annual_return','sharpe','max_drawdown']].isna().any().any():
         raise ValueError('Strategy performance cannot be certified even as a price-return estimate')
 
+    # Annual reports use the same verified pricing baseline, in a fresh stage.
+    # Never overwrite the previous report provenance to force an in-place rerun.
+    cutoff = manifests['BS']['input_cutoff']
+    report_sources = stage_weekly_reports(stage, cutoff)
+
     proof=dict(research_contract_version='research-pricing-v2',superseded_git_commit=parent,
         pricing={model:{key:manifest[key] for key in ('contract_version','input_cutoff','output_sha256')} for model,manifest in manifests.items()},
         factor_periods=periods,stage=str(stage),total_return_certified=False,
@@ -112,6 +117,7 @@ def rebuild_history(*, promote=False, refresh_inputs=False):
             raise RuntimeError('Pricing baseline changed during research calculation')
     sources=[(p,REPO_ROOT/'mispricing factor'/p.name) for p in factors.iterdir() if p.is_file()]
     sources += [(p,REPO_ROOT/'long-short strategy/weekly_value_results'/p.relative_to(strategy)) for p in strategy.rglob('*') if p.is_file()]
+    sources += report_sources
     # Validate every destination before replacing any published artifact.
     for source,target in sources:
         if target.exists():
@@ -129,6 +135,26 @@ def rebuild_history(*, promote=False, refresh_inputs=False):
     run(BACKTEST_DIR/'update_research_readme.py')
     print(f'Full research promoted; previous outputs remain in Git {parent}',flush=True)
     return stage
+
+
+def stage_weekly_reports(stage, cutoff):
+    import pandas as pd
+
+    year = pd.Timestamp(cutoff).year
+    reports = Path(stage) / f'weekly_value_results_pricing_v2_{year}'
+    subprocess.run([sys.executable,
+        str(REPO_ROOT/'long-short strategy/rebuild_weekly_reports_2026.py'),
+        '--year', str(year), '--output-dir', str(reports)], cwd=REPO_ROOT, check=True)
+    validation = json.loads((reports/'validation.json').read_text(encoding='utf-8'))
+    index = pd.read_csv(reports/'report_index.csv')
+    expected = pd.date_range(f'{year}-01-01', cutoff, freq='W-FRI').strftime('%Y-%m-%d').tolist()
+    if (validation.get('status') != 'passed' or validation.get('end') != cutoff
+            or index['week'].tolist() != expected
+            or validation.get('report_weeks') != len(expected)
+            or sorted(p.stem for p in (reports/'weeks').glob('*.md')) != expected):
+        raise ValueError('Weekly reports are incomplete or behind the pricing cutoff')
+    destination = REPO_ROOT/'long-short strategy'/reports.name
+    return [(p, destination/p.relative_to(reports)) for p in reports.rglob('*') if p.is_file()]
 
 
 if __name__ == "__main__":

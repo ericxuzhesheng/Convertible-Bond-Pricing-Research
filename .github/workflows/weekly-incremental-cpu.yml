@@ -110,7 +110,7 @@ jobs:
           "long-short strategy/update_benchmark.py"
           --end "${MARKET_END}"
 
-      - name: Rebuild factors strategies and figures
+      - name: Rebuild factors strategies weekly reports and figures
         run: python -u backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote
 
       - name: Validate the incremental cloud outputs
@@ -163,6 +163,7 @@ jobs:
             backtest/strategy_inputs/
             long-short strategy/weekly_results/
             long-short strategy/weekly_value_results/
+            long-short strategy/weekly_value_results_pricing_v2_*/
 
       - name: Commit and publish the complete weekly update
         shell: bash
@@ -172,6 +173,7 @@ jobs:
           git add -u
           git add backtest/strategy_inputs "long-short strategy/weekly_results" "long-short strategy/weekly_value_results"
           git add backtest/Research_Migration.json
+          git add -- ':(glob)long-short strategy/weekly_value_results_pricing_v2_*/**'
           if git diff --cached --quiet; then
             echo "No weekly changes to publish."
           else

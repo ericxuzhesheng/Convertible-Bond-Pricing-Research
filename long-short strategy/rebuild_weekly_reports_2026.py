@@ -1,5 +1,6 @@
 """Versioned 2026 weekly research reports using the corrected pricing baseline."""
 import hashlib
+import argparse
 import json
 from pathlib import Path
 import sys
@@ -15,7 +16,9 @@ BASE = ROOT / 'backtest'
 OUT = Path(__file__).resolve().parent / 'weekly_value_results_pricing_v2_2026'
 
 
-def main():
+def main(*, year=2026, output_dir=OUT):
+    # Weekly publication supplies a fresh stage; existing provenance remains guarded.
+    OUT = Path(output_dir)
     provenance = {}
     for model in ('BS', 'ZL', 'LSM'):
         path = BASE / f'{model}_Model_Manifest.json'
@@ -24,14 +27,17 @@ def main():
         provenance[model] = dict(manifest_sha256=hashlib.sha256(raw).hexdigest(), cutoff=manifest['input_cutoff'])
     if len({v['cutoff'] for v in provenance.values()}) != 1:
         raise ValueError('Model cutoffs differ')
-    OUT.mkdir(exist_ok=True)
+    OUT.mkdir(parents=True, exist_ok=True)
     proof = OUT / 'pricing_sources.json'
     if proof.exists() and json.loads(proof.read_text(encoding='utf-8')) != provenance:
         raise ValueError('Pricing baseline changed; choose a new versioned output directory')
     proof.write_text(json.dumps(provenance, indent=2), encoding='utf-8')
     data = Inputs(BASE, BASE / 'strategy_inputs')
-    start = pd.Timestamp('2026-01-01')
-    end = min(pd.Timestamp(data.metadata['cutoff']), pd.Timestamp(provenance['BS']['cutoff']))
+    start = pd.Timestamp(year=year, month=1, day=1)
+    end = min(pd.Timestamp(data.metadata['cutoff']), pd.Timestamp(provenance['BS']['cutoff']),
+              pd.Timestamp(year=year, month=12, day=31))
+    if end < start:
+        raise ValueError('No verified inputs for the requested year')
     config = ValueConfig(risk_mode='research')
     run_one(data, config, start, end, OUT / 'research')
     ranks = pd.read_csv(OUT / 'research/rankings.csv')
@@ -93,9 +99,13 @@ def main():
                    scope='Retrospective research reports; no historical frozen signals or complete-total-return claim')
     (OUT / 'validation.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
     links = '\n'.join(f'- [{r["week"]}](weeks/{r["week"]}.md)：{r["status"]}' for r in index)
-    (OUT / 'README.md').write_text('# 2026年周报（修正版定价历史回顾）\n\n'+LIMITATION+'\n\n旧版冻结账本保留；本目录仅为事后研究。CCB尚未纳入。\n\n'+links+'\n', encoding='utf-8')
+    (OUT / 'README.md').write_text(f'# {year}年周报（修正版定价历史回顾）\n\n'+LIMITATION+'\n\n旧版冻结账本保留；本目录仅为事后研究。CCB尚未纳入。\n\n'+links+'\n', encoding='utf-8')
     print(json.dumps(summary), flush=True)
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--year', type=int, default=2026)
+    parser.add_argument('--output-dir', type=Path)
+    args = parser.parse_args()
+    main(year=args.year, output_dir=args.output_dir or OUT.with_name(f'weekly_value_results_pricing_v2_{args.year}'))

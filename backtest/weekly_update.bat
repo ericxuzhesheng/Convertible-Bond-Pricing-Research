@@ -82,7 +82,7 @@ if errorlevel 1 (
     goto :fail
 )
 
-echo [6/7] Recalculating factors, IC, strategies, figures and README ... >> "%LOG_FILE%"
+echo [6/7] Recalculating factors, IC, strategies, weekly reports, figures and README ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%rebuild_research_outputs.py" --full-history --refresh-inputs --promote >> "%LOG_FILE%" 2>&1
 if errorlevel 1 goto :fail
 
@@ -91,6 +91,8 @@ cd /d "%REPO_DIR%"
 
 git add "backtest\strategy_inputs" "long-short strategy\weekly_results" "long-short strategy\weekly_value_results" >> "%LOG_FILE%" 2>&1
 git add -u >> "%LOG_FILE%" 2>&1
+git add -- ":(glob)long-short strategy/weekly_value_results_pricing_v2_*/**" >> "%LOG_FILE%" 2>&1
+if errorlevel 1 goto :fail
 git add "backtest\Research_Migration.json" >> "%LOG_FILE%" 2>&1
 git add "backtest\regenerate_plots.py" >> "%LOG_FILE%" 2>&1
 git add "backtest\weekly_update.bat" >> "%LOG_FILE%" 2>&1
@@ -101,6 +103,7 @@ git add "long-short strategy\000832_CSI_close_price.csv" >> "%LOG_FILE%" 2>&1
 git diff --cached --quiet
 if errorlevel 1 (
     git commit -m "chore: weekly update %DATESTAMP%" >> "%LOG_FILE%" 2>&1
+    if errorlevel 1 goto :fail
     git push origin main >> "%LOG_FILE%" 2>&1
     if errorlevel 1 (
         echo [ERROR] git push failed. Check network and credentials. >> "%LOG_FILE%"

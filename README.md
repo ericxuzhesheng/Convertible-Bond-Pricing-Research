@@ -1,5 +1,26 @@
 # 中国市场可转债定价模型研究 | Convertible Bond Pricing Research
 
+<p align="center">
+  <a href="#简体中文"><img src="https://img.shields.io/badge/语言-中文-E84D3D?style=for-the-badge&labelColor=3B3F47" alt="中文"></a>
+  &nbsp;
+  <a href="#english-version"><img src="https://img.shields.io/badge/Language-English-2F73C9?style=for-the-badge&labelColor=3B3F47" alt="English"></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/定价模型-BS%20%C2%B7%20ZL%20%C2%B7%20LSM-F2C94C?style=for-the-badge" alt="BS + ZL + LSM">
+  <img src="https://img.shields.io/badge/定价截止-2026--10--23-4CAF50?style=for-the-badge" alt="Pricing through 2026-10-23">
+  <img src="https://img.shields.io/badge/研究频率-周度定价与策略-9B51E0?style=for-the-badge" alt="Weekly pricing and strategy">
+</p>
+
+<p align="center">
+  <a href="summary/key_findings.md"><img src="https://img.shields.io/badge/研究摘要-阅读-2F73C9?style=for-the-badge" alt="研究摘要"></a>
+  <a href="long-short%20strategy/weekly_value_results_pricing_v2_2026/README.md"><img src="https://img.shields.io/badge/2026周报-查看-4CAF50?style=for-the-badge" alt="2026周报"></a>
+  <a href="report/README.md"><img src="https://img.shields.io/badge/研报索引-PDF-E84D3D?style=for-the-badge" alt="研报索引"></a>
+</p>
+
+---
+
 <a id="简体中文"></a>
 
 ## 简体中文
@@ -120,7 +141,7 @@
 
 ## 更新与复现
 
-每次周更新依次执行行情输入、三模型独立定价、观测因子、IC、策略核算、图表和 README，任一步失败即停止发布。定价只追加已验证边界之后的交易周，因子与组合结果按同一套定价输入重新计算。输入指纹和产物 Manifest 会识别相同截止日下的数据或定价变更，替换前的结果由 Git 保留。
+每次周更新依次执行行情输入、三模型独立定价、观测因子、IC、策略核算、年度逐周报告、图表和 README，任一步失败即停止发布。周报在暂存目录生成并校验后，与其他结果一起提交和推送，新增周报也纳入提交。定价只追加已验证边界之后的交易周，因子与组合结果按同一套定价输入重新计算。输入指纹和产物 Manifest 会识别相同截止日下的数据或定价变更，替换前的结果由 Git 保留。
 
 ```powershell
 python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote
@@ -263,7 +284,7 @@ Long-only, theoretical long-short, 000832.CSI and 511380.SH each start at 1 on t
 
 ## Updates and reproducibility
 
-Every weekly update runs market inputs, independent BS/ZL/LSM pricing, observed factors, IC, strategy accounting, figures and this README before publication. Any failed stage stops publication. Pricing appends only verified new weeks; factor and portfolio outputs are recalculated against the same pricing baseline. Input fingerprints and artifact manifests detect changed data and model prices even when the cutoff is unchanged. Git preserves replaced results.
+Every weekly update runs market inputs, independent BS/ZL/LSM pricing, observed factors, IC, strategy accounting, annual weekly reports, figures and this README before publication. Annual reports are generated and checked in staging, then committed and pushed together, including newly created weeks. Any failed stage stops publication. Pricing appends only verified new weeks; factor and portfolio outputs are recalculated against the same pricing baseline. Input fingerprints and artifact manifests detect changed data and model prices even when the cutoff is unchanged. Git preserves replaced results.
 
 ```powershell
 python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote
