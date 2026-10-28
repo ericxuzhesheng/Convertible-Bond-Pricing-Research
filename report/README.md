@@ -1,5 +1,7 @@
 # 报告版本索引
 
+- 2026年修正版定价周报：[43周历史回顾索引](../long-short%20strategy/weekly_value_results_pricing_v2_2026/README.md)，截至2026-10-23。采用修正后的BS/ZL/LSM价格，保留历史事件与现金流限制，不冒充事前冻结记录。
+
 - 当前独立策略：[周度均价安全边际策略回测（2026-09-12）](../summary/weekly_value_strategy_20260912.md)。单边5bp、扣费后2%门槛；2019年起每日核算，附原始结果链接。
 - 方法说明：[WEEKLY_VALUE_STRATEGY.md](../long-short%20strategy/WEEKLY_VALUE_STRATEGY.md)。
 - 历史定价与六因子研究：[CB_pricing_full.pdf](CB_pricing_full.pdf)，更新页及统计截止2026-08-28，保留原PDF，不代表当前独立策略结果。

@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "checked_at": "2026-10-28T14:06:20.256564+08:00",
+  "report_weeks": 43,
+  "observed_signal_weeks": 41,
+  "model_metric_rows_checked": 123,
+  "ranked_bond_dates_checked": 13722,
+  "selected_positions_checked": 39,
+  "pricing_manifest_integrity": "passed",
+  "strategy_input_vintage": "matched",
+  "source_price_reconciliation": "passed",
+  "links": "passed",
+  "nav_and_weekly_return_reconciliation": "passed",
+  "scope": "Retrospective 2026 weekly reports through 2026-10-23; no model repricing or frozen tracking rewrite"
+}

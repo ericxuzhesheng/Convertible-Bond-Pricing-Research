@@ -1,5 +1,7 @@
 # Research Brief | 研究摘要
 
+2026-10-28新增：[2026年修正版定价周报](../long-short%20strategy/weekly_value_results_pricing_v2_2026/README.md)覆盖截至10月23日的43个自然周，按已验证BS/ZL/LSM价格回补历史研究。旧版策略与IC数字仍保留原版本；本次不创建历史事前冻结信号。
+
 > 定价版本说明（2026-10-28）：三模型已重建并验证400周历史至2026-10-23，各有151,991个有效定价单元。修正版采用独立 BS、ZL、LSM 引擎和合同现金流口径，LSM 不再读取或叠加 ZL 价格。下文策略收益、IC 和旧版定价统计保留其原有版本，尚未迁移为新方法结果。方法与独立命令见 [PRICING_METHODS.md](../backtest/PRICING_METHODS.md)。
 >
 > Pricing version notice (2026-10-28): all three models have 400 rebuilt and verified weeks through 2026-10-23, with 151,991 valid cells each. The corrected engines use contractual cash flows and independent BS/ZL/LSM valuation. Strategy, IC and dated pricing statistics below retain their original research vintage.
