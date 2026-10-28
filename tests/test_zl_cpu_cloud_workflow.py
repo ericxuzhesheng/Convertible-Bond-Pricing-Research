@@ -41,10 +41,12 @@ def test_cpu_backend_executes_observed_redemption_trigger():
     assert price_mc(c,method="ZL",paths=8,seed=13)[0]==150.
 
 
-def test_github_cron_runs_complete_incremental_pipeline_on_cpu() -> None:
+def test_github_manual_fallback_runs_complete_incremental_pipeline_on_cpu() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    assert 'cron: "30 9 * * 5"' in workflow
+    assert 'workflow_dispatch:' in workflow
+    assert '  schedule:' not in workflow
+    assert 'cron:' not in workflow
     assert "PIPELINE_START=" in workflow
     assert (
         'data_pipeline.py\n          --start "${PIPELINE_START}"\n'

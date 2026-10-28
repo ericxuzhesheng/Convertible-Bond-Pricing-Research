@@ -147,7 +147,7 @@
 python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote
 ```
 
-该研究入口读取已有定价、刷新策略输入并重算研究结果；定时工作流还会先执行数据和定价更新。
+该研究入口读取已有定价、刷新策略输入并重算研究结果。常规周更新在本地运行 `backtest/weekly_update.bat`，包括前置数据和定价更新、周报生成及推送 GitHub。GitHub Actions 已取消定时触发，仅保留手动备用入口。
 
 ## 局限性
 
@@ -290,7 +290,7 @@ Every weekly update runs market inputs, independent BS/ZL/LSM pricing, observed 
 python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote
 ```
 
-This research entrypoint uses saved pricing outputs, refreshes strategy inputs and recalculates research. The scheduled workflow runs the preceding pricing stages as well.
+This research entrypoint uses saved pricing outputs, refreshes strategy inputs and recalculates research. Routine weekly updates run locally with `backtest/weekly_update.bat`, including the preceding data and pricing stages, weekly reports and GitHub publication. GitHub Actions has no scheduled trigger; its manual entrypoint is retained as an optional fallback.
 
 ## Limitations
 

@@ -1,10 +1,8 @@
-name: Strict incremental weekly cloud update
+name: Manual incremental cloud update
 
 on:
   workflow_dispatch:
-  schedule:
-    # Friday 17:30 Asia/Shanghai (09:30 UTC), after market data is ready.
-    - cron: "30 9 * * 5"
+  # Routine weekly updates run locally; cloud execution is manual only.
 
 permissions:
   contents: write
