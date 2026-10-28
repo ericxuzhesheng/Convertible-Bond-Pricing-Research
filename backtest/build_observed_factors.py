@@ -141,6 +141,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--lookback", type=int, default=20)
     parser.add_argument("--min-observations", type=int, default=10)
+    parser.add_argument("--output-dir", type=Path, default=FACTOR_DIR)
     args = parser.parse_args()
 
     factors = build_observed_factors(
@@ -151,9 +152,9 @@ def main() -> None:
         lookback=args.lookback,
         min_observations=args.min_observations,
     )
-    FACTOR_DIR.mkdir(parents=True, exist_ok=True)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
     for name, frame in factors.items():
-        output = FACTOR_DIR / OUTPUT_FILES[name]
+        output = args.output_dir / OUTPUT_FILES[name]
         frame.index.name = "date"
         frame.to_csv(output, encoding="utf-8-sig")
         print(
@@ -190,7 +191,7 @@ def main() -> None:
         },
         "missing_data_policy": "no forward fill and no constant fallback",
     }
-    (FACTOR_DIR / "observed_factor_metadata.json").write_text(
+    (args.output_dir / "observed_factor_metadata.json").write_text(
         json.dumps(metadata, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )

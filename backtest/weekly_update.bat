@@ -1,7 +1,6 @@
 @echo off
 :: Convertible-bond weekly update:
-:: market data -> observed volatility -> BS -> ZL -> LSM -> benchmark -> Git publish
-:: Research/weekly reports remain paused pending their versioned migration.
+:: market data -> BS/ZL/LSM -> factors/IC -> strategies -> figures/README -> Git publish
 
 setlocal EnableDelayedExpansion
 
@@ -83,18 +82,16 @@ if errorlevel 1 (
     goto :fail
 )
 
-:: Research remains on its archived v1 pricing until a separate migration.
-echo [6/7] Skipping research/weekly reports during pricing migration. >> "%LOG_FILE%"
-"%PYTHON%" "%BACKTEST_DIR%update_etf_benchmark.py" >> "%LOG_FILE%" 2>&1
-if errorlevel 1 exit /b 1
-"%PYTHON%" "%BACKTEST_DIR%regenerate_plots.py" --pricing-only >> "%LOG_FILE%" 2>&1
-if errorlevel 1 exit /b 1
+echo [6/7] Recalculating factors, IC, strategies, figures and README ... >> "%LOG_FILE%"
+"%PYTHON%" "%BACKTEST_DIR%rebuild_research_outputs.py" --full-history --refresh-inputs --promote >> "%LOG_FILE%" 2>&1
+if errorlevel 1 goto :fail
 
 echo [7/7] Publishing verified outputs ... >> "%LOG_FILE%"
 cd /d "%REPO_DIR%"
 
 git add "backtest\strategy_inputs" "long-short strategy\weekly_results" "long-short strategy\weekly_value_results" >> "%LOG_FILE%" 2>&1
 git add -u >> "%LOG_FILE%" 2>&1
+git add "backtest\Research_Migration.json" >> "%LOG_FILE%" 2>&1
 git add "backtest\regenerate_plots.py" >> "%LOG_FILE%" 2>&1
 git add "backtest\weekly_update.bat" >> "%LOG_FILE%" 2>&1
 git add "backtest\setup_weekly_task.ps1" >> "%LOG_FILE%" 2>&1

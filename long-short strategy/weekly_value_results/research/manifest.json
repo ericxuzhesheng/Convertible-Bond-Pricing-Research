@@ -2,6 +2,11 @@
   "engine_revision": 2,
   "input_vintage": {
     "daily": "2026-10-27T09:32:00.841636+08:00",
+    "pricing": {
+      "BS": "ebb90b48baf4d259b06d545597deb795ef3829b162dc68ee6d38e5c225bee9a2",
+      "ZL": "c1b9424b6701ed415c3963bb24edda63a898bdb6f5e5ad3e6e8c6eb6cc3ce79c",
+      "LSM": "e0979866494c75946d40f2183d18cc04952c1b0689c91c2d05fc932a6e5fbbb8"
+    },
     "events": "2026-10-27T09:32:00.853572+08:00",
     "event_normalization": 2,
     "cashflows": 1789192757387214700,

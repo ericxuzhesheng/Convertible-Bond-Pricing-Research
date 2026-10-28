@@ -96,11 +96,6 @@ jobs:
       - name: Update LSM weekly results incrementally
         run: python -u backtest/LSM_backtest.py --weekly
 
-      - name: Refresh pricing figures without rebuilding research
-        run: |
-          python -u backtest/update_etf_benchmark.py
-          python -u backtest/regenerate_plots.py --pricing-only
-
       - name: Resolve the latest completed weekly market date
         shell: bash
         run: |
@@ -115,11 +110,8 @@ jobs:
           "long-short strategy/update_benchmark.py"
           --end "${MARKET_END}"
 
-      # Legacy IC manifests and frozen strategy ledgers retain their v1 pricing.
-      # Resume research publication only after its separately reviewed migration.
       - name: Rebuild factors strategies and figures
-        if: ${{ false }}
-        run: python -u backtest/rebuild_research_outputs.py
+        run: python -u backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote
 
       - name: Validate the incremental cloud outputs
         run: >-
@@ -161,6 +153,7 @@ jobs:
             backtest/*_Pricing_Issues.csv
             backtest/BS_Model_Manifest.json
             backtest/Pricing_Migration.json
+            backtest/Research_Migration.json
             backtest/ETF_511380_Daily.csv
             backtest/ETF_511380_Manifest.json
             backtest/Pricing_Metrics.csv
@@ -178,6 +171,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -u
           git add backtest/strategy_inputs "long-short strategy/weekly_results" "long-short strategy/weekly_value_results"
+          git add backtest/Research_Migration.json
           if git diff --cached --quiet; then
             echo "No weekly changes to publish."
           else

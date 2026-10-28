@@ -48,7 +48,7 @@ def test_generated_readme_metrics_refresh_without_touching_archived_text(tmp_pat
     update_readme_metrics(p,metrics,2,97.35,312,313)
     content=p.read_text(encoding='utf-8')
     assert content.startswith('User introduction\n') and content.endswith('Archived v1 statistics: 2026-08-28')
-    assert '2024-01-12' in content and '| BS | 2 | 100.00 | 10.00 |' in content
+    assert '2024-01-12' not in content and '| BS | 2 | 100.00 | 10.00 |' in content
     assert '312/313' in content and '97.35%' in content
 
 

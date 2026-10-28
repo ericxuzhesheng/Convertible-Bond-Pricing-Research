@@ -167,8 +167,8 @@ class Inputs:
                 raise ValueError(f"{model}: model and market date axes differ")
             if self.model[model].index.max() < completed[-1]:
                 raise ValueError(f"{model}: pricing is behind latest completed market week")
-        for model in ("ZL", "LSM"):
-            manifest = json.loads((self.base / f"{model}_Model_Manifest.json").read_text(encoding="utf-8"))
+        pricing_manifests = {model: json.loads((self.base / f"{model}_Model_Manifest.json").read_text(encoding="utf-8")) for model in MODELS}
+        for model, manifest in pricing_manifests.items():
             if pd.Timestamp(manifest["input_cutoff"]) != self.model[model].index.max():
                 raise ValueError(f"{model}: model manifest cutoff mismatch")
         self.price = read_matrix(self.base / "cb_price_cache.csv")
@@ -217,6 +217,7 @@ class Inputs:
         event_state = self.input_dir / "event_sources.json"
         event_metadata = json.loads(event_state.read_text(encoding="utf-8")) if event_state.exists() else {}
         self.input_vintage = {"daily":self.metadata.get("fetched_at"),
+                              "pricing":{model:manifest.get("output_sha256") for model,manifest in pricing_manifests.items()},
                               "events":event_metadata.get("fetched_at"),
                               "event_normalization":event_metadata.get("normalization_revision"),
                               "cashflows":cash.stat().st_mtime_ns if cash.exists() else None,

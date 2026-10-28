@@ -3,7 +3,7 @@
   "methodology_version": 1,
   "last_rebalance_date": "2026-09-30",
   "last_return_date": "2026-10-23",
-  "history_sha256": "7e2b534b7f1b8edb0ca8dd311dfca0dc6cd3ca3889cdf46497d6dc62d8d0db4c",
+  "history_sha256": "1451b4281c6de410172ffcd5bada15209a59fe6fd8c2bc3c0703c8d1bb9323d8",
   "historical_columns": [
     "110030.SH",
     "110031.SH",
@@ -988,5 +988,5 @@
     "128144.SZ",
     "128145.SZ"
   ],
-  "historical_input_fingerprint": "36aaa2a41107c93610c28d8124d35bee4245f723f47684fdffd4e00dca1a3f11"
+  "historical_input_fingerprint": "c0671234d0c90000a4eb7faf0a78974a2a33a51ce34562a8b7188dfa18a3b8fc"
 }

@@ -58,6 +58,8 @@ def test_github_cron_runs_complete_incremental_pipeline_on_cpu() -> None:
         in workflow
     )
     assert "rebuild_research_outputs.py" in workflow
+    assert "rebuild_research_outputs.py --full-history --refresh-inputs --promote" in workflow
+    assert 'if: ${{ false }}' not in workflow
     assert "--rebuild-all" not in workflow
     assert "git push origin" in workflow
 

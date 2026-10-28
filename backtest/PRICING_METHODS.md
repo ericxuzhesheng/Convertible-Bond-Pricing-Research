@@ -196,22 +196,32 @@ covered. The token needs the provider's ETF endpoint permission (currently
 5,000 points for `fund_daily`). Pricing-only weekly publication refreshes this
 cache before rendering the figures.
 
-The ETF comparison normalizes each series to 100 on its first common observed
-week. Cross-sectional mean convertible prices change with the observed bond
-universe and are not portfolio-return indices. Distribution whiskers show the
+The ETF comparison is part of the strategy NAV figure, not the pricing-mean
+figures. Daily long-only, theoretical long-short, 000832.CSI and the observed
+511380.SH adjusted-close benchmark each start at 1 on their own first observed
+value. Full strategy history is retained, with the ETF left empty before
+listing. This is a broad trend reference with different inception points;
+no pre-listing backfill or interpolation is used.
+`weekly_value_results/research/nav_etf_comparison.csv` retains plotted values.
+Full-sample performance tables retain their own complete research window.
+Distribution whiskers show the
 5th/95th percentiles, with every common valid cell entering the statistics.
 Annual averages use equal bond-date weights. Monte Carlo error panels show
 cross-sectional medians and 95th percentiles, not confidence bands for the whole
 pricing model. `regenerate_plots.py --pricing-only` updates these diagnostics
-and the metrics table without touching research or weekly reports.
+and the metrics table without touching research or weekly reports. Full figure
+regeneration also refreshes the strategy NAV comparison against the ETF.
 
-The v1 factor IC manifests, frozen signals, strategy ledgers and weekly reports
-are retained unchanged. Their results are not re-labelled as v2 research.
-`regenerate_plots.py --pricing-only` refreshes the three pricing figures without
-touching research figures. Automatic research rebuilding is paused during the pricing migration; re-enable
-it only after an explicit versioned IC/strategy migration. Pricing-only cloud
-updates remain incremental. Do not delete an IC manifest to make it accept
-different historical model prices.
+Every weekly update recalculates factors, IC, research portfolios, figures and
+README against the verified pricing baseline. The explicit research entrypoint
+is `rebuild_research_outputs.py --full-history --refresh-inputs --promote`.
+It builds a fresh staging baseline, validates IC histories and strategy marks,
+and records pricing provenance and the superseded Git commit in
+`Research_Migration.json` before replacing published derived results. Frozen
+tracking signals and confirmed ledger prefixes are copied and verified rather
+than recreated retrospectively. Existing IC guards are never deleted or bypassed.
+Market data and pricing still update incrementally. A failed downstream stage
+stops weekly publication. README is rendered directly from the current outputs.
 
 ## Method and exchange sources
 

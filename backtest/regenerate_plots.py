@@ -393,6 +393,39 @@ def _plot_one_strategy(csv_path: str, label_prefix: str, dev_col: str, out_path:
     _save(out_path)
 
 
+def strategy_etf_comparison(navs, etf):
+    """Keep full NAV history and leave unavailable ETF dates empty."""
+    curves={}
+    for name,frame in navs.items():
+        frame=frame.set_index('date')
+        curves[name]=frame.nav.where(frame.marked_prices_verified)
+    first=next(iter(navs.values())).set_index('date')
+    curves['000832.CSI']=first.benchmark_nav
+    comparison=pd.DataFrame(curves).join(etf.rename('ETF'))
+    return comparison.div(comparison.apply(lambda values:values.dropna().iloc[0]))
+
+
+def plot_weekly_strategy_nav() -> None:
+    from pathlib import Path
+    from update_etf_benchmark import load_cache
+    directory=Path(LS_DIR)/'weekly_value_results/research'
+    navs={name:pd.read_csv(directory/f'{name}_daily_nav.csv',parse_dates=['date']) for name in ('long_only','long_short')}
+    etf=load_cache(Path(SCRIPT_DIR)).set_index('trade_date').adjusted_close
+    comparison=strategy_etf_comparison(navs,etf)
+    comparison.to_csv(directory/'nav_etf_comparison.csv',index_label='date')
+    fig,ax=plt.subplots(figsize=(12,6))
+    labels={'long_only':'多头（研究估计）','long_short':'理论多空（研究估计）',
+        '000832.CSI':'中证转债指数','ETF':'转债ETF 511380.SH（复权收盘价）'}
+    colors={'long_only':'#c88b20','long_short':'#286da8','000832.CSI':'#343a40','ETF':'#b44d63'}
+    for name in comparison:
+        ax.plot(comparison.index,comparison[name],label=labels[name],color=colors[name],linewidth=1.6)
+    ax.set(title='策略净值与转债 ETF 对比',ylabel='净值（各自起点 = 1）',xlabel='年份')
+    ax.legend(loc='upper left',fontsize=10)
+    fig.text(.5,.005,'ETF上市前留空，各曲线按各自首个观测值归一化，作走势参考。策略付息和券源尚未全部核验。',ha='center',fontsize=9)
+    fig.tight_layout(rect=(0,.04,1,1))
+    _save(str(directory/'daily_nav.png'))
+
+
 def plot_strategy_performance() -> None:
     print("[Strategy] 加载策略结果 CSV ...")
     _plot_one_strategy(
@@ -668,7 +701,7 @@ def plot_factor_ic_comparison() -> None:
     ]
     start = min(pd.to_datetime(h["rebalance_date"]).min() for h in histories)
     end = min(pd.to_datetime(h["return_date"]).max() for h in histories)
-    fig.suptitle(f"Monthly factor IC and Rank IC, {start:%Y-%m-%d} to {end:%Y-%m-%d}")
+    fig.suptitle("Monthly factor IC and Rank IC")
     axes[1].legend(loc="lower right", frameon=False)
     _save(os.path.join(MF_DIR, "factor_ic_comparison.png"))
 
@@ -689,6 +722,7 @@ def main(argv=None) -> None:
     plot_lsm_timeseries()
     plot_pricing_diagnostics()
     if not args.pricing_only:
+        plot_weekly_strategy_nav()
         plot_strategy_performance()
         plot_factor_correlation()
         plot_factor_ic_comparison()

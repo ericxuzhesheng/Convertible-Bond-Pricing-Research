@@ -41,6 +41,7 @@ def test_research_output_rebuild_runs_all_downstream_stages(
         "strategy_data.py",
         "weekly_value_strategy.py",
         "regenerate_plots.py",
+        "update_research_readme.py",
     ]
 
 
@@ -68,7 +69,7 @@ def test_weekly_batch_fails_closed_before_git_publish() -> None:
         encoding="utf-8"
     )
 
-    assert "Skipping research/weekly reports during pricing migration" in source
+    assert 'rebuild_research_outputs.py" --full-history --refresh-inputs --promote' in source
     assert source.count("goto :fail") >= 3
 
 

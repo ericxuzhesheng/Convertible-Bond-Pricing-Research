@@ -1,0 +1,29 @@
+{
+  "research_contract_version": "research-pricing-v2",
+  "superseded_git_commit": "94b94df82dff9264ccc0547301e8c152c323efe3",
+  "pricing": {
+    "BS": {
+      "contract_version": "cashflow-pricing-v2",
+      "input_cutoff": "2026-10-23",
+      "output_sha256": "ebb90b48baf4d259b06d545597deb795ef3829b162dc68ee6d38e5c225bee9a2"
+    },
+    "ZL": {
+      "contract_version": "cashflow-pricing-v2",
+      "input_cutoff": "2026-10-23",
+      "output_sha256": "c1b9424b6701ed415c3963bb24edda63a898bdb6f5e5ad3e6e8c6eb6cc3ce79c"
+    },
+    "LSM": {
+      "contract_version": "cashflow-pricing-v2",
+      "input_cutoff": "2026-10-23",
+      "output_sha256": "e0979866494c75946d40f2183d18cc04952c1b0689c91c2d05fc932a6e5fbbb8"
+    }
+  },
+  "factor_periods": {
+    "BS": 93,
+    "ZL": 93,
+    "LSM": 93
+  },
+  "stage": "D:\\Github Repository\\Convertible-Bond-Pricing-Research\\backtest\\logs\\research_full_xktopyap",
+  "total_return_certified": false,
+  "frozen_tracking": "Original prospective evidence is preserved; recalculated research is retrospective"
+}

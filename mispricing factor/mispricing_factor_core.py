@@ -1526,14 +1526,14 @@ class MultiFactorBacktest:
         self.results_df.to_csv(csv_path, encoding="utf-8-sig")
 
 
-def main(model="BS"):
+def main(model="BS", data_dir=None):
     """主函数"""
     print("\n" + "=" * 60)
     print(f"6因子复合策略回测系统 ({model})")  
     print("=" * 60)
 
     # 初始化（输出到本脚本目录，输入文件自动在仓库内解析）
-    backtest = MultiFactorBacktest(model=model)
+    backtest = MultiFactorBacktest(model=model, data_dir=data_dir)
 
     # 加载数据
     backtest.load_data()
@@ -1571,6 +1571,7 @@ def main(model="BS"):
     print("\n" + "=" * 60)
     print("回测完成！")
     print("=" * 60)
+    return backtest
 
 
 if __name__ == "__main__":

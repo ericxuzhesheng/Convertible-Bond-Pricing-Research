@@ -252,8 +252,8 @@ def test_daily_inputs_require_latest_completed_week(tmp_path, model_date, cutoff
     for name in ("BS_Model_Prices", "ZL_Model_Prices", "LSM_Model_Prices",
                  "Market_Prices", "ZL_Market_Prices", "LSM_Market_Prices"):
         model.to_csv(base/f"{name}.csv")
-    for name in ("ZL", "LSM"):
-        (base/f"{name}_Model_Manifest.json").write_text(json.dumps({"input_cutoff":model_date}),encoding="utf-8")
+    for name in ("BS", "ZL", "LSM"):
+        (base/f"{name}_Model_Manifest.json").write_text(json.dumps({"input_cutoff":model_date,"output_sha256":"a"*64}),encoding="utf-8")
     if not valid:
         with pytest.raises(ValueError,match="latest completed market week"):
             Inputs(base,inputs)
@@ -271,6 +271,8 @@ def test_daily_inputs_require_latest_completed_week(tmp_path, model_date, cutoff
     data = Inputs(base,inputs)
     assert data.bars["close"].index.max() == pd.Timestamp(cutoff)
     assert data.model["BS"].index.max() == pd.Timestamp(model_date)
+    (base/'BS_Model_Manifest.json').write_text(json.dumps({'input_cutoff':model_date,'output_sha256':'b'*64}),encoding='utf-8')
+    assert Inputs(base,inputs).input_vintage['pricing'] != data.input_vintage['pricing']
 
 
 def test_drift_is_not_daily_rebalancing():

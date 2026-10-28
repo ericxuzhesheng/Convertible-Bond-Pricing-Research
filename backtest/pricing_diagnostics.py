@@ -3,7 +3,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from update_etf_benchmark import load_cache
 
 BASE=Path(__file__).resolve().parent
 MODELS=('BS','ZL','LSM')
@@ -49,7 +48,7 @@ def normalized_comparison(means,etf):
 
 
 def update_readme_metrics(path,metrics,weeks,minimum_coverage,latest_count,latest_quoted):
-    """Refresh only the two generated pricing blocks; preserve archived research."""
+    """Refresh the two pricing tables without inserting dated update notices."""
     import re
     before=Path(path).read_text(encoding='utf-8')
     result=before
@@ -57,10 +56,10 @@ def update_readme_metrics(path,metrics,weeks,minimum_coverage,latest_count,lates
     rows=''.join(f'| {r.model} | {r.n:,} | {r.mse:.2f} | {r.rmse:.2f} | {r.mae:.2f} | {r.mape_pct:.2f}% | {r.bias:+.2f} | {r.r_squared:.3f} |\n' for r in metrics.itertuples())
     for language in ['zh','en']:
         if language=='zh':
-            intro=f'## 最新定价结果与图解（{first.end}）\n\n三个模型使用相同的 **{first.n:,} 个有效券日**，覆盖 **{first.start} 至 {first.end}、{weeks} 个观察周**。MSE单位为元²；RMSE、MAE和平均偏差为元；MAPE为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **{minimum_coverage:.2f}%**，最新周 **{latest_count}/{latest_quoted}** 只。指标衡量模型与市场报价的偏离。\n\n'
+            intro=f'## 定价结果\n\n三个模型使用相同的 **{first.n:,} 个有效券日、{weeks} 个观察周**。MSE 单位为元²，RMSE、MAE 和平均偏差为元，MAPE 为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **{minimum_coverage:.2f}%**，最新周 **{latest_count}/{latest_quoted}** 只。指标衡量模型与市场报价的偏离。\n\n'
             header='| 模型 | 样本数 | MSE | RMSE | MAE | MAPE | 平均偏差 | R² |\n'
         else:
-            intro=f'## Current pricing results and visual diagnostics ({first.end})\n\nAll models use the same **{first.n:,} valid bond-date cells over {weeks} observed weeks, {first.start} through {first.end}**. MSE is in yuan²; RMSE, MAE and bias are in yuan. Bias is model minus market price; R² uses the market-price mean as its constant baseline. Minimum weekly common coverage is **{minimum_coverage:.2f}%**, with **{latest_count}/{latest_quoted}** bonds in the latest week. These are market-price deviation diagnostics.\n\n'
+            intro=f'## Pricing results\n\nAll models use the same **{first.n:,} valid bond-date cells over {weeks} observed weeks**. MSE is in yuan²; RMSE, MAE and bias are in yuan. Bias is model minus market price; R² uses the market-price mean as its constant baseline. Minimum weekly common coverage is **{minimum_coverage:.2f}%**, with **{latest_count}/{latest_quoted}** bonds in the latest week. These are market-price deviation diagnostics.\n\n'
             header='| Model | N | MSE | RMSE | MAE | MAPE | Bias | R² |\n'
         start=f'<!-- pricing-metrics-{language}:start -->'
         end=f'<!-- pricing-metrics-{language}:end -->'
@@ -79,29 +78,10 @@ def plot_pricing_diagnostics(base=BASE):
     valid=common_sample(models,market)
     metrics=pricing_metrics(models,market)
     metrics.to_csv(base/'Pricing_Metrics.csv',index=False)
-    end=market.index.max()
     def save(name):
         plt.savefig(base/name,dpi=200,bbox_inches='tight')
         plt.close()
         print(f'  saved: {base/name}')
-
-    means=pd.DataFrame({m:f.where(valid).mean(axis=1) for m,f in models.items()})
-    means['Market']=market.where(valid).mean(axis=1)
-    means.loc[valid.sum(axis=1)<20]=np.nan
-    etf=load_cache(base).set_index('trade_date').adjusted_close
-    if end not in etf.index:
-        raise ValueError('ETF cache does not cover latest pricing date')
-    comparison=normalized_comparison(means,etf)
-    fig,ax=plt.subplots(figsize=(12,6))
-    for name in [*MODELS,'Market','ETF']:
-        label={'Market':'转债市场共同样本均价','ETF':'转债ETF 511380.SH（复权）'}.get(name,name+'模型均价')
-        ax.plot(comparison.index,comparison[name],label=label,color=COLORS[name],
-            lw=2.2 if name in ('Market','ETF') else 1.3,ls='--' if name=='Market' else '-')
-    ax.set(title=f'三模型与转债ETF行情对比 | 截至 {end:%Y-%m-%d}',ylabel='归一化价格（首个共同周 = 100）',xlabel='年份')
-    ax.legend(loc='upper left',ncol=2,fontsize=9)
-    fig.text(.5,.005,f'共同起点 {comparison.index[0]:%Y-%m-%d}；均价随样本构成变化，不等同于组合收益。ETF上市前不补值。',ha='center',fontsize=9)
-    fig.tight_layout(rect=(0,.035,1,1))
-    save('Fig_Pricing_ETF_Comparison.png')
 
     deviations={m:((f-market)/market).where(valid)*100 for m,f in models.items()}
     fig,ax=plt.subplots(figsize=(10,5))
