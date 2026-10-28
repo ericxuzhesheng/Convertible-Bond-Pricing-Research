@@ -157,6 +157,7 @@ python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --pr
 
 ## 参考资料
 
+- [郑振龙、林海（2004）— 中国可转换债券定价研究，厦门大学学报（哲学社会科学版）第2期，93–99页](report/中国可转换债券定价研究.pdf)
 - [中国可转债定价模型比较研究](report/A%20Comparison%20of%20Chinese%20Convertible%20Bond%20Pricing%20Models.pdf)
 - [Northeast Securities — Convertible Bond Research Framework](report/Northeast_Securities_Convertible_Bond_Research_Framework_Theory_to_Strategy_20240823.pdf)
 - [Guosheng Securities — Pricing Models and Applications](report/Guosheng_Securities_Convertible_Bond_Pricing_Models_and_Applications_20230302.pdf)
@@ -302,6 +303,7 @@ Market deviations are not errors against known fair value. Issuer behaviour, div
 
 ## References
 
+- [郑振龙、林海（2004）— 中国可转换债券定价研究，厦门大学学报（哲学社会科学版）第2期，93–99页](report/中国可转换债券定价研究.pdf)
 - [中国可转债定价模型比较研究](report/A%20Comparison%20of%20Chinese%20Convertible%20Bond%20Pricing%20Models.pdf)
 - [Northeast Securities — Convertible Bond Research Framework](report/Northeast_Securities_Convertible_Bond_Research_Framework_Theory_to_Strategy_20240823.pdf)
 - [Guosheng Securities — Pricing Models and Applications](report/Guosheng_Securities_Convertible_Bond_Pricing_Models_and_Applications_20230302.pdf)

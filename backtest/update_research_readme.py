@@ -17,6 +17,7 @@ LABELS={'liquidity':('流动性','Liquidity'),'volatility':('波动率','Volatil
     'momentum':('动量','Momentum'),'bs_deviation':('定价偏差','Mispricing'),
     'zl_deviation':('定价偏差','Mispricing'),'lsm_deviation':('定价偏差','Mispricing')}
 REFERENCES=[
+    ('郑振龙、林海（2004）— 中国可转换债券定价研究，厦门大学学报（哲学社会科学版）第2期，93–99页','中国可转换债券定价研究.pdf'),
     ('中国可转债定价模型比较研究','A%20Comparison%20of%20Chinese%20Convertible%20Bond%20Pricing%20Models.pdf'),
     ('Northeast Securities — Convertible Bond Research Framework','Northeast_Securities_Convertible_Bond_Research_Framework_Theory_to_Strategy_20240823.pdf'),
     ('Guosheng Securities — Pricing Models and Applications','Guosheng_Securities_Convertible_Bond_Pricing_Models_and_Applications_20230302.pdf'),

@@ -10,6 +10,10 @@
 
 The current weekly value strategy is a separate study. Older pricing/factor PDFs retain their dated figures; they are not restated as results of the new 5bp/2% rule.
 
+## Academic references
+
+- 郑振龙、林海（2004）：[《中国可转换债券定价研究》](中国可转换债券定价研究.pdf)，《厦门大学学报（哲学社会科学版）》第2期（总第162期），93–99页。作为中国转债条款与发行人行为建模的理论参考；当前项目的 ZL 标签不表示完整复现原文模型。
+
 ## Broker research references
 
 English titles below are descriptive translations; the original Chinese PDF contents are unchanged.
