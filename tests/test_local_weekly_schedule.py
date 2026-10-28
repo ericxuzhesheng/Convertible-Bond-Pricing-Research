@@ -12,7 +12,7 @@ import publish_weekly_outputs as publisher
 def test_local_task_schedule_and_runtime():
     setup = (ROOT/'backtest/setup_weekly_task.ps1').read_text(encoding='utf-8-sig')
     batch = (ROOT/'backtest/weekly_update.bat').read_text(encoding='utf-8')
-    assert '-DaysOfWeek Friday -At "17:30"' in setup
+    assert '-DaysOfWeek Friday -At "17:15"' in setup
     assert '-WindowStyle Hidden' in setup
     assert '-StartWhenAvailable' in setup
     assert '-MultipleInstances IgnoreNew' in setup
