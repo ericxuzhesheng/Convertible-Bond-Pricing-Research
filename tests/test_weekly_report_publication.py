@@ -57,8 +57,13 @@ def test_weekly_entrypoints_publish_new_report_files():
     for path in ('.github/workflows/weekly-incremental-cpu.yml', 'backtest/weekly_update.bat'):
         source = (ROOT / path).read_text(encoding='utf-8')
         assert '--full-history --refresh-inputs --promote' in source
-        assert ':(glob)long-short strategy/weekly_value_results_pricing_v2_*/**' in source
-        assert source.index('rebuild_research_outputs.py') < source.index('git push')
+        if path.endswith('.yml'):
+            assert ':(glob)long-short strategy/weekly_value_results_pricing_v2_*/**' in source
+            assert source.index('rebuild_research_outputs.py') < source.index('git push')
+        else:
+            assert source.index('rebuild_research_outputs.py') < source.index('publish_weekly_outputs.py')
+            publisher = (ROOT / 'backtest/publish_weekly_outputs.py').read_text(encoding='utf-8')
+            assert 'long-short strategy/weekly_value_results_pricing_v2_*/*' in publisher
 
 
 def test_readme_header_retains_buttons_and_advances_year():

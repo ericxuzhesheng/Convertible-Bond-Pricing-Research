@@ -8,9 +8,8 @@ set "BACKTEST_DIR=%~dp0"
 set "REPO_DIR=%BACKTEST_DIR%.."
 set "LOG_DIR=%BACKTEST_DIR%logs"
 set "MPLBACKEND=Agg"
-set "TORCH_PYTHON=C:\Users\12510\.conda\envs\torch\python.exe"
-if exist "%TORCH_PYTHON%" (
-    set "PYTHON=%TORCH_PYTHON%"
+if defined CB_PYTHON (
+    set "PYTHON=%CB_PYTHON%"
 ) else (
     set "PYTHON=python"
 )
@@ -32,8 +31,11 @@ if not defined MODEL_CUTOFF (
     exit /b 1
 )
 
-for /f "tokens=2 delims==" %%i in ('wmic os get localdatetime /value') do set DT=%%i
-set "DATESTAMP=%DT:~0,8%"
+if "%~1"=="--check" (
+    echo [OK] Runtime and incremental bounds: %PIPELINE_START% %MODEL_CUTOFF%
+    exit /b 0
+)
+for /f %%i in ('powershell.exe -NoProfile -Command "Get-Date -Format yyyyMMdd"') do set "DATESTAMP=%%i"
 set "LOG_FILE=%LOG_DIR%\weekly_update_%DATESTAMP%.log"
 
 (
@@ -89,29 +91,8 @@ if errorlevel 1 goto :fail
 echo [7/7] Publishing verified outputs ... >> "%LOG_FILE%"
 cd /d "%REPO_DIR%"
 
-git add "backtest\strategy_inputs" "long-short strategy\weekly_results" "long-short strategy\weekly_value_results" >> "%LOG_FILE%" 2>&1
-git add -u >> "%LOG_FILE%" 2>&1
-git add -- ":(glob)long-short strategy/weekly_value_results_pricing_v2_*/**" >> "%LOG_FILE%" 2>&1
+"%PYTHON%" "%BACKTEST_DIR%publish_weekly_outputs.py" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 goto :fail
-git add "backtest\Research_Migration.json" >> "%LOG_FILE%" 2>&1
-git add "backtest\regenerate_plots.py" >> "%LOG_FILE%" 2>&1
-git add "backtest\weekly_update.bat" >> "%LOG_FILE%" 2>&1
-git add "backtest\setup_weekly_task.ps1" >> "%LOG_FILE%" 2>&1
-git add "long-short strategy\update_benchmark.py" >> "%LOG_FILE%" 2>&1
-git add "long-short strategy\000832_CSI_close_price.csv" >> "%LOG_FILE%" 2>&1
-
-git diff --cached --quiet
-if errorlevel 1 (
-    git commit -m "chore: weekly update %DATESTAMP%" >> "%LOG_FILE%" 2>&1
-    if errorlevel 1 goto :fail
-    git push origin main >> "%LOG_FILE%" 2>&1
-    if errorlevel 1 (
-        echo [ERROR] git push failed. Check network and credentials. >> "%LOG_FILE%"
-        goto :fail
-    )
-) else (
-    echo [SKIP] No changes to publish. >> "%LOG_FILE%"
-)
 
 (
 echo ==============================================================
