@@ -1,0 +1,44 @@
+{
+  "superseded_git_commit": "077f2c440664f8d607f35e178597dc81df49227f",
+  "models": {
+    "BS": "2026-10-23",
+    "ZL": "2026-10-23",
+    "LSM": "2026-10-23"
+  },
+  "research_outputs": "legacy; not recomputed",
+  "model_implementations": {
+    "BS": "cashflow-stopping-v2.3",
+    "ZL": "cashflow-stopping-v2.3",
+    "LSM": "cashflow-stopping-lsm-v2.4"
+  },
+  "staging_clause_repairs": {
+    "codes": [
+      "113010.SH",
+      "113628.SH",
+      "118018.SH"
+    ],
+    "changed_source_rows": [
+      "113628.SH",
+      "118018.SH"
+    ],
+    "ordinal_parser_repair": "113010.SH",
+    "verification": "Old full-input fingerprints verified; affected cells were all missing; other priced columns are bitwise unchanged.",
+    "models": [
+      {
+        "model": "BS",
+        "old_fingerprint": "a053ca7e4ded04877915d20305bd76492812a4e1d5e2e2d8d4bec9eec32fd6df",
+        "new_fingerprint": "0f98a037e2448812afa31eb2311640cbb4ffc3d4088ca127cb023442ed7b01f8",
+        "backfilled_cells": 0,
+        "last_checkpoint_date": "2026-10-23"
+      },
+      {
+        "model": "ZL",
+        "old_fingerprint": "d3191b5b4336b587084927419b1ecf24f8625ae776587f2969faa7a486cbbf06",
+        "new_fingerprint": "7b70ca960b178042ebb0cfb8e9c39cd3b8442ae535cf35a1c228e945f5343b16",
+        "backfilled_cells": 412,
+        "last_checkpoint_date": "2026-10-23"
+      }
+    ],
+    "lsm": "All history recomputed independently with cashflow-stopping-lsm-v2.4; previous partial baseline is not used."
+  }
+}

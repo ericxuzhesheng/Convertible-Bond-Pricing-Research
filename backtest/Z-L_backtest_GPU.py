@@ -1,7 +1,7 @@
 """Disabled experimental ZL GPU entrypoint.
 
 Use ``Z-L_backtest_GPU_prod.py``; it enforces observed point-in-time inputs and
-fails closed when CUDA or a required market-data field is unavailable.
+runs the validated CPU contract and rejects unavailable observed inputs.
 """
 
 from __future__ import annotations

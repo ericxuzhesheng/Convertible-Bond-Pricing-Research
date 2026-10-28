@@ -12,75 +12,33 @@ BACKTEST_DIR = REPO_ROOT / "backtest"
 WORKFLOW = REPO_ROOT / ".github" / "workflows" / "weekly-incremental-cpu.yml"
 sys.path.insert(0, str(BACKTEST_DIR))
 
-from zl_cpu_backend import price_batch_cpu  # noqa: E402
+from dataclasses import replace
+from pricing_engine import Contract,price_mc
 
 
-def _single_bond_params(*, sigma: float = 0.0) -> dict[str, np.ndarray]:
-    return {
-        "S0": np.array([80.0]),
-        "X0": np.array([100.0]),
-        "r": np.array([0.02]),
-        "cs": np.array([0.01]),
-        "sigma": np.array([sigma]),
-        "T": np.array([0.25]),
-        "maturity_redem": np.array([110.0]),
-        "call_price": np.array([130.0]),
-        "put_price": np.array([100.0]),
-        "put_barrier": np.array([0.5]),
-        "put_window": np.array([30.0]),
-        "put_years": np.array([2.0]),
-        "redeem_ratio": np.array([2.0]),
-        "redeem_window": np.array([30.0]),
-        "redeem_required": np.array([30.0]),
-        "initial_put_count": np.array([0], dtype=np.int32),
-        "initial_redeem_count": np.array([0], dtype=np.int32),
-        "initial_redeem_flags": np.zeros((1, 64), dtype=np.int8),
-    }
+def _contract():
+    return Contract(parity=80.,maturity=.25,redemption=110.,sigma=0.,spread=.01,
+                    curve_rates=np.array([.02,.02]))
 
 
-def test_cpu_backend_matches_deterministic_hold_to_maturity_value() -> None:
-    params = _single_bond_params()
-
-    actual = price_batch_cpu(params, paths=32, seed=7)
-
-    expected = 110.0 * math.exp(-(0.02 + 0.01) * 0.25)
-    np.testing.assert_allclose(actual, [expected], rtol=1e-12, atol=1e-12)
+def test_cpu_backend_matches_deterministic_hold_to_maturity_value():
+    actual=price_mc(_contract(),method="ZL",paths=32,seed=7)[0]
+    assert abs(actual-110*math.exp(-.03*.25))<1e-10
 
 
-def test_cpu_backend_is_reproducible_for_the_same_seed() -> None:
-    params = _single_bond_params(sigma=0.25)
-
-    first = price_batch_cpu(params, paths=64, seed=20260730)
-    second = price_batch_cpu(params, paths=64, seed=20260730)
-
-    np.testing.assert_array_equal(first, second)
+def test_cpu_backend_is_reproducible_for_the_same_seed():
+    c=replace(_contract(),sigma=.25)
+    assert price_mc(c,method="ZL",paths=64,seed=20260730)==price_mc(c,method="ZL",paths=64,seed=20260730)
 
 
-def test_cpu_backend_executes_observed_put_trigger() -> None:
-    params = _single_bond_params()
-    params["S0"][:] = 60.0
-    params["r"][:] = 0.0
-    params["cs"][:] = 0.0
-    params["put_barrier"][:] = 0.7
-    params["put_window"][:] = 2
-    params["redeem_ratio"][:] = 10.0
-
-    actual = price_batch_cpu(params, paths=8, seed=11)
-
-    np.testing.assert_allclose(actual, [100.0], rtol=0.0, atol=0.0)
+def test_cpu_backend_executes_observed_put_trigger():
+    c=replace(_contract(),parity=60.,spread=0.,curve_rates=np.zeros(2),put_start=0.,put_ratio=.7,put_days=2)
+    assert price_mc(c,method="ZL",paths=8,seed=11)[0]==100.
 
 
-def test_cpu_backend_executes_observed_redemption_trigger() -> None:
-    params = _single_bond_params()
-    params["S0"][:] = 150.0
-    params["r"][:] = 0.0
-    params["cs"][:] = 0.0
-    params["redeem_window"][:] = 3
-    params["redeem_required"][:] = 2
-
-    actual = price_batch_cpu(params, paths=8, seed=13)
-
-    np.testing.assert_allclose(actual, [150.0], rtol=0.0, atol=0.0)
+def test_cpu_backend_executes_observed_redemption_trigger():
+    c=replace(_contract(),parity=150.,spread=0.,curve_rates=np.zeros(2),call_ratio=1.3,call_notice_days=0)
+    assert price_mc(c,method="ZL",paths=8,seed=13)[0]==150.
 
 
 def test_github_cron_runs_complete_incremental_pipeline_on_cpu() -> None:
@@ -121,19 +79,11 @@ def test_cpu_cloud_environment_does_not_install_or_import_cuda() -> None:
     assert (BACKTEST_DIR / "zl_cuda_backend.py").exists()
 
 
-def test_cpu_backend_preserves_existing_verified_history_fingerprint() -> None:
-    source = (
-        BACKTEST_DIR / "Z-L_backtest_GPU_prod.py"
-    ).read_text(encoding="utf-8")
-
-    assert (
-        'ZL_MODEL_IMPLEMENTATION_VERSION = ('
-        in source
-    )
-    assert (
-        "digest.update(ZL_MODEL_IMPLEMENTATION_VERSION.encode(\"ascii\"))"
-        in source
-    )
+def test_cpu_backend_uses_the_versioned_fingerprint_contract():
+    source=(BACKTEST_DIR/"pricing_backtest.py").read_text(encoding="utf-8")
+    assert 'CONTRACT_VERSION = "cashflow-pricing-v2"' in source
+    assert "input_fingerprint" in source and "artifact_sha256" in source
+    assert "refusing full rebuild" in source
 
 
 def test_local_sync_is_fail_closed_and_fast_forward_only() -> None:

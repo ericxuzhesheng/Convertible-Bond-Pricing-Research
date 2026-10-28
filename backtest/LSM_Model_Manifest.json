@@ -1,6 +1,7 @@
 {
-  "contract_version": "weekly-lsm-v1",
-  "execution_backend": "numpy-vectorized",
+  "contract_version": "cashflow-pricing-v2",
+  "model": "LSM",
+  "execution_backend": "cuda",
   "verified_dates": [
     "2019-01-04",
     "2019-01-11",
@@ -404,14 +405,37 @@
     "2026-10-23"
   ],
   "input_cutoff": "2026-10-23",
-  "input_fingerprint": "c19980f78db717932fdf65a46d2b8158bf5081563caf342a59d07002c8513f11",
-  "output_sha256": "5999af290aa5e6429d7416a9a0bcde7f78ec70dde77a055202d1a4310207b911",
+  "input_fingerprint": "5fbf142d5ac0299e984116f5b9aa3c7cc81de8e578beb726b892ac22d154236d",
   "model_parameters": {
-    "paths": 256,
-    "exercise_steps": 48,
-    "basis": "quadratic-1-S-S2",
-    "antithetic": true,
-    "seed_scheme": "crc32-date-v1",
-    "combination": "max-ZL-clause-aware-LSM-voluntary-conversion"
-  }
+    "model": "LSM",
+    "implementation": "cashflow-stopping-lsm-v2.4",
+    "credit": "TF-style-cash-only-spread",
+    "paths": 8192,
+    "exercise_steps": 192,
+    "call_notice_days": 30,
+    "trading_days_per_year": 252,
+    "seed_scheme": "crc32-date-bond; xoroshiro128p-jump-2^64-float64-antithetic-v1",
+    "regression": "training-only-policy-v2; contractual-dominance-screen; 1,S,S2,call-count,put-count,notice-left",
+    "dividend_yield": 0.0,
+    "reset_policy": "no-unverified-future-reset",
+    "call_policy": "deterministic-after-observed-price-trigger",
+    "quote_basis": "full-price",
+    "coupon_timing": "contractual-dates; next-simulation-observation"
+  },
+  "output_sha256": "e0979866494c75946d40f2183d18cc04952c1b0689c91c2d05fc932a6e5fbbb8",
+  "artifact_sha256": {
+    "LSM_Model_Prices.csv": "cb61f4ef2e2b26ace99538aadfb941887f161beac0b5da28a27406dcda66826e",
+    "LSM_Market_Prices.csv": "fd991bcc1a2c6b64ace6cb8052958c108e53f6fa08ee7eba680d6b265d9ed25c",
+    "LSM_Model_Deviation_Abs.csv": "5d01f11592afdbe7c12e9da4afe1f26ee4f0bd6f7d8f7ec911f6a38ab9033a14",
+    "LSM_Model_Deviation_Pct.csv": "b6db935ec92be4ea305d5ec0b79494a9f0ea54091081bb037ec31d956858f2e4",
+    "LSM_Monte_Carlo_SE.csv": "69287aba516c9fcb415a2ecced1c0b6e9534b8a2fcf817417d72324764a9c1c1",
+    "LSM_Implied_Credit_Spread.csv": "156bba035a6470692b257755f785800c4ac9a11d4a45c1cbca8fecab6c3184a6",
+    "LSM_Pricing_Coverage.csv": "db4ac8acb2272c4a68a0d9a03d235cad04c986087199425993c0d273810717ce",
+    "LSM_Pricing_Issues.csv": "1e82486edd3f9e1af7229f886e47e2810d2be7718a027cab94a87e492d829ca5"
+  },
+  "limitations": [
+    "Zero dividend yield; no unverified future reset or discretionary waiver assumed.",
+    "Deterministic issuer policy and fixed notice period are model assumptions, not observed issuer decisions.",
+    "TF-style discounting is not an explicit default/recovery model; contractual coupon dates are not verified historical cashflow events."
+  ]
 }

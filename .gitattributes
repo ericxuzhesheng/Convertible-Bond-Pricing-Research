@@ -1,0 +1,10 @@
+# Pricing manifests verify artifact bytes on Windows and Linux.
+backtest/*_Model_*.csv -text
+backtest/Market_Prices.csv -text
+backtest/*_Market_Prices.csv -text
+backtest/*_Monte_Carlo_SE.csv -text
+backtest/*_Implied_Credit_Spread.csv -text
+backtest/*_Pricing_Coverage.csv -text
+backtest/*_Pricing_Issues.csv -text
+backtest/ETF_*_Daily.csv -text
+backtest/Pricing_Metrics.csv -text

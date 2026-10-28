@@ -1,6 +1,7 @@
 @echo off
 :: Convertible-bond weekly update:
-:: market data -> BS -> ZL -> LSM -> benchmark -> research outputs -> Git publish
+:: market data -> observed volatility -> BS -> ZL -> LSM -> benchmark -> Git publish
+:: Research/weekly reports remain paused pending their versioned migration.
 
 setlocal EnableDelayedExpansion
 
@@ -17,14 +18,18 @@ if exist "%TORCH_PYTHON%" (
 
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
-for /f "usebackq delims=" %%i in (`"%PYTHON%" -c "import json; from datetime import date, timedelta; d=date.fromisoformat(json.load(open(r'%BACKTEST_DIR%ZL_Model_Manifest.json', encoding='utf-8'))['input_cutoff']); print((d + timedelta(days=1)).strftime('%%Y%%m%%d'))"`) do set "PIPELINE_START=%%i"
-for /f "usebackq delims=" %%i in (`"%PYTHON%" -c "import json; print(json.load(open(r'%BACKTEST_DIR%ZL_Model_Manifest.json', encoding='utf-8'))['input_cutoff'])"`) do set "MODEL_CUTOFF=%%i"
+set "PIPELINE_START="
+set "MODEL_CUTOFF="
+for /f "usebackq tokens=1,2" %%i in (`""%PYTHON%" "%BACKTEST_DIR%update_pricing_volatility.py" --print-bounds"`) do (
+    set "PIPELINE_START=%%i"
+    set "MODEL_CUTOFF=%%j"
+)
 if not defined PIPELINE_START (
-    echo [ERROR] Unable to resolve incremental pipeline start from ZL manifest.
+    echo [ERROR] Unable to resolve incremental pipeline start from model manifests.
     exit /b 1
 )
 if not defined MODEL_CUTOFF (
-    echo [ERROR] Unable to resolve incremental model cutoff from ZL manifest.
+    echo [ERROR] Unable to resolve incremental model cutoff from model manifests.
     exit /b 1
 )
 
@@ -46,6 +51,10 @@ if errorlevel 1 (
     goto :fail
 )
 
+echo Refreshing shared observed volatility ... >> "%LOG_FILE%"
+"%PYTHON%" "%BACKTEST_DIR%update_pricing_volatility.py" --after "%MODEL_CUTOFF%" >> "%LOG_FILE%" 2>&1
+if errorlevel 1 goto :fail
+
 echo [2/7] Running B-S_backtest.py ... >> "%LOG_FILE%"
 "%PYTHON%" "%BACKTEST_DIR%B-S_backtest.py" --weekly --incremental-after "%MODEL_CUTOFF%" >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
@@ -54,7 +63,7 @@ if errorlevel 1 (
 )
 
 echo [3/7] Running Z-L_backtest_GPU_prod.py ... >> "%LOG_FILE%"
-"%PYTHON%" "%BACKTEST_DIR%Z-L_backtest_GPU_prod.py" --backend cuda --weekly --offline-inputs >> "%LOG_FILE%" 2>&1
+"%PYTHON%" "%BACKTEST_DIR%Z-L_backtest_GPU_prod.py" --backend cpu --weekly --offline-inputs >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo [ERROR] Z-L_backtest_GPU_prod.py failed. Stopping. >> "%LOG_FILE%"
     goto :fail
@@ -74,12 +83,12 @@ if errorlevel 1 (
     goto :fail
 )
 
-echo [6/7] Running rebuild_research_outputs.py ... >> "%LOG_FILE%"
-"%PYTHON%" "%BACKTEST_DIR%rebuild_research_outputs.py" >> "%LOG_FILE%" 2>&1
-if errorlevel 1 (
-    echo [ERROR] rebuild_research_outputs.py failed. Stopping. >> "%LOG_FILE%"
-    goto :fail
-)
+:: Research remains on its archived v1 pricing until a separate migration.
+echo [6/7] Skipping research/weekly reports during pricing migration. >> "%LOG_FILE%"
+"%PYTHON%" "%BACKTEST_DIR%update_etf_benchmark.py" >> "%LOG_FILE%" 2>&1
+if errorlevel 1 exit /b 1
+"%PYTHON%" "%BACKTEST_DIR%regenerate_plots.py" --pricing-only >> "%LOG_FILE%" 2>&1
+if errorlevel 1 exit /b 1
 
 echo [7/7] Publishing verified outputs ... >> "%LOG_FILE%"
 cd /d "%REPO_DIR%"

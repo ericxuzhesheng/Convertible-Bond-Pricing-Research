@@ -262,36 +262,8 @@ def _upload_results(archive_path: Path, results_repo: str) -> None:
     )
 
 
-def run_remote_gpu_stage(
-    *,
-    gpu_available: bool | None = None,
-    python_executable: str = sys.executable,
-    results_repo: str | None = None,
-) -> Path:
-    if gpu_available is None:
-        gpu_available = _cuda_available()
-    if not gpu_available:
-        raise RuntimeError(
-            "CUDA is unavailable; remote GPU stage stopped before mutation"
-        )
-
-    validate_cpu_stage_handoff()
-    _run_script(
-        BACKTEST_DIR / "Z-L_backtest_GPU_prod.py",
-        "--rebuild-all",
-        "--weekly",
-        python_executable=python_executable,
-    )
-    coverage = validate_zl_coverage()
-    _run_script(
-        BACKTEST_DIR / "rebuild_research_outputs.py",
-        python_executable=python_executable,
-    )
-    archive_path = build_results_archive(coverage=coverage)
-
-    if results_repo:
-        _upload_results(archive_path, results_repo)
-    return archive_path
+def run_remote_gpu_stage(*,gpu_available=None,python_executable=sys.executable,results_repo=None):
+    raise RuntimeError("Retired CUDA pricing contract; use reprice_history.py with the validated CPU engine")
 
 
 if __name__ == "__main__":

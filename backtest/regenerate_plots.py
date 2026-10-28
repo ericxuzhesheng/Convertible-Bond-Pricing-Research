@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
+from pricing_diagnostics import plot_pricing_diagnostics
 
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
@@ -74,7 +75,7 @@ for _style in ("seaborn-v0_8", "seaborn", "ggplot"):
         break
     except OSError:
         continue
-plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "DejaVu Sans"]
+plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans CJK JP", "DejaVu Sans"]
 plt.rcParams["axes.unicode_minus"] = False
 
 
@@ -241,12 +242,12 @@ def plot_bs_timeseries() -> None:
     ax1.set_xlabel("年份")
 
     ax2 = ax1.twinx()
-    ax2.fill_between(weekly_err_pct.index, weekly_err_pct, 0, color="gray", alpha=0.5, label="定价错误")
-    ax2.set_ylabel("平均定价错误 (%)")
+    ax2.fill_between(weekly_err_pct.index, weekly_err_pct, 0, color="gray", alpha=0.5, label="定价偏差")
+    ax2.set_ylabel("平均定价偏差 (%)")
     ax2.set_ylim(-30, 80)
 
-    patch = mpatches.Patch(color="gray", alpha=0.5, label="定价错误")
-    ax1.legend([l1, l2, patch], ["BS模型", "市场价格", "定价错误"], loc="upper center")
+    patch = mpatches.Patch(color="gray", alpha=0.5, label="定价偏差")
+    ax1.legend([l1, l2, patch], ["BS模型", "市场价格", "定价偏差"], loc="upper center")
     plt.title("图1 BS模型定价结果与市场价格对比")
     _save(os.path.join(SCRIPT_DIR, "Fig1_BS_Price_Time_Series.png"))
 
@@ -289,12 +290,12 @@ def plot_zl_timeseries() -> None:
     ax1.set_xlabel("年份")
 
     ax2 = ax1.twinx()
-    ax2.fill_between(weekly_err_pct.index, weekly_err_pct, 0, color="gray", alpha=0.5, label="定价错误")
-    ax2.set_ylabel("平均定价错误 (%)")
+    ax2.fill_between(weekly_err_pct.index, weekly_err_pct, 0, color="gray", alpha=0.5, label="定价偏差")
+    ax2.set_ylabel("平均定价偏差 (%)")
     ax2.set_ylim(-30, 80)
 
-    patch = mpatches.Patch(color="gray", alpha=0.5, label="定价错误")
-    ax1.legend([l1, l2, patch], ["ZL模型", "市场价格", "定价错误"], loc="upper center")
+    patch = mpatches.Patch(color="gray", alpha=0.5, label="定价偏差")
+    ax1.legend([l1, l2, patch], ["ZL模型", "市场价格", "定价偏差"], loc="upper center")
     plt.title("图1 ZL模型定价结果与市场价格对比")
     _save(os.path.join(SCRIPT_DIR, "Fig1_ZL_Price_Time_Series.png"))
 
@@ -326,9 +327,9 @@ def plot_lsm_timeseries() -> None:
         color="gray",
         alpha=0.5,
     )
-    ax2.set_ylabel("平均定价错误 (%)")
-    patch = mpatches.Patch(color="gray", alpha=0.5, label="定价错误")
-    ax1.legend([l1, l2, patch], ["LSM模型", "市场价格", "定价错误"], loc="upper center")
+    ax2.set_ylabel("平均定价偏差 (%)")
+    patch = mpatches.Patch(color="gray", alpha=0.5, label="定价偏差")
+    ax1.legend([l1, l2, patch], ["LSM模型", "市场价格", "定价偏差"], loc="upper center")
     plt.title("LSM模型定价结果与市场价格对比")
     _save(os.path.join(SCRIPT_DIR, "Fig1_LSM_Price_Time_Series.png"))
 
@@ -674,17 +675,23 @@ def plot_factor_ic_comparison() -> None:
 
 # ── 入口 ──────────────────────────────────────────────────────────────────────
 
-def main() -> None:
+def main(argv=None) -> None:
+    import argparse
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--pricing-only',action='store_true')
+    args=parser.parse_args(argv)
     print("=" * 60)
-    print("regenerate_plots.py — 重生成 README 全部图表")
+    print("regenerate_plots.py — " + ("仅更新定价图表" if args.pricing_only else "重生成 README 全部图表"))
     print("=" * 60)
 
     plot_bs_timeseries()
     plot_zl_timeseries()
     plot_lsm_timeseries()
-    plot_strategy_performance()
-    plot_factor_correlation()
-    plot_factor_ic_comparison()
+    plot_pricing_diagnostics()
+    if not args.pricing_only:
+        plot_strategy_performance()
+        plot_factor_correlation()
+        plot_factor_ic_comparison()
 
     print("=" * 60)
     print("完成。")

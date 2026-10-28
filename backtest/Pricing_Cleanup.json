@@ -1,0 +1,20 @@
+{
+  "preserved_in_git_commit": "077f2c440664f8d607f35e178597dc81df49227f",
+  "removed_unused_figures": [
+    "Fig2_BS_Moneyness.png",
+    "Fig2_ZL_Moneyness.png",
+    "Fig3_BS_Maturity.png",
+    "Fig3_ZL_Maturity.png",
+    "Fig4_BS_Rating.png",
+    "Fig4_ZL_Rating.png"
+  ],
+  "replacement_figures_verified_readable": [
+    "Fig1_BS_Price_Time_Series.png",
+    "Fig1_ZL_Price_Time_Series.png",
+    "Fig1_LSM_Price_Time_Series.png",
+    "Fig_Pricing_ETF_Comparison.png",
+    "Fig_Pricing_Deviation_Distribution.png",
+    "Fig_Pricing_Annual_Deviation.png",
+    "Fig_Pricing_Coverage_Uncertainty.png"
+  ]
+}

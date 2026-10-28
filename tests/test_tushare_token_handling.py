@@ -6,8 +6,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCES = [
     REPO_ROOT / "backtest" / "data_pipeline.py",
-    REPO_ROOT / "backtest" / "B-S_backtest.py",
-    REPO_ROOT / "backtest" / "Z-L_backtest_GPU_prod.py",
+    REPO_ROOT / "backtest" / "update_pricing_volatility.py",
     REPO_ROOT / "long-short strategy" / "update_benchmark.py",
 ]
 

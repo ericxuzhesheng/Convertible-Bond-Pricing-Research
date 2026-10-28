@@ -1,0 +1,114 @@
+{
+  "device": "NVIDIA RTX 5060 Laptop GPU",
+  "toolkit": "12.8",
+  "precision": "float64; fastmath disabled",
+  "sampler": "Numba xoroshiro128+; 2^64-separated antithetic pairs",
+  "reference_value": 115.98243540988528,
+  "seed_count": 128,
+  "paths": 1024,
+  "mean": 115.95891778957235,
+  "empirical_sd": 0.4754471270474228,
+  "mean_reported_se": 0.5123446480383104,
+  "standardized_error_sd": 0.9240316627118277,
+  "coverage_2se": 0.96875,
+  "convergence": [
+    {
+      "code": "113059.SH",
+      "production_price": 111.0989669281686,
+      "production_se": 0.001033071836597916,
+      "refined_price": 111.10100411929557,
+      "refined_se": 0.0006687067133874688,
+      "difference": 0.0020371911269734255
+    },
+    {
+      "code": "127085.SZ",
+      "production_price": 107.85995832389114,
+      "production_se": 0.03320397131052401,
+      "refined_price": 107.79570790983277,
+      "refined_se": 0.015134276308511612,
+      "difference": -0.06425041405836396
+    },
+    {
+      "code": "123267.SZ",
+      "production_price": 123.6987448940437,
+      "production_se": 0.27374868819938436,
+      "refined_price": 123.6566234646436,
+      "refined_se": 0.12666548321930993,
+      "difference": -0.042121429400097554
+    },
+    {
+      "code": "110087.SH",
+      "production_price": 116.09545501599962,
+      "production_se": 0.14880333346248498,
+      "refined_price": 116.14713351330249,
+      "refined_se": 0.0736818245188679,
+      "difference": 0.05167849730287344
+    },
+    {
+      "code": "110102.SH",
+      "production_price": 120.94824815196489,
+      "production_se": 0.1783031780175866,
+      "refined_price": 121.12393066933129,
+      "refined_se": 0.08335135420310907,
+      "difference": 0.17568251736639695
+    },
+    {
+      "code": "123261.SZ",
+      "production_price": 122.20489394383269,
+      "production_se": 0.22660688756575154,
+      "refined_price": 122.27453773310278,
+      "refined_se": 0.10465245747281715,
+      "difference": 0.06964378927008852
+    },
+    {
+      "code": "110098.SH",
+      "production_price": 121.98677730828894,
+      "production_se": 0.11980855991394652,
+      "refined_price": 121.81436811185722,
+      "refined_se": 0.054442763201862227,
+      "difference": -0.17240919643171537
+    },
+    {
+      "code": "113686.SH",
+      "production_price": 133.6629942353958,
+      "production_se": 0.15263578801544125,
+      "refined_price": 133.5677233271457,
+      "refined_se": 0.0709162518244058,
+      "difference": -0.095270908250086
+    },
+    {
+      "code": "113615.SH",
+      "production_price": 533.09,
+      "production_se": 0.0,
+      "refined_price": 533.4185749672138,
+      "refined_se": 0.2477801389870657,
+      "difference": 0.3285749672137399
+    }
+  ],
+  "timing": {
+    "valuation_date": "2019-01-04",
+    "contracts": 24,
+    "repetitions": 3,
+    "paths_per_training_and_valuation_set": 8192,
+    "exercise_intervals": 192,
+    "median_seconds_per_24_contracts": {
+      "cpu_8": 3.0440064999856986,
+      "cuda_4": 2.724209600011818,
+      "cuda_8": 2.8230934999883175
+    },
+    "cuda4_speedup_over_cpu8": 1.117390710308228,
+    "note": "Timing includes RNG, GPU transfers, simulation and CPU regression; speedup depends on contract mix."
+  },
+  "convergence_parameters": {
+    "valuation_date": "2026-10-23",
+    "production_paths_per_set": 8192,
+    "production_exercise_intervals": 192,
+    "production_seeds": "407..415",
+    "refined_paths_per_set": 32768,
+    "refined_exercise_intervals": 384,
+    "refined_seeds": "809..817",
+    "maximum_absolute_difference": 0.3285749672137399
+  },
+  "policy": "cashflow-stopping-lsm-v2.4; independent training/evaluation; no ZL overlay",
+  "verification": "Matched-draw contractual CPU/CUDA cases, independent 128-seed European calibration, nine-contract convergence; test_pricing_cuda.py"
+}

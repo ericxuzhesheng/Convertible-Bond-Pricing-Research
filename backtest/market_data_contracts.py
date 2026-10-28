@@ -518,7 +518,7 @@ def _extract_percentage(text: str, anchor: str) -> float | None:
 
 def _extract_window(text: str, anchor: str) -> int | None:
     match = re.search(
-        rf"{anchor}.{{0,20}}?连续([一二两三四五六七八九十\d]+)个交易日",
+        rf"{anchor}.{{0,20}}?连续([一二两三四五六七八九十\d]+)(?:个)?交易日",
         text,
     )
     return _to_number(match.group(1)) if match else None
@@ -534,18 +534,20 @@ def extract_clause_terms(
 
     resale = "" if pd.isna(resale_clause) else str(resale_clause)
     redeem = "" if pd.isna(redeem_clause) else str(redeem_clause)
+    resale = re.sub(r"\s+", "", resale)
+    redeem = re.sub(r"\s+", "", redeem)
 
     put_trigger = _extract_percentage(resale, r"(?:低于|不高于)")
-    put_window = _extract_window(resale, r"(?:如果|当)")
+    put_window = _extract_window(resale, r"(?:如果|当|如)")
     put_year_match = re.search(
-        r"最后([一二两三四五六七八九十\d]+)个计息年度", resale
+        r"最后([一二两三四五六七八九十\d]+)(?:个)?计息年度", resale
     )
     put_years = _to_number(put_year_match.group(1)) if put_year_match else None
 
-    redeem_trigger = _extract_percentage(redeem, r"(?:不低于|高于)")
+    redeem_trigger = _extract_percentage(redeem, r"(?:不低于|高于|超过)")
     redeem_window_match = re.search(
-        r"连续([一二两三四五六七八九十\d]+)个交易日中"
-        r"(?:至少)?(?:有)?([一二两三四五六七八九十\d]+)个交易日",
+        r"连续([一二两三四五六七八九十\d]+)(?:个)?交易日(?:中|内)"
+        r"(?:至少)?(?:有)?([一二两三四五六七八九十\d]+)(?:个)?交易日",
         redeem,
     )
     redeem_window = (
@@ -558,6 +560,13 @@ def extract_clause_terms(
         if redeem_window_match
         else None
     )
+    if redeem_window_match is None:
+        consecutive = re.search(
+            r"连续([一二两三四五六七八九十\d]+)(?:个)?交易日的收盘(?:价格|价)(?:均)?(?:不低于|高于|超过)",
+            redeem,
+        )
+        if consecutive:
+            redeem_window = redeem_required = _to_number(consecutive.group(1))
 
     balance_match = re.search(
         r"余额不足\s*([\d,]+(?:\.\d+)?)\s*万元", redeem
@@ -1042,10 +1051,11 @@ def build_observed_volatility(
     window: int = 250,
     min_observations: int = 60,
     annualization_days: int = 250,
+    max_staleness_days: int = 0,
 ) -> pd.Series:
     """Calculate realized volatility without filling missing history."""
 
-    if min_observations < 2 or window < min_observations:
+    if min_observations < 2 or window < min_observations or max_staleness_days < 0:
         raise ValueError("volatility window must cover minimum observations")
     close = pd.to_numeric(adjusted_close, errors="coerce")
     close.index = pd.to_datetime(close.index, errors="coerce")
@@ -1060,7 +1070,10 @@ def build_observed_volatility(
         ).std()
         * np.sqrt(float(annualization_days))
     )
-    return volatility.reindex(pd.DatetimeIndex(pd.to_datetime(target_dates)))
+    dates=pd.DatetimeIndex(pd.to_datetime(target_dates))
+    if max_staleness_days:
+        return volatility.reindex(dates,method='ffill',tolerance=pd.Timedelta(days=max_staleness_days))
+    return volatility.reindex(dates)
 
 
 def build_risk_free_rate_matrix(
@@ -1446,7 +1459,8 @@ def build_implied_credit_spread_matrix(
             risk_free_rates,
         )
     successful = (statuses == STATUS_OK) & np.isfinite(spreads)
-    result_values = result.to_numpy()
+    # Pandas copy-on-write may expose a read-only array; fill owned storage.
+    result_values = result.to_numpy(copy=True)
     result_values[
         np.asarray(row_positions, dtype=np.int64)[successful],
         np.asarray(column_positions, dtype=np.int64)[successful],
@@ -1455,7 +1469,7 @@ def build_implied_credit_spread_matrix(
         f"   Credit spread backend: {actual_backend}; "
         f"problems: {len(problem_values_array):,}"
     )
-    return result
+    return pd.DataFrame(result_values, index=result.index, columns=result.columns)
 
 
 def build_active_market_mask(

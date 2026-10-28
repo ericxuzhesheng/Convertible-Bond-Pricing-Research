@@ -8,7 +8,7 @@ This file tells Codex how to navigate and work with this codebase.
 
 Absolute pricing research for Chinese A-share convertible bonds using three models:
 - **Black-Scholes (BS)**: closed-form, offensive anchor (equity/vol driven)
-- **Zheng-Lin (ZL)**: Monte Carlo optimal stopping, defensive anchor (clause-aware)
+- **ZL (project label)**: clause-stopping Monte Carlo policy baseline, defensive anchor
 - **Least-Squares Monte Carlo (LSM)**: vectorized continuation-value regression and voluntary early conversion
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
@@ -28,7 +28,7 @@ Convertible-Bond-Pricing-Research/
 ├── backtest/                          ← PRIMARY working directory
 │   ├── data_pipeline.py               ← Tushare data ingestion (run first)
 │   ├── B-S_backtest.py                ← BS model pricing + output
-│   ├── Z-L_backtest_GPU_prod.py       ← shared ZL driver (CUDA/CPU)
+│   ├── Z-L_backtest_GPU_prod.py       ← corrected clause-MC entrypoint (CPU)
 │   ├── Z-L_backtest_CPU_prod.py       ← GitHub CPU incremental entrypoint
 │   ├── LSM_backtest.py                 ← vectorized strict-incremental LSM driver
 │   ├── lsm_backend.py                  ← batched quadratic Longstaff-Schwartz engine
@@ -87,9 +87,8 @@ AGENTS.md is the repository instruction source; no separate CLAUDE.md is maintai
 
 ```bash
 # Never use this for a routine update. It requires an explicit maintainer request.
-# GPU preflight → rebuild observed Tushare/AkShare inputs → BS → GPU ZL → LSM
-# → benchmark → factors → strategies → plots
-python backtest/full_history_rebuild.py
+# Reprice cached observed inputs only; no data download or research rebuild.
+python backtest/reprice_history.py --resume --promote
 ```
 
 ### Regenerate README plots only (no model recomputation)
@@ -118,12 +117,12 @@ Get-Content .\logs\main_sync.log -Tail 30
 
 The GitHub `weekly-incremental-cpu.yml` pipeline:
 1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_CPU_prod.py` — incrementally update weekly observed inputs and BS/ZL prices
-2. `LSM_backtest.py --weekly` — verifies its independent manifest and prices only later ZL dates
+2. `LSM_backtest.py --weekly` — verifies its independent manifest and prices later observed weekly dates independently of ZL
 3. `long-short strategy/update_benchmark.py` — updates the 000832.CSI benchmark
-4. `rebuild_research_outputs.py` — updates factors, append-only IC histories, daily strategy inputs, the independent weekly value strategy, and README plots
+4. Research, weekly reports, IC histories and frozen ledgers are paused pending their separately versioned v2 migration
 5. validation + `git commit && git push origin main` — publishes only complete verified changes
 
-The Windows `weekly_update.bat` remains available as a manual CUDA path, but
+The Windows `weekly_update.bat` remains available as a manual CPU path, but
 the scheduled cloud update does not depend on the local computer being on.
 
 ### Incremental update (most common)
@@ -186,18 +185,60 @@ bond columns intact, causing KeyError for new bonds.
 
 ### BS volatility cache
 
-`B-S_backtest.py --weekly --incremental-after YYYY-MM-DD` preserves the complete
-existing `bs_volatility_cache.csv` history and merges only new volatility rows.
-Never replace the cache with an incremental slice. Missing entries are filled
-with `0.40` (40% default).
+`update_pricing_volatility.py --after YYYY-MM-DD` preserves the complete
+existing `bs_volatility_cache.csv` history and merges only new observed weekly
+volatility rows after the latest verified cutoff of all independent models.
+A model ahead of its peers protects its historical missing cells. Never replace the cache with
+an incremental slice or use a constant fallback. At most seven calendar days of
+as-of carry is allowed for a suspended underlying; older inputs remain missing.
+Historical repairs are explicit maintenance and retain observation dates.
 
-### LSM incremental logic
+### Corrected pricing v2
 
-`LSM_backtest.py --weekly` requires `LSM_Model_Manifest.json` after the one-time
-explicit initialization. It verifies the historical input fingerprint, model
-parameters, and summary-workbook SHA-256 before calculating dates strictly later
-than its verified cutoff. If there are no later dates, it exits without rewriting
-outputs. Never pass `--initialize-history` in routine automation.
+BS, ZL and LSM use `cashflow-pricing-v2` manifests, with independent input
+fingerprints and artifact integrity checks. All three entrypoints are cache-only
+and share contractual cash-flow utilities, not theoretical prices. LSM never
+reads ZL model outputs. `update_pricing_volatility.py` refreshes new observed
+weekly volatility once before the three independent runs.
+
+Explicit maintainer-authorized historical repricing uses
+`python backtest/reprice_history.py --resume --promote`. It builds in a separate
+staging folder, verifies all three models, and records the superseded Git commit
+before replacing pricing artifacts. Routine runs never initialize or overwrite
+history. See [PRICING_METHODS.md](backtest/PRICING_METHODS.md) for model assumptions,
+coverage controls and independent commands. The v1 CUDA algorithms are retired.
+
+Research/weekly-report rebuilding is paused during this pricing migration.
+Existing IC manifests, reports and frozen ledgers retain v1 prices. Do not remove
+or bypass their guards; a separately versioned research migration is required.
+
+Pricing-only figures and `Pricing_Metrics.csv` use the identical valid bond-date
+sample across models. Refresh `update_etf_benchmark.py` before plotting; its
+independent 511380.SH cache uses observed closes and same-date adjustment factors,
+never pre-listing backfills. Normalize ETF/model comparisons to a common observed
+start and label them as price diagnostics, not strategy returns.
+
+### Complex-model rebuilds: CUDA preference
+
+For explicitly authorized full-history rebuilds of ZL, LSM and similarly complex
+models, evaluate CUDA first when a supported NVIDIA GPU is available, and prefer
+the validated GPU backend. Keep a CPU implementation as the correctness reference
+and fallback; routine weekly updates remain strictly incremental and may use CPU.
+
+GPU acceleration must preserve the current contractual cash flows, credit/equity
+discounting, conversion dates, clause termination and independent LSM training /
+valuation policy. Validate matched-path CPU/GPU results where possible, plus
+multi-seed sampling-error and convergence checks. Do not trade away numerical
+accuracy or silently lower path counts for speed. Record backend, algorithm and
+sampling parameters in independent manifests before promoting results. Retired
+v1 CUDA routines must not be re-enabled as a shortcut.
+
+The corrected `pricing_cuda.py` port uses float64 path simulation and shares
+the CPU continuation-value regression. Use `--lsm-backend cuda` and/or
+`--zl-backend cuda` with `reprice_history.py`, or `--backend cuda` with an
+independent MC entrypoint. Its xoroshiro128+ pair streams are separated by
+2^64 steps and recorded in the model manifest. CPU incremental runs must retain
+that recorded sampler when appending to a CUDA baseline.
 
 ### Factor diagnostics incremental logic
 
@@ -219,8 +260,8 @@ if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8"
 
 ## Environment Requirements
 
-- Python 3.9+
-- Key packages: `tushare`, `akshare`, `pandas`, `numpy`, `scipy`, `numba==0.62.1`, `numba-cuda`, `openpyxl`, `matplotlib`
+- Python 3.10+; production cloud uses Python 3.13
+- Key packages: `tushare`, `akshare`, `pandas==2.3.3`, `numpy==2.2.6`, `scipy==1.16.3`, `numba==0.62.1`, `openpyxl`, `matplotlib`; corrected pricing does not require CUDA
 - Tushare Pro token: provide `TUSHARE_TOKEN` or the ignored local file `backtest/tushare_token.txt`; never hard-code or commit it
 - No extra packages needed for email (uses stdlib `smtplib`)
 
@@ -263,18 +304,14 @@ batch calls. Do not remove these sleeps.
   │
   ├─ manifest cutoff          ← 读取已验证截止日，只允许后续新交易周
   ├─ data_pipeline.py         ← 从截止日次日起增量更新真实市场数据
+  ├─ update_pricing_volatility.py ← 为三模型补充新增真实周度波动率
   ├─ B-S_backtest.py          ← 仅更新截止日后的 BS 周度定价
-  ├─ Z-L_backtest_GPU_prod.py ← CUDA 仅更新截止日后的 ZL 周度定价
-  ├─ LSM_backtest.py          ← 校验独立 Manifest，仅计算新增 ZL 周度截面
+  ├─ Z-L_backtest_GPU_prod.py ← CPU 仅更新截止日后的 ZL 周度定价
+  ├─ LSM_backtest.py          ← 校验独立 Manifest，独立计算新增市场周度截面
   │
   ├─ update_benchmark.py      ← 更新 000832.CSI 基准
   │
-  ├─ rebuild_research_outputs.py
-  │     ├─ build_observed_factors.py  ← 从 Tushare 日频缓存重建五个非定价因子
-  │     ├─ BS/ZL/LSM factor backtests
-  │     ├─ strategy_data.py          ← 每日行情、财务及事件增量输入
-  │     ├─ weekly_value_strategy.py  ← 独立5bp/2%安全边际策略、每日账本
-  │     └─ regenerate_plots.py        ← 重生成 README 图表与三模型 IC 对比图
+  ├─ research/weekly reports  ← 暂停，待独立的 v2 研究迁移
   │
   └─ git add -u               ← 暂存所有已追踪的变更文件
        git commit              ← 仅在有实际变更时提交（跳过空提交）

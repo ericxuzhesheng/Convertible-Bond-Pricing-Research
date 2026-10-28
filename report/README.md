@@ -7,3 +7,39 @@
 - 旧周度相对排名验收：[2026-09-11记录](../summary/weekly_strategy_20260911.md)。其事件分类曾存在错误，仅保留审计，不能作为新策略绩效证据。
 
 The current weekly value strategy is a separate study. Older pricing/factor PDFs retain their dated figures; they are not restated as results of the new 5bp/2% rule.
+
+## Broker research references
+
+English titles below are descriptive translations; the original Chinese PDF contents are unchanged.
+
+- Guosheng Securities (2023-03-02), [*Convertible Bond Pricing Models and Applications*](Guosheng_Securities_Convertible_Bond_Pricing_Models_and_Applications_20230302.pdf). CCB assumptions and analytical cash-flow decomposition, pp. 5-9.
+- Zheshang Securities (2023-12-01), [*Convertible Bond Pricing Panorama: Models, Algorithms and Applications*](Zheshang_Securities_Convertible_Bond_Pricing_Panorama_Models_Algorithms_and_Applications_20231201.pdf). LSM pricing with contractual clauses, issuer behaviour and credit risk.
+- Guosheng Securities (2024-02-08), [*Redemption Probability Adjusted Pricing Model for Convertible Bonds*](Guosheng_Securities_Convertible_Bond_Redemption_Probability_Adjusted_Pricing_Model_20240208.pdf). CCBA construction and announcement-based calibration, pp. 7-19.
+- Zheshang Securities (2025-09-18), [*Convertible Bond Quantitative Investing: Option Pricing, Factor Enhancement and Clause Games*](Zheshang_Securities_Convertible_Bond_Quantitative_Investing_Option_Pricing_Factor_Enhancement_and_Clause_Games_20250918.pdf). LSM applications, factor strategies and clause-exercise prediction.
+
+## Next model experiment: CCB before CCBA
+
+Start with an independent CCB analytical benchmark. In the 2023 Guosheng report,
+CCB uses a specified call-protection period followed by immediate redemption at
+the price barrier; it omits puts and conversion-price resets. This differs from
+the rolling trigger counts and notice period in the current ZL/LSM engines.
+Validate the analytical result against a simulation with the same assumptions,
+then test protection-period sensitivity. Historical comparisons require verified
+as-of waiver dates; a declared protection-period scenario is not an observed
+issuer decision. Do not calibrate protection periods to the same convertible
+market prices later used to claim pricing accuracy.
+
+A fixed-parameter CCB numerical experiment can run alongside the pricing
+migration: keep its code and outputs separate, read only stable input snapshots,
+and do not write production caches, manifests or strategy results. Complete
+historical announcement coverage is not needed for this numerical experiment.
+
+CCBA is the subsequent issuer-behaviour experiment. The 2024 Guosheng report
+defines it as a probability-weighted sum of CCB prices over protection periods.
+Its rolling Logistic calibration requires historical call/non-call announcements,
+their availability dates and waiver end dates. The current event-cache metadata
+explicitly leaves trigger/waiver history incomplete, and some announcement
+records lack `available_at`. Verify these inputs and fit only on information
+available at each valuation date before making historical CCBA claims. Neither
+model has been implemented or backtested by this documentation update; the
+existing BS/ZL/LSM baseline and research-migration guards remain in force.

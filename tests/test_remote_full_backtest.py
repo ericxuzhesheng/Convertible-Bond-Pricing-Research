@@ -30,44 +30,12 @@ def test_remote_gpu_stage_stops_before_mutation_without_cuda(
     assert calls == []
 
 
-def test_remote_gpu_stage_runs_zl_then_downstream(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    calls: list[list[str]] = []
-
-    def fake_run(command, **kwargs):
-        calls.append(command)
-        return SimpleNamespace(returncode=0)
-
-    monkeypatch.setattr(remote_gpu_rebuild.subprocess, "run", fake_run)
-    monkeypatch.setattr(
-        remote_gpu_rebuild,
-        "validate_zl_coverage",
-        lambda **kwargs: 1.0,
-    )
-    monkeypatch.setattr(
-        remote_gpu_rebuild,
-        "build_results_archive",
-        lambda **kwargs: tmp_path / "results.zip",
-    )
-    monkeypatch.setattr(
-        remote_gpu_rebuild,
-        "validate_cpu_stage_handoff",
-        lambda **kwargs: {},
-    )
-
-    remote_gpu_rebuild.run_remote_gpu_stage(
-        gpu_available=True,
-        results_repo=None,
-    )
-
-    assert Path(calls[0][1]).name == "Z-L_backtest_GPU_prod.py"
-    assert calls[0][2:] == [
-        "--rebuild-all",
-        "--weekly",
-    ]
-    assert Path(calls[1][1]).name == "rebuild_research_outputs.py"
+def test_remote_gpu_stage_does_not_run_retired_pricing_or_reports(monkeypatch):
+    calls=[]
+    monkeypatch.setattr(remote_gpu_rebuild.subprocess,"run",lambda command,**kwargs:calls.append(command))
+    with pytest.raises(RuntimeError,match="Retired CUDA"):
+        remote_gpu_rebuild.run_remote_gpu_stage(gpu_available=True,results_repo=None)
+    assert calls==[]
 
 
 def test_gpu_stage_rejects_corrupt_cpu_handoff(tmp_path: Path) -> None:
@@ -164,7 +132,8 @@ def test_cpu_workflow_runs_all_weekly_stages_before_publish() -> None:
 
     assert "PIPELINE_START=" in workflow
     assert "MODEL_CUTOFF=" in workflow
-    assert "cutoff + timedelta(days=1)" in workflow
+    assert 'update_pricing_volatility.py --print-bounds' in workflow
+    assert 'read -r PIPELINE_START MODEL_CUTOFF' in workflow
     assert "cutoff - timedelta" not in workflow
     assert (
         'data_pipeline.py\n          --start "${PIPELINE_START}"\n'

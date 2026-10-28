@@ -1,0 +1,283 @@
+code,date,field,old,new,source,fetched_at,source_asof,age_days
+113592.SH,,resale_clause,,"回售条款
+(1)有条件回售
+在本次发行的可转换公司债券最后两个计息年度内,如果公司股票在任何连续三十个交易日收盘价格低于当期转股价格的70%,可转换公司债券持有人有权将其持有的全部或部分可转换公司债券按面值加上当期应计利息的价格回售给公司。
+若在上述交易日内发生过转股价格因发生派送股票股利、转增股本、增发新股或配股、派发现金股利等情况(不包括因本次发行的可转换公司债券转股而增加股本的情形)而调整的情形,则在调整前的交易日按调整前的转股价格和收盘价格计算,在调整后的交易日按调整后的转股价格和收盘价格计算。如果出现转股价格向下修正的情况,则上述“连续三十个交易日”须从转股价格调整之后的第一个交易日起重新计算。
+在可转换公司债券最后两个计息年度内,可转换公司债券持有人在每年回售条件首次满足后可按上述约定条件行使回售权一次;若首次满足回售条件而可转换公司债券持有人未在公司届时公告的回售申报期内申报并实施回售的,该计息年度不能再行使回售权,可转换公司债券持有人不能多次行使部分回售权。
+(2)附加回售
+若本次发行可转换公司债券募集资金投资项目的实施情况与公司在募集说明书中的承诺相比出现重大变化,根据中国证监会的相关规定被视作改变募集资金用途或被中国证监会认定为改变募集资金用途的,可转换公司债券持有人享有一次回售的权利,即有权将其持有的可转换公司债券全部或部分按债券面值加上当期应计利息价格回售给公司。在上述情形下,可转换公司债券持有人可以在公司公告的附加回售申报期内进行回售,在该次附加回售申报期内不实施回售的,不能再行使附加回售权。",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+113592.SH,,redeem_clause,,"有条件赎回条款
+转股期内,当下述两种情形中任意一种情形出现时,公司董事会有权按照债券面值加当期应计利息的价格赎回全部或部分未转股的可转换公司债券:
+在转股期内,公司股票连续三十个交易日中至少十五个交易日的收盘价格不低于当期转股价格的130%(含130%);
+本次发行的可转换公司债券未转股余额不足人民币3,000万元时。
+当期应计利息的计算公式为:IA=B*i*t/365
+IA:指当期应计利息;
+B:指本次发行的可转换公司债券持有人持有的可转换公司债券票面总金额;
+i:指可转换公司债券当年票面利率;
+t:指计息天数,即从上一个付息日起至本计息年度赎回日止的实际日历天数(算头不算尾)。
+若在前述三十个交易日内发生过转股价格调整的情形,则在转股价格调整日前的交易日按调整前的转股价格和收盘价格计算,在转股价格调整日及之后的交易日按调整后的转股价格和收盘价格计算。",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+113592.SH,,put_trigger_ratio,,0.7,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113592.SH,,put_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113592.SH,,put_eligible_years,,2,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113592.SH,,redeem_trigger_ratio,,1.3,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113592.SH,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113592.SH,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,resale_clause,,"有条件回售条款
+在本次发行的可转换公司债券最后两个计息年度,如果公司股票在任何连续三十个交易日的收盘价格低于当期转股价的70%时,可转换公司债券持有人有权将其持有的可转换公司债券全部或部分按面值加上当期应计利息的价格回售给公司。若在上述交易日内发生过转股价格因发生送红股、转增股本、增发新股(不包括因本次发行的可转换公司债券转股而增加的股本)、配股以及派发现金股利等情况而调整的情形,则在调整前的交易日按调整前的转股价格和收盘价格计算,在调整后的交易日按调整后的转股价格和收盘价格计算。如果出现转股价格向下修正的情况,则上述“连续三十个交易日”须从转股价格调整之后的第一个交易日起重新计算。
+最后两个计息年度可转换公司债券持有人在每年回售条件首次满足后可按上述约定条件行使回售权一次,若在首次满足回售条件而可转换公司债券持有人未在公司届时公告的回售申报期内申报并实施回售的,该计息年度不能再行使回售权,可转换公司债券持有人不能多次行使部分回售权。
+附加回售条款
+若公司本次发行的可转换公司债券募集资金投资项目的实施情况与公司在募集说明书中的承诺情况相比出现重大变化,根据中国证监会的相关规定被视作改变募集资金用途或被中国证监会认定为改变募集资金用途的,可转换公司债券持有人享有一次回售的权利。可转换公司债券持有人有权将其持有的可转换公司债券全部或部分按债券面值加上当期应计利息价格回售给公司。可转换公司债券持有人在附加回售条件满足后,可以在公司公告后的附加回售申报期内进行回售,该次附加回售申报期内不实施回售的,不能再行使附加回售权。上述当期应计利息的计算公式为:IA=B×i×t/365。
+IA:指当期应计利息;
+B:指本次发行的可转债持有人持有的将回售的可转债票面总金额;
+i:指可转债当年票面利率;
+t:指计息天数,即从上一个付息日起至本计息年度回售日止的实际日历天数(算头不算尾)。",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,redeem_clause,,"有条件赎回条款
+在本次发行的可转换公司债券转股期内,当下述两种情形的任意一种出现时,公司董事会有权决定按照债券面值加当期应计利息的价格赎回全部或部分未转股的可转换公司债券:
+在本次发行的可转换公司债券转股期内,如果公司A股股票连续三十个交易日中至少有十五个交易日的收盘价格不低于当期转股价格的130%(含130%);
+当本次发行的可转换公司债券未转股余额不足3,000万元时。当期应计利息的计算公式为:
+IA=B×i×t/365;
+IA:指当期应计利息;
+B:指本次发行的可转债持有人持有的将赎回的可转债票面总金额;
+i:指可转债当年票面利率;
+t:指计息天数,即从上一个付息日起至本计息年度赎回日止的实际日历天数(算头不算尾)。
+若在前述三十个交易日内发生过转股价格调整的情形,则在调整前的交易日按调整前的转股价格和收盘价格计算,调整后的交易日按调整后的转股价格和收盘价格计算。",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,put_trigger_ratio,,0.7,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,put_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,put_eligible_years,,2,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,redeem_trigger_ratio,,1.3,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,redeem_balance_threshold_wan,,3000.0,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,resale_clause,,"（9）回售条款
+有条件回售条款
+在本次发行的可转债最后两个计息年度，如果公司股票在任何连续三十个交易
+日的收盘价格低于当期转股价的70%时，可转债持有人有权将其持有的可转债全
+部或部分按面值加上当期应计利息的价格回售给公司。
+若在上述交易日内发生过转股价格因发生派送股票股利、转增股本、增发新股
+（不包括因本次发行的可转债转股而增加的股本）、配股以及派发现金股利等情况
+而调整的情形，则在调整前的交易日按调整前的转股价格和收盘价格计算，在调
+整后的交易日按调整后的转股价格和收盘价格计算。如果出现转股价格向下修正
+的情况，则上述连续三十个交易日须从转股价格调整之后的第一个交易日起重新
+计算。
+最后两个计息年度可转债持有人在每年回售条件首次满足后可按上述约定条
+件行使回售权一次，若在首次满足回售条件而可转债持有人未在公司届时公告的
+回售申报期内申报并实施回售的，该计息年度不能再行使回售权，可转债持有人
+不能多次行使部分回售权。
+②附加回售条款
+若公司本次发行的可转债募集资金投资项目的实施情况与公司在募集说明书
+中的承诺情况相比出现重大变化，且该变化被中国证监会或上海证券交易所认定
+为改变募集资金用途的，可转债持有人享有一次以面值加上当期应计利息的价格
+向公司回售其持有的全部或部分可转换公司债券的权利。持有人在满足回售条件
+后，可以在回售申报期内进行回售，在该次回售申报期内不实施回售的，自动丧
+失该回售权",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,redeem_clause,,"（8）赎回条款
+②有条件赎回条款
+转股期内，当下述两种情形的任意一种出现时，公司有权决定按照债券面值加
+当期应计利息的价格赎回全部或部分未转股的可转债：在转股期内，如果公司股
+票在任何连续三十个交易日中至少十五个交易日的收盘价格不低于当期转股价格
+的130%（含130%）；当本次发行的可转债未转股余额不足3,000万元时。
+当期应计利息的计算公式为：IA=B×i×t/365
+IA：指当期应计利息；
+B：指本次发行的可转债持有人持有的可转债票面总金额；
+i：指可转债当年票面利率；
+t：指计息天数，即从上一个付息日起至本计息年度赎回日止的实际日历天数
+（算头不算尾）。
+若在前述三十个交易日内发生过转股价格调整的情形，则在调整前的交易日按
+调整前的转股价格和收盘价计算，调整后的交易日按调整后的转股价格和收盘价
+计算",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,put_trigger_ratio,,0.7,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,put_eligible_years,,2,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,redeem_trigger_ratio,,1.3,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,redeem_balance_threshold_wan,,3000.0,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124017.SZ,,resale_clause,,"在本次发行的可转换公司债券锁定期结束后,如公司股票连续30个交易日的收盘价格均低于当期转股价格的70%,则可转换公司债券持有人有权行使提前回售权,将其持有的可转换公司债券的全部或部分以面值加当期应计利息的金额回售给上市公司。若在上述交易日内发生过转股价格因发生派送股票股利、公积金转增股本、增发新股(不包括因本次发行的可转换公司债券转股而增加的股本)、配股以及派发现金股利等情况而调整的情形,则在调整前的交易日按调整前的转股价格和收盘价格计算,在调整后的交易日按调整后的转股价格和收盘价格计算。如果出现转股价格向下修正的情况,则上述“连续30个交易日”须从转股价格调整之后的第一个交易日起重新计算。
+可转换公司债券持有人在每年回售条件首次满足后可按上述约定条件行使回售权一次,若在首次满足回售条件而可转换公司债券持有人未在公司届时公告的回售申报期内申报并实施回售的,该计息年度不能再行使回售权。",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+124017.SZ,,redeem_clause,,"在本次发行的可转换公司债券转股期内,当本次发行的可转换公司债券未转股余额不足3,000万元时。公司有权提出按照债券面值加当期应计利息的价格赎回全部或部分未转股的可转换公司债券。",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+124017.SZ,,put_trigger_ratio,,0.7,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124017.SZ,,put_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124017.SZ,,redeem_balance_threshold_wan,,3000.0,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,resale_clause,,"(十二)回售条款
+本次发行的可转债最后两个计息年度,如果公司A股股票在任何连续三十个交易日的收盘价格低于当期转股价格的70%时,可转债持有人有权将其持有的全部或部分可转债按面值加上当期应计利息的价格回售给公司。
+若在上述交易日内发生过转股价格因派送股票股利、转增股本、增发新股(不包括因本次发行的可转债转股而增加的股本)、配股以及派送现金股利等情况而调整的情形,则在调整前的交易日按调整前的转股价格和收盘价格计算,在调整后的交易日按调整后的转股价格和收盘价格计算。
+本次发行的可转债最后两个计息年度,可转债持有人在每年回售条件首次满足后可按上述约定条件行使回售权一次,若在首次满足回售条件而可转债持有人未在公司届时公告的回售申报期内申报并实施回售的,该计息年度不能再行使回售权,可转债持有人不能多次行使部分回售权。
+(十三)附加回售条款
+若本次可转债募集资金运用的实施情况与公司在《铜陵有色金属集团股份有限公司发行股份,可转换公司债券及支付现金购买资产并募集配套资金暨关联交易报告书》的承诺相比出现重大变化,且该变化被中国证监会或深交所认定为改变募集资金用途的,本次可转债持有人享有一次以面值加上当期应计利息的价格向公司回售其持有的部分或者全部本次可转债的权利。在上述情形下,本次可转债持有人可以在公司公告后的回售申报期内进行回售,回售申报期内不实施回售的,自动丧失该回售权。",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,redeem_clause,,"2、有条件赎回
+在本次发行的可转债转股期内,且满足发行后18个月的条件下,当下述两种情形的任意一种出现时,公司有权决定按照债券面值加当期应计利息的价格赎回全部或部分未转股的可转债:
+(i.)在本次发行的可转债转股期内,且满足发行后18个月的条件下,如果公司股票在任何连续三十个交易日中至少有十五个交易日的收盘价格不低于当期转股价格的130%(含130%)。
+(ii.)当本次发行的可转债未转股余额不足3,000万元时。
+当期应计利息的计算公式为:IA=B2×i×t/365
+IA:指当期应计利息;
+B2:指本次发行的可转债持有人持有的将赎回的可转债票面总金额;i:指可转债当年票面利率;
+t:指计息天数,即从上一个付息日起至本计息年度赎回日止的实际日历天数(算头不算尾)。
+若在前述三十个交易日内发生过转股价格调整的情形,则在调整前的交易日按调整前的转股价格和收盘价格计算,调整后的交易日按调整后的转股价格和收盘价格计算。",Tushare.cb_basic,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,put_trigger_ratio,,0.7,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,put_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,put_eligible_years,,2,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,redeem_trigger_ratio,,1.3,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,redeem_balance_threshold_wan,,3000.0,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113039.SH,2026-08-07,volatility,,0.5030231362228895,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-07,0.0
+113039.SH,2026-07-31,volatility,,0.501732818401407,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-31,0.0
+113039.SH,2026-08-21,volatility,,0.5202372690246598,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-21,0.0
+113039.SH,2026-08-14,volatility,,0.5188026816651162,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-14,0.0
+113658.SH,2026-08-07,volatility,,0.43299511046286315,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-07,0.0
+113658.SH,2026-07-31,volatility,,0.42581788988290803,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-31,0.0
+113697.SH,2026-08-21,volatility,,0.6216420120143386,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-21,0.0
+113697.SH,2026-08-14,volatility,,0.6146050508713066,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-14,0.0
+113697.SH,2026-08-07,volatility,,0.6171163567934138,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-07,0.0
+113697.SH,2026-07-31,volatility,,0.6140512564726589,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-31,0.0
+118053.SH,2026-07-31,volatility,,0.7535088806489871,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-31,0.0
+118053.SH,2026-08-07,volatility,,0.79798511604124,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-07,0.0
+123188.SZ,2026-07-31,volatility,,0.5431170729306636,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-31,0.0
+128127.SZ,2026-08-14,volatility,,0.48678948426065544,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-14,0.0
+128127.SZ,2026-08-07,volatility,,0.5232549614467374,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-07,0.0
+128127.SZ,2026-07-31,volatility,,0.5366614648925505,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-31,0.0
+128128.SZ,2026-08-14,volatility,,0.36048374022822816,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-14,0.0
+128128.SZ,2026-08-07,volatility,,0.36338095921003116,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-07,0.0
+128128.SZ,2026-07-31,volatility,,0.3752876832311819,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-31,0.0
+128129.SZ,2026-08-07,volatility,,0.18535064678277655,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-07,0.0
+128129.SZ,2026-07-31,volatility,,0.17992358613387305,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-31,0.0
+128129.SZ,2026-08-21,volatility,,0.1825519307237435,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-21,0.0
+128129.SZ,2026-08-14,volatility,,0.18252736289346924,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-14,0.0
+127067.SZ,2026-09-04,volatility,,0.5839674937945141,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-09-04,0.0
+111004.SH,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+111004.SH,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+111016.SH,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+111016.SH,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113590.SH,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113590.SH,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113592.SH,,source_ok,False,True,Tushare.cb_basic full clause texts recovered,2026-10-27T11:15:30.331447+08:00,,
+113649.SH,,source_ok,False,True,Tushare.cb_basic full clause texts recovered,2026-10-27T11:15:30.331447+08:00,,
+113678.SH,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113678.SH,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,put_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118070.SH,,source_ok,False,True,Tushare.cb_basic full clause texts recovered,2026-10-27T11:15:30.331447+08:00,,
+123009.SZ,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+123009.SZ,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+123066.SZ,,redeem_trigger_ratio,,1.3,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+123088.SZ,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+123088.SZ,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+123105.SZ,,redeem_trigger_ratio,,1.3,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+123119.SZ,,redeem_trigger_ratio,,1.3,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+124017.SZ,,source_ok,False,True,Tushare.cb_basic full clause texts recovered,2026-10-27T11:15:30.331447+08:00,,
+124024.SZ,,source_ok,False,True,Tushare.cb_basic full clause texts recovered,2026-10-27T11:15:30.331447+08:00,,
+127040.SZ,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+127040.SZ,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+128011.SZ,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+128011.SZ,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+128068.SZ,,put_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+128083.SZ,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+128083.SZ,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+128090.SZ,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+128090.SZ,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+128139.SZ,,put_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+128012.SZ,2019-02-01,volatility,,0.4582341815349763,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2019-01-31,1.0
+113015.SH,2019-04-12,volatility,,0.49686221448106094,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2019-04-08,4.0
+128043.SZ,2019-04-12,volatility,,0.41090870717508343,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2019-04-10,2.0
+110056.SH,2019-06-06,volatility,,0.4785930494240401,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2019-05-31,6.0
+123021.SZ,2019-06-21,volatility,,0.5861539013533309,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2019-06-14,7.0
+128054.SZ,2019-07-19,volatility,,0.39877007995539315,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2019-07-16,3.0
+110048.SH,2019-07-26,volatility,,0.3463707123263008,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2019-07-22,4.0
+113515.SH,2019-11-01,volatility,,0.3363806563211613,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2019-10-29,3.0
+128037.SZ,2019-11-01,volatility,,0.37411309302732915,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2019-10-25,7.0
+123004.SZ,2020-04-17,volatility,,0.43561631980901355,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-04-10,7.0
+123044.SZ,2020-04-24,volatility,,0.6059963881720873,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-04-20,4.0
+128086.SZ,2020-05-22,volatility,,0.5587331269009838,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-05-19,3.0
+123043.SZ,2020-07-10,volatility,,0.4107342789618051,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-07-09,1.0
+123043.SZ,2020-10-23,volatility,,0.4649515410352898,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-10-22,1.0
+128010.SZ,2020-07-17,volatility,,0.4006106857585132,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-07-13,4.0
+123052.SZ,2020-09-04,volatility,,0.2979955646552613,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-08-31,4.0
+113595.SH,2020-11-06,volatility,,0.40495360730626223,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-11-02,4.0
+110053.SH,2020-12-11,volatility,,0.22297104918705052,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-12-08,3.0
+123010.SZ,2020-12-31,volatility,,0.41218309900722083,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2020-12-28,3.0
+123061.SZ,2021-01-15,volatility,,0.5664512106570458,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-01-08,7.0
+110077.SH,2021-01-29,volatility,,0.26681599387129074,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-01-22,7.0
+110077.SH,2021-08-06,volatility,,0.274311101742937,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-08-04,2.0
+127025.SZ,2021-11-26,volatility,,0.25389108834825186,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-11-25,1.0
+127025.SZ,2021-03-19,volatility,,0.3058349765484613,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-03-17,2.0
+113595.SH,2021-04-30,volatility,,0.4715735397228358,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-04-29,1.0
+127030.SZ,2021-04-30,volatility,,0.5112899708566084,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-04-23,7.0
+113527.SH,2021-05-07,volatility,,0.4812547214476242,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-05-06,1.0
+123068.SZ,2021-05-28,volatility,,0.5173114448601263,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-05-24,4.0
+110067.SH,2021-06-04,volatility,,0.4059075561014221,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-06-01,3.0
+128022.SZ,2021-06-18,volatility,,0.6298580768288727,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-06-11,7.0
+128095.SZ,2021-06-18,volatility,,0.5155721400856116,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-06-15,3.0
+123104.SZ,2021-07-23,volatility,,0.47734932771100513,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-07-16,7.0
+123028.SZ,2021-09-24,volatility,,0.737274098099006,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-09-17,7.0
+123070.SZ,2021-10-22,volatility,,0.6308758297034756,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-10-21,1.0
+128127.SZ,2021-12-17,volatility,,0.24221586238952134,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2021-12-15,2.0
+128128.SZ,2022-03-11,volatility,,0.5222015063577061,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-03-04,7.0
+113043.SH,2022-04-01,volatility,,0.2847654358873109,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-03-30,2.0
+127014.SZ,2022-04-08,volatility,,0.5013406436908537,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-04-01,7.0
+127027.SZ,2022-04-15,volatility,,0.519432051240811,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-04-08,7.0
+110068.SH,2022-04-29,volatility,,0.3256549417480318,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-04-25,4.0
+127028.SZ,2022-05-13,volatility,,0.44940142298548263,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-05-11,2.0
+128044.SZ,2022-09-16,volatility,,0.5958068696708029,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-09-14,2.0
+128124.SZ,2022-09-23,volatility,,0.500097388932056,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-09-21,2.0
+113030.SH,2022-10-14,volatility,,0.44418720867537564,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-10-10,4.0
+113051.SH,2022-11-18,volatility,,0.41554758728948543,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-11-17,1.0
+123161.SZ,2022-12-30,volatility,,0.6394237966290726,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2022-12-29,1.0
+123004.SZ,2023-04-14,volatility,,0.3117180055071514,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2023-04-07,7.0
+123015.SZ,2023-04-28,volatility,,0.8078348325038422,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2023-04-25,3.0
+128128.SZ,2023-04-28,volatility,,0.3108126562884286,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2023-04-25,3.0
+123122.SZ,2023-05-05,volatility,,0.5338231073051466,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2023-04-28,7.0
+128100.SZ,2023-05-26,volatility,,0.3665438535858675,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2023-05-22,4.0
+110068.SH,2023-07-14,volatility,,0.36425452181385326,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2023-07-13,1.0
+127079.SZ,2023-07-28,volatility,,0.553868726548332,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2023-07-21,7.0
+113619.SH,2023-11-17,volatility,,0.35430552303244883,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2023-11-15,2.0
+113575.SH,2024-04-30,volatility,,0.5886751780103552,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2024-04-29,1.0
+113589.SH,2024-04-30,volatility,,0.566036922870757,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2024-04-29,1.0
+110072.SH,2024-07-19,volatility,,0.5089730170009935,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2024-07-17,2.0
+111018.SH,2024-11-01,volatility,,0.3875614423661254,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2024-10-25,7.0
+113685.SH,2024-11-01,volatility,,0.49771737190706467,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2024-10-29,3.0
+113609.SH,2024-11-22,volatility,,0.5267210724571294,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2024-11-20,2.0
+110090.SH,2025-01-10,volatility,,0.43301794337105276,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-01-03,7.0
+118029.SH,2025-01-24,volatility,,0.4673802810421164,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-01-23,1.0
+118029.SH,2025-01-27,volatility,,0.4673802810421164,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-01-23,4.0
+113609.SH,2025-03-14,volatility,,0.5823097722666444,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-03-07,7.0
+110084.SH,2025-04-03,volatility,,0.36117858652621676,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-03-28,6.0
+113589.SH,2025-12-26,volatility,,0.4232256854413546,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-12-19,7.0
+113589.SH,2025-04-30,volatility,,0.43765385085082564,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-04-29,1.0
+113677.SH,2025-05-23,volatility,,0.5650752353976599,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-05-20,3.0
+113565.SH,2025-06-13,volatility,,0.5866851829423838,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-06-06,7.0
+113575.SH,2025-06-20,volatility,,0.554222687279097,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-06-19,1.0
+113646.SH,2025-08-15,volatility,,0.4194492525952886,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-08-13,2.0
+113681.SH,2025-08-22,volatility,,0.41926267410036777,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-08-19,3.0
+123207.SZ,2025-09-26,volatility,,0.4564478698373911,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-09-19,7.0
+123146.SZ,2025-09-30,volatility,,0.5512194699389783,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-09-26,4.0
+123061.SZ,2025-10-31,volatility,,0.5641838975283926,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-10-27,4.0
+113698.SH,2025-11-28,volatility,,0.4337920218018211,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-11-21,7.0
+127042.SZ,2025-12-12,volatility,,0.3681385459972414,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-12-09,3.0
+128101.SZ,2025-12-19,volatility,,0.4336809266674399,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-12-17,2.0
+127038.SZ,2025-12-31,volatility,,0.35925539013561625,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2025-12-29,2.0
+127042.SZ,2026-01-09,volatility,,0.47984041886188317,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-01-06,3.0
+127042.SZ,2026-01-30,volatility,,0.5421599908193159,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-01-23,7.0
+110085.SH,2026-02-27,volatility,,0.4467961662442353,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-02-24,3.0
+128137.SZ,2026-03-06,volatility,,0.3964888443305949,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-03-02,4.0
+123160.SZ,2026-03-27,volatility,,0.46066669918798486,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-03-23,4.0
+127027.SZ,2026-04-03,volatility,,0.2648835925806981,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-04-01,2.0
+110081.SH,2026-04-30,volatility,,0.4205860155444941,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-04-29,1.0
+118027.SH,2026-04-30,volatility,,0.795012714517876,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-04-29,1.0
+118011.SH,2026-06-18,volatility,,0.45636113773596504,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-06-11,7.0
+118011.SH,2026-06-12,volatility,,0.45636113773596504,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-06-11,1.0
+123092.SZ,2026-06-26,volatility,,0.4781468339605885,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-06-25,1.0
+123176.SZ,2026-07-10,volatility,,0.6283978915004413,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-08,2.0
+123065.SZ,2026-08-07,volatility,,0.6299264282315131,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-07-31,7.0
+123224.SZ,2026-09-04,volatility,,0.5187711507104843,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-08-28,7.0
+127078.SZ,2026-09-04,volatility,,0.43825927285791505,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-09-03,1.0
+128044.SZ,2026-10-16,volatility,,0.5351368363287612,"Tushare.daily+adj_factor; 250 observed closes, min 60; log-return SD * sqrt(250)",2026-10-27T11:15:30.331447+08:00,2026-10-12,4.0
+113628.SH,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+113628.SH,,redeem_required_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118018.SH,,redeem_clause,"(1)到期赎回条款在本次发行的可转换公司债券期满后五个交易日内,公司将按债券面值的110%(含最后一期利息)的价格赎回未转股的可转换公司债券。(2)有条件赎回条款在本次发行的可转换公司债券转股期内,如果公司A股股票连续三十个交15易日中至少有十五个交易日的收盘价不低于当期转股价格的130%(含130%),或本次发行的可转换公司债券未转股余额不足人民币3,000万元时,公司有权按照债券面值加当期应计利息的价格赎回全部或部分未转股的可转换公司债券。当期应计利息的计算公式为:IA=B×i×t/365IA:指当期应计利息;B:指本次发行的可转换公司债券持有人持有的可转换公司债券票面总金额;i:指可转换公司债券当年票面利率;t:指计息天数,即从上一个付息日起至本计息年度赎回日止的实际日历天数(算头不算尾)。若在前述三十个交易日内发生过转股价格调整的情形,则在转股价格调整日前的交易日按调整前的转股价格和收盘价计算,在转股价格调整日及之后的交易日按调整后的转股价格和收盘价计算。","有条件赎回条款
+在本次发行的可转换公司债券转股期内,如果公司A股股票连续三十个交易日中至少有十五个交易日的收盘价不低于当期转股价格的130%(含130%),或本次发行的可转换公司债券未转股余额不足人民币3,000万元时,公司有权按照债券面值加当期应计利息的价格赎回全部或部分未转股的可转换公司债券。
+当期应计利息的计算公式为:IA=B×i×t/365
+IA:指当期应计利息;
+B:指本次发行的可转换公司债券持有人持有的可转换公司债券票面总金额;
+i:指可转换公司债券当年票面利率;
+t:指计息天数,即从上一个付息日起至本计息年度赎回日止的实际日历天数(算头不算尾)。
+若在前述三十个交易日内发生过转股价格调整的情形,则在转股价格调整日前的交易日按调整前的转股价格和收盘价计算,在转股价格调整日及之后的交易日按调整后的转股价格和收盘价计算。",Tushare.cb_basic clean text replaces unparseable cached text,2026-10-27T11:15:30.331447+08:00,,
+118018.SH,,redeem_window_days,,30,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,
+118018.SH,,redeem_required_days,,15,parsed observed contract text,2026-10-27T11:15:30.331447+08:00,,

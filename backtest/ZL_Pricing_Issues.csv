@@ -1,0 +1,496 @@
+date,code,reason
+2019-02-15,113010.SH,"missing observed market, parity, floor or volatility"
+2019-02-22,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-01,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-08,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-15,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-22,110032.SH,"missing observed market, parity, floor or volatility"
+2019-03-22,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-29,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-04,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-12,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-12,128040.SZ,"missing observed market, parity, floor or volatility"
+2019-04-19,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-19,128040.SZ,"missing observed market, parity, floor or volatility"
+2019-04-19,128043.SZ,"missing observed market, parity, floor or volatility"
+2019-04-26,113512.SH,"missing observed market, parity, floor or volatility"
+2019-04-26,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-30,113506.SH,"missing observed market, parity, floor or volatility"
+2019-04-30,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-05-10,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-05-17,113018.SH,"missing observed market, parity, floor or volatility"
+2019-05-17,123006.SZ,"missing observed market, parity, floor or volatility"
+2019-05-17,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-05-24,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-05-31,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-06-06,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-06-14,110056.SH,"missing observed market, parity, floor or volatility"
+2019-06-14,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-06-21,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-06-28,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-05,113513.SH,not listed on valuation date
+2019-07-05,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-12,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-19,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-26,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-26,128054.SZ,"missing observed market, parity, floor or volatility"
+2019-08-02,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-08-09,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-08-16,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-08-23,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-08-23,128024.SZ,"missing observed market, parity, floor or volatility"
+2019-08-30,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-09-06,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-09-12,110049.SH,observed bond value exceeds the contractual risk-free value
+2019-09-12,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-09-20,127010.SZ,"missing observed market, parity, floor or volatility"
+2019-10-11,110049.SH,observed bond value exceeds the contractual risk-free value
+2019-10-18,123001.SZ,"missing observed market, parity, floor or volatility"
+2019-10-18,127009.SZ,"missing observed market, parity, floor or volatility"
+2019-10-25,128027.SZ,"missing observed market, parity, floor or volatility"
+2019-11-01,128047.SZ,"missing observed market, parity, floor or volatility"
+2019-11-08,128037.SZ,"missing observed market, parity, floor or volatility"
+2019-12-13,110049.SH,observed bond value exceeds the contractual risk-free value
+2020-02-14,123003.SZ,"missing observed market, parity, floor or volatility"
+2020-02-14,128020.SZ,"missing observed market, parity, floor or volatility"
+2020-02-21,128020.SZ,"missing observed market, parity, floor or volatility"
+2020-02-28,113522.SH,not listed on valuation date
+2020-03-13,123016.SZ,"missing observed market, parity, floor or volatility"
+2020-03-20,123009.SZ,"missing observed market, parity, floor or volatility"
+2020-03-20,128060.SZ,"missing observed market, parity, floor or volatility"
+2020-03-20,128061.SZ,"missing observed market, parity, floor or volatility"
+2020-07-17,123043.SZ,"missing observed market, parity, floor or volatility"
+2020-09-11,123052.SZ,"missing observed market, parity, floor or volatility"
+2021-02-19,113524.SH,"missing observed market, parity, floor or volatility"
+2021-03-26,127025.SZ,"missing observed market, parity, floor or volatility"
+2021-05-07,127030.SZ,"missing observed market, parity, floor or volatility"
+2021-06-25,128022.SZ,"missing observed market, parity, floor or volatility"
+2021-12-03,127025.SZ,"missing observed market, parity, floor or volatility"
+2021-12-10,127025.SZ,"missing observed market, parity, floor or volatility"
+2022-04-08,113043.SH,"missing observed market, parity, floor or volatility"
+2022-04-22,127027.SZ,"missing observed market, parity, floor or volatility"
+2022-05-20,127028.SZ,"missing observed market, parity, floor or volatility"
+2022-10-21,110088.SH,observed bond value exceeds the contractual risk-free value
+2022-10-28,124017.SZ,contractual cash-flow fields are unavailable
+2022-11-04,110088.SH,observed bond value exceeds the contractual risk-free value
+2022-11-04,124017.SZ,contractual cash-flow fields are unavailable
+2022-11-11,110088.SH,observed bond value exceeds the contractual risk-free value
+2022-11-11,124017.SZ,contractual cash-flow fields are unavailable
+2022-11-18,124017.SZ,contractual cash-flow fields are unavailable
+2022-11-25,113051.SH,"missing observed market, parity, floor or volatility"
+2022-11-25,124017.SZ,contractual cash-flow fields are unavailable
+2023-01-06,123161.SZ,"missing observed market, parity, floor or volatility"
+2023-04-21,123004.SZ,"missing observed market, parity, floor or volatility"
+2023-05-05,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-05-12,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-05-12,123122.SZ,"missing observed market, parity, floor or volatility"
+2023-05-19,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-05-26,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-06-02,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-06-02,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-06-09,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-06-09,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-06-16,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-06-16,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-06-21,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-06-21,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-06-30,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-06-30,123170.SZ,"missing observed market, parity, floor or volatility"
+2023-06-30,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-07-07,123015.SZ,"missing observed market, parity, floor or volatility"
+2023-07-07,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-07-14,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-07-21,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-07-28,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-08-04,128100.SZ,"missing observed market, parity, floor or volatility"
+2023-08-25,128114.SZ,"missing observed market, parity, floor or volatility"
+2023-09-01,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-09-01,128114.SZ,"missing observed market, parity, floor or volatility"
+2023-09-08,128114.SZ,"missing observed market, parity, floor or volatility"
+2023-09-15,128114.SZ,"missing observed market, parity, floor or volatility"
+2023-09-22,128114.SZ,"missing observed market, parity, floor or volatility"
+2023-09-28,128114.SZ,"missing observed market, parity, floor or volatility"
+2023-10-13,128114.SZ,"missing observed market, parity, floor or volatility"
+2023-10-20,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-10-20,128114.SZ,"missing observed market, parity, floor or volatility"
+2023-11-10,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-11-17,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-11-17,113057.SH,observed bond value exceeds the contractual risk-free value
+2023-11-24,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-11-24,113057.SH,observed bond value exceeds the contractual risk-free value
+2023-11-24,123002.SZ,"missing observed market, parity, floor or volatility"
+2023-12-01,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-12-01,113057.SH,observed bond value exceeds the contractual risk-free value
+2023-12-08,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-12-15,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-12-15,113578.SH,"missing observed market, parity, floor or volatility"
+2023-12-22,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-12-22,113578.SH,"missing observed market, parity, floor or volatility"
+2023-12-29,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-12-29,113578.SH,"missing observed market, parity, floor or volatility"
+2024-01-05,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-01-05,113578.SH,"missing observed market, parity, floor or volatility"
+2024-01-12,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-01-12,113578.SH,"missing observed market, parity, floor or volatility"
+2024-01-19,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-01-19,113578.SH,"missing observed market, parity, floor or volatility"
+2024-01-26,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-02-02,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-02-08,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-02-23,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,127058.SZ,observed bond value exceeds the contractual risk-free value
+2024-03-08,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-08,127058.SZ,observed bond value exceeds the contractual risk-free value
+2024-03-15,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-22,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-29,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-29,124024.SZ,"missing observed market, parity, floor or volatility"
+2024-04-03,124024.SZ,"missing observed market, parity, floor or volatility"
+2024-04-12,124024.SZ,"missing observed market, parity, floor or volatility"
+2024-04-19,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-04-19,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-04-19,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-04-19,124024.SZ,"missing observed market, parity, floor or volatility"
+2024-04-26,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-04-26,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-04-26,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-04-26,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-04-26,124024.SZ,"missing observed market, parity, floor or volatility"
+2024-04-30,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-04-30,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-04-30,124024.SZ,"missing observed market, parity, floor or volatility"
+2024-05-10,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-05-10,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-05-10,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-05-10,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-05-10,118019.SH,observed bond value exceeds the contractual risk-free value
+2024-05-17,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-05-17,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,118019.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,123099.SZ,"missing observed market, parity, floor or volatility"
+2024-05-24,124024.SZ,"missing observed market, parity, floor or volatility"
+2024-05-31,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-05-31,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-07,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-07,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-07,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-14,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-14,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-14,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-14,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-21,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-21,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-21,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-21,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-28,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-28,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-28,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,110072.SH,"missing observed market, parity, floor or volatility"
+2024-07-26,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,110072.SH,"missing observed market, parity, floor or volatility"
+2024-08-02,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113687.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,110072.SH,"missing observed market, parity, floor or volatility"
+2024-08-09,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113687.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,110072.SH,"missing observed market, parity, floor or volatility"
+2024-08-16,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113687.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-23,110072.SH,"missing observed market, parity, floor or volatility"
+2024-08-23,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-08-23,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-08-23,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-08-23,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-23,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-23,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-10-11,113596.SH,"missing observed market, parity, floor or volatility"
+2024-11-29,113609.SH,"missing observed market, parity, floor or volatility"
+2025-02-07,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-02-07,118029.SH,"missing observed market, parity, floor or volatility"
+2025-02-14,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-02-14,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-02-21,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-02-21,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-03-21,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-03,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-11,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-18,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-25,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-30,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-09,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-16,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-16,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-05-23,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-23,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-05-30,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-30,113677.SH,"missing observed market, parity, floor or volatility"
+2025-05-30,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-06,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-06-06,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-13,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-06-13,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-13,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-20,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-06-20,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-27,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-06-27,113575.SH,"missing observed market, parity, floor or volatility"
+2025-06-27,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-27,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-04,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-07-04,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-07-04,113575.SH,"missing observed market, parity, floor or volatility"
+2025-07-04,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-04,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-11,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-07-11,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-07-11,113575.SH,"missing observed market, parity, floor or volatility"
+2025-07-11,123254.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-11,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-11,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-18,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-07-18,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-07-18,113575.SH,"missing observed market, parity, floor or volatility"
+2025-07-18,123254.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-18,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-18,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-25,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-07-25,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-07-25,113575.SH,"missing observed market, parity, floor or volatility"
+2025-07-25,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-25,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-01,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-08-01,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-08-01,113575.SH,"missing observed market, parity, floor or volatility"
+2025-08-01,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-01,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-08,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-08-08,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-08-08,113575.SH,"missing observed market, parity, floor or volatility"
+2025-08-08,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-08,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-15,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-08-15,113575.SH,"missing observed market, parity, floor or volatility"
+2025-08-15,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-15,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-22,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-08-22,113646.SH,"missing observed market, parity, floor or volatility"
+2025-08-22,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-22,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-29,113681.SH,"missing observed market, parity, floor or volatility"
+2025-08-29,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-29,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-05,124024.SZ,"missing observed market, parity, floor or volatility"
+2025-09-05,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-05,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-05,128044.SZ,no remaining contractual cash flows
+2025-09-12,124024.SZ,"missing observed market, parity, floor or volatility"
+2025-09-12,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-12,128044.SZ,no remaining contractual cash flows
+2025-09-19,124024.SZ,"missing observed market, parity, floor or volatility"
+2025-09-19,127033.SZ,"missing observed market, parity, floor or volatility"
+2025-09-19,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-19,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-19,128044.SZ,no remaining contractual cash flows
+2025-09-26,124024.SZ,"missing observed market, parity, floor or volatility"
+2025-09-26,128044.SZ,no remaining contractual cash flows
+2025-09-30,124024.SZ,"missing observed market, parity, floor or volatility"
+2025-09-30,128044.SZ,no remaining contractual cash flows
+2025-10-10,110081.SH,"missing observed market, parity, floor or volatility"
+2025-10-10,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-10-10,128044.SZ,no remaining contractual cash flows
+2025-10-17,128044.SZ,no remaining contractual cash flows
+2025-10-24,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-10-24,128044.SZ,no remaining contractual cash flows
+2025-10-31,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-10-31,128044.SZ,no remaining contractual cash flows
+2025-11-07,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-11-07,128044.SZ,no remaining contractual cash flows
+2025-11-14,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-11-14,128044.SZ,no remaining contractual cash flows
+2025-11-21,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-11-21,128044.SZ,no remaining contractual cash flows
+2025-11-28,128044.SZ,no remaining contractual cash flows
+2025-12-05,128044.SZ,no remaining contractual cash flows
+2025-12-12,128044.SZ,no remaining contractual cash flows
+2025-12-19,128044.SZ,no remaining contractual cash flows
+2025-12-26,128044.SZ,no remaining contractual cash flows
+2025-12-31,128044.SZ,no remaining contractual cash flows
+2026-01-09,127038.SZ,"missing observed market, parity, floor or volatility"
+2026-01-09,128044.SZ,no remaining contractual cash flows
+2026-01-16,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-01-16,128044.SZ,no remaining contractual cash flows
+2026-01-23,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-01-23,128044.SZ,no remaining contractual cash flows
+2026-01-30,128044.SZ,no remaining contractual cash flows
+2026-02-06,128044.SZ,no remaining contractual cash flows
+2026-02-13,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-02-13,128044.SZ,no remaining contractual cash flows
+2026-02-27,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-02-27,128044.SZ,no remaining contractual cash flows
+2026-03-06,110085.SH,"missing observed market, parity, floor or volatility"
+2026-03-06,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-03-06,128044.SZ,no remaining contractual cash flows
+2026-03-13,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-03-13,128044.SZ,no remaining contractual cash flows
+2026-03-13,128137.SZ,"missing observed market, parity, floor or volatility"
+2026-03-20,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-03-20,128044.SZ,no remaining contractual cash flows
+2026-03-27,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-03-27,128044.SZ,no remaining contractual cash flows
+2026-04-03,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-04-03,128044.SZ,no remaining contractual cash flows
+2026-04-10,111023.SH,observed bond value exceeds the contractual risk-free value
+2026-04-10,113687.SH,observed bond value exceeds the contractual risk-free value
+2026-04-10,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-04-10,127027.SZ,"missing observed market, parity, floor or volatility"
+2026-04-10,128044.SZ,no remaining contractual cash flows
+2026-04-17,113687.SH,observed bond value exceeds the contractual risk-free value
+2026-04-17,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-04-17,128044.SZ,no remaining contractual cash flows
+2026-04-24,128044.SZ,no remaining contractual cash flows
+2026-04-30,128044.SZ,no remaining contractual cash flows
+2026-05-08,128044.SZ,no remaining contractual cash flows
+2026-05-15,128044.SZ,no remaining contractual cash flows
+2026-05-22,128044.SZ,no remaining contractual cash flows
+2026-05-29,128044.SZ,no remaining contractual cash flows
+2026-06-05,111023.SH,observed bond value exceeds the contractual risk-free value
+2026-06-05,128044.SZ,no remaining contractual cash flows
+2026-06-12,111023.SH,observed bond value exceeds the contractual risk-free value
+2026-06-12,128044.SZ,no remaining contractual cash flows
+2026-06-18,111023.SH,observed bond value exceeds the contractual risk-free value
+2026-06-18,128044.SZ,no remaining contractual cash flows
+2026-06-26,118011.SH,"missing observed market, parity, floor or volatility"
+2026-06-26,128044.SZ,no remaining contractual cash flows
+2026-07-03,123092.SZ,"missing observed market, parity, floor or volatility"
+2026-07-03,128044.SZ,no remaining contractual cash flows
+2026-07-10,128044.SZ,no remaining contractual cash flows
+2026-07-17,128044.SZ,no remaining contractual cash flows
+2026-07-24,128044.SZ,no remaining contractual cash flows
+2026-07-31,128044.SZ,no remaining contractual cash flows
+2026-08-07,128044.SZ,no remaining contractual cash flows
+2026-08-14,128044.SZ,no remaining contractual cash flows
+2026-08-21,128044.SZ,no remaining contractual cash flows
+2026-08-28,128044.SZ,no remaining contractual cash flows
+2026-09-04,128044.SZ,no remaining contractual cash flows
+2026-09-11,128044.SZ,no remaining contractual cash flows
+2026-09-18,128044.SZ,no remaining contractual cash flows
+2026-09-24,128044.SZ,no remaining contractual cash flows
+2026-09-30,128044.SZ,no remaining contractual cash flows
+2026-10-09,128044.SZ,no remaining contractual cash flows
+2026-10-16,128044.SZ,no remaining contractual cash flows
+2026-10-23,128044.SZ,"missing observed market, parity, floor or volatility"

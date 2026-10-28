@@ -1,5 +1,9 @@
 # Research Brief | 研究摘要
 
+> 定价版本说明（2026-10-28）：三模型已重建并验证400周历史至2026-10-23，各有151,991个有效定价单元。修正版采用独立 BS、ZL、LSM 引擎和合同现金流口径，LSM 不再读取或叠加 ZL 价格。下文策略收益、IC 和旧版定价统计保留其原有版本，尚未迁移为新方法结果。方法与独立命令见 [PRICING_METHODS.md](../backtest/PRICING_METHODS.md)。
+>
+> Pricing version notice (2026-10-28): all three models have 400 rebuilt and verified weeks through 2026-10-23, with 151,991 valid cells each. The corrected engines use contractual cash flows and independent BS/ZL/LSM valuation. Strategy, IC and dated pricing statistics below retain their original research vintage.
+
 ## 中文
 
 ### 新增独立策略（2026-09-12）
@@ -16,7 +20,7 @@
 
 ### 研究设计与贡献
 
-项目在统一的数据和回测口径下比较三类模型。BS 提供透明的闭式基准，ZL 通过蒙特卡罗路径纳入赎回、回售与下修条款，LSM 用继续价值回归刻画自愿提前转股。为避免重复计算同一转股权，最终 LSM 组合价值取 `max(ZL, LSM)`。
+项目比较 BS 闭式基准、ZL 条款蒙特卡罗基准和 LSM 继续价值回归。归档 v1 曾采用 `max(ZL, LSM)` 叠加；修正版 LSM 独立估值，并处理合同票息、现金信用折现、转股期限和条款终止。未来下修和未核验弃赎期不作推定，模型的行为假设与限制单独披露。
 
 仓库把定价公式接入市场数据、模型估值、错误定价因子、月度组合和自动发布，并用独立 Manifest 锁定 ZL 与 LSM 的历史边界。历史初始化完成后，日常任务只计算新增交易周，已有结果须通过输入指纹与输出哈希验证。
 
@@ -64,7 +68,7 @@ A convertible bond combines fixed-income cash flows, an equity option, and path-
 
 ### Design and contribution
 
-The study compares three models under one data and backtest protocol. BS provides a transparent closed-form baseline. ZL incorporates call, put, and reset clauses through Monte Carlo paths. LSM estimates continuation value to represent voluntary early conversion. The final LSM combination uses `max(ZL, LSM)` so that the same conversion option is not counted twice.
+The study compares a BS closed-form baseline, a ZL clause-Monte-Carlo baseline and LSM continuation regression. Archived v1 results used a `max(ZL, LSM)` overlay. Corrected LSM values contracts independently, accounting for coupons, cash-credit discounting, conversion dates and termination. Future resets and unverified waiver periods are not assumed; the methods document states the remaining policy assumptions.
 
 The contribution extends beyond formula replication. The repository connects market data, model valuation, mispricing factors, monthly portfolios, and automated publication. Separate manifests certify the historical boundaries of ZL and LSM. Once the historical baseline is initialized, routine jobs process only new trading weeks and verify the prior inputs and published outputs before continuing.
 

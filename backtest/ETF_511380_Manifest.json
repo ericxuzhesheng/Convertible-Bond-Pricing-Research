@@ -1,0 +1,18 @@
+{
+  "ts_code": "511380.SH",
+  "name": "Bosera Convertible Bond ETF",
+  "source": "Tushare fund_daily + fund_adj",
+  "source_urls": [
+    "https://tushare.pro/document/2?doc_id=127",
+    "https://tushare.pro/document/2?doc_id=199"
+  ],
+  "listing_source": "https://static.cninfo.com.cn/finalpage/2020-04-07/1207460850.PDF",
+  "listed_on": "2020-04-07",
+  "adjustment": "close * exact-date adj_factor; no backfill before listing",
+  "requested_end": "2026-10-23",
+  "first_date": "2020-04-07",
+  "last_date": "2026-10-23",
+  "rows": 1587,
+  "fetched_at": "2026-10-28T03:11:47.511251+00:00",
+  "sha256": "a37df8858b948c29deab5ab6ebefd5c108013d30a1b49147c1bb1d4dbe37bb25"
+}

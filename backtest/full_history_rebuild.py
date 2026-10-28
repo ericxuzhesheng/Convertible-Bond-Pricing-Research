@@ -1,89 +1,18 @@
-"""GPU-gated, fail-closed full-history research rebuild."""
+"""Explicit cache-only rebuild of the corrected pricing history.
 
+Market-data acquisition and research/weekly-report rebuilding are separate tasks.
+"""
 from __future__ import annotations
-
 import subprocess
 import sys
 from pathlib import Path
 
-
-BACKTEST_DIR = Path(__file__).resolve().parent
-REPO_ROOT = BACKTEST_DIR.parent
+BACKTEST_DIR=Path(__file__).resolve().parent
 
 
-def _cuda_available() -> bool:
-    from numba import cuda
-
-    return bool(cuda.is_available())
-
-
-def run_full_rebuild(
-    *,
-    gpu_available: bool | None = None,
-    python_executable: str = sys.executable,
-) -> None:
-    if gpu_available is None:
-        gpu_available = _cuda_available()
-    if not gpu_available:
-        raise RuntimeError(
-            "CUDA is unavailable; full-history rebuild stopped before "
-            "downloading data or replacing research outputs"
-        )
-
-    steps = [
-        [
-            python_executable,
-            str(BACKTEST_DIR / "data_pipeline.py"),
-            "--rebuild-all",
-            "--weekly",
-        ],
-        [
-            python_executable,
-            str(BACKTEST_DIR / "B-S_backtest.py"),
-            "--rebuild-all",
-            "--weekly",
-            "--refresh-input-cache",
-        ],
-        [
-            python_executable,
-            str(BACKTEST_DIR / "Z-L_backtest_GPU_prod.py"),
-            "--rebuild-all",
-            "--weekly",
-            "--refresh-input-cache",
-        ],
-        [
-            python_executable,
-            str(BACKTEST_DIR / "LSM_backtest.py"),
-            "--weekly",
-            "--initialize-history",
-        ],
-        [
-            python_executable,
-            str(
-                REPO_ROOT
-                / "long-short strategy"
-                / "update_benchmark.py"
-            ),
-        ],
-        [
-            python_executable,
-            str(BACKTEST_DIR / "rebuild_research_outputs.py"),
-        ],
-    ]
-    for command in steps:
-        script_name = Path(command[1]).name
-        print(f"[full rebuild] running {script_name}", flush=True)
-        result = subprocess.run(
-            command,
-            cwd=REPO_ROOT,
-            check=False,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"{Path(script_name).stem} failed with exit code "
-                f"{result.returncode}"
-            )
+def run_full_rebuild(*,python_executable=sys.executable):
+    subprocess.run([python_executable,str(BACKTEST_DIR/"reprice_history.py"),
+        "--resume","--promote"],check=True,cwd=BACKTEST_DIR.parent)
 
 
-if __name__ == "__main__":
-    run_full_rebuild()
+if __name__=="__main__": run_full_rebuild()

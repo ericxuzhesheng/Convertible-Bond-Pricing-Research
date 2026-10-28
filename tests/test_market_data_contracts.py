@@ -204,6 +204,18 @@ def test_clause_parser_handles_absolute_maturity_ratio_and_optional_you() -> Non
     assert terms.maturity_redemption_price == pytest.approx(108.0)
 
 
+def test_clause_parser_handles_observed_line_breaks_and_missing_ge() -> None:
+    terms=extract_clause_terms('最后两计息年度，如在任何连续三十个交易\n日收盘低于转股价的70%',
+        '在连续三十交易日内至少十五个交易日收盘超过当期转股价格的130%',par_value=100.)
+    assert (terms.put_window_days,terms.put_eligible_years)==(30,2)
+    assert (terms.redeem_window_days,terms.redeem_required_days,terms.redeem_trigger_ratio)==(30,15,1.3)
+
+
+def test_consecutive_call_condition_requires_all_thirty_observations():
+    terms=extract_clause_terms('', '如果公司股票连续三十个交易日的收盘价格不低于当期转股价格的130%',par_value=100.)
+    assert (terms.redeem_window_days,terms.redeem_required_days)==(30,30)
+
+
 def test_coupon_schedule_and_accrual_use_contractual_rate_period() -> None:
     schedule = parse_coupon_schedule(
         "20200101-20201231,票面利率:0.30%;"

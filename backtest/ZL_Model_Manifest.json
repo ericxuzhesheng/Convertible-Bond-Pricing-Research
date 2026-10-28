@@ -1,5 +1,6 @@
 {
-  "contract_version": "weekly-observed-v2",
+  "contract_version": "cashflow-pricing-v2",
+  "model": "ZL",
   "execution_backend": "cpu",
   "verified_dates": [
     "2019-01-04",
@@ -404,11 +405,37 @@
     "2026-10-23"
   ],
   "input_cutoff": "2026-10-23",
-  "input_fingerprint": "cd4801a946867c9e21fab1933ffa8306a643baae1c3806abd9a92448b5d71db8",
-  "output_sha256": "f1caa7da8c9978a0463159f2981213a22b3da834b74614709dce219df49914a7",
+  "input_fingerprint": "7b70ca960b178042ebb0cfb8e9c39cd3b8442ae535cf35a1c228e945f5343b16",
   "model_parameters": {
-    "mc_paths": 10000,
-    "weekly_only": true,
-    "seed_scheme": "crc32-date-v1"
-  }
+    "model": "ZL",
+    "implementation": "cashflow-stopping-v2.3",
+    "credit": "TF-style-cash-only-spread",
+    "paths": 10000,
+    "exercise_steps": 0,
+    "call_notice_days": 30,
+    "trading_days_per_year": 252,
+    "seed_scheme": "crc32-date-bond; thread-local-MT19937-antithetic-nonoverlapping-v1",
+    "regression": "independent-training-and-valuation; 1,S,S2,call-count,put-count,notice-left",
+    "dividend_yield": 0.0,
+    "reset_policy": "no-unverified-future-reset",
+    "call_policy": "deterministic-after-observed-price-trigger",
+    "quote_basis": "full-price",
+    "coupon_timing": "contractual-dates; next-simulation-observation"
+  },
+  "output_sha256": "c1b9424b6701ed415c3963bb24edda63a898bdb6f5e5ad3e6e8c6eb6cc3ce79c",
+  "artifact_sha256": {
+    "ZL_Model_Prices.csv": "cca1992fea74d8116a1c830ce424a7fb1560110628957438ac64e3f489cdb9b7",
+    "ZL_Market_Prices.csv": "fd991bcc1a2c6b64ace6cb8052958c108e53f6fa08ee7eba680d6b265d9ed25c",
+    "ZL_Model_Deviation_Abs.csv": "daab18d5e5e76244211d9af61b950419e6ec13ec468499f152210a29d0f8c8e4",
+    "ZL_Model_Deviation_Pct.csv": "68727ace98ab695f196b8ef7df23a978b956f39916836b7b335e61a9e38f4f6f",
+    "ZL_Monte_Carlo_SE.csv": "9ee9a1ba84d574a437cb4adbd2c3c900e0cbfb5fe38b6c61169cf1f40a65fc0e",
+    "ZL_Implied_Credit_Spread.csv": "156bba035a6470692b257755f785800c4ac9a11d4a45c1cbca8fecab6c3184a6",
+    "ZL_Pricing_Coverage.csv": "db4ac8acb2272c4a68a0d9a03d235cad04c986087199425993c0d273810717ce",
+    "ZL_Pricing_Issues.csv": "1e82486edd3f9e1af7229f886e47e2810d2be7718a027cab94a87e492d829ca5"
+  },
+  "limitations": [
+    "Zero dividend yield; no unverified future reset or discretionary waiver assumed.",
+    "Deterministic issuer policy and fixed notice period are model assumptions, not observed issuer decisions.",
+    "TF-style discounting is not an explicit default/recovery model; contractual coupon dates are not verified historical cashflow events."
+  ]
 }
