@@ -1,0 +1,276 @@
+{
+  "api": "suspend_d",
+  "params": {
+    "ts_code": "300297.SZ",
+    "start_date": "20230505",
+    "end_date": "20230707",
+    "suspend_type": "S"
+  },
+  "fetched_at": "2026-10-29T13:56:00.200000+08:00",
+  "records": [
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230505",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230508",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230509",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230510",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230511",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230512",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230515",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230516",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230517",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230518",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230519",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230522",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230523",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230524",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230525",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230526",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230529",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230530",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230531",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230601",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230602",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230605",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230606",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230607",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230608",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230609",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230612",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230613",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230614",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230615",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230616",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230619",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230620",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230621",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230626",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230627",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230628",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230629",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230630",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230703",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230704",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230705",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230706",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "300297.SZ",
+      "trade_date": "20230707",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    }
+  ]
+}

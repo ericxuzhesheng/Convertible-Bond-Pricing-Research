@@ -1,0 +1,78 @@
+{
+  "api": "cb_daily",
+  "params": {
+    "ts_code": "113578.SH",
+    "start_date": "20240105",
+    "end_date": "20240119"
+  },
+  "fields": "ts_code,trade_date,close,bond_value",
+  "fetched_at": "2026-10-29T13:47:23.841253+08:00",
+  "records": [
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240119",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240118",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240117",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240116",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240115",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240112",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240111",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240110",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240109",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240108",
+      "close": 97.032,
+      "bond_value": null
+    },
+    {
+      "ts_code": "113578.SH",
+      "trade_date": "20240105",
+      "close": 97.032,
+      "bond_value": null
+    }
+  ]
+}

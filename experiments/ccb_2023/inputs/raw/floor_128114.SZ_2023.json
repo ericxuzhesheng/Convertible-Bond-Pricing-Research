@@ -1,0 +1,222 @@
+{
+  "api": "cb_daily",
+  "params": {
+    "ts_code": "128114.SZ",
+    "start_date": "20230825",
+    "end_date": "20231020"
+  },
+  "fields": "ts_code,trade_date,close,bond_value",
+  "fetched_at": "2026-10-29T13:47:42.415206+08:00",
+  "records": [
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231020",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231019",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231018",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231017",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231016",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231013",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231012",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231011",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231010",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20231009",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230928",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230927",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230926",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230925",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230922",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230921",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230920",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230919",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230918",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230915",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230914",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230913",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230912",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230911",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230908",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230907",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230906",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230905",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230904",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230901",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230831",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230830",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230829",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230828",
+      "close": 84.81,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128114.SZ",
+      "trade_date": "20230825",
+      "close": 84.81,
+      "bond_value": null
+    }
+  ]
+}

@@ -1,0 +1,228 @@
+{
+  "api": "suspend_d",
+  "params": {
+    "ts_code": "603377.SH",
+    "start_date": "20250627",
+    "end_date": "20250815",
+    "suspend_type": "S"
+  },
+  "fetched_at": "2026-10-29T13:56:16.495957+08:00",
+  "records": [
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250627",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250630",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250701",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250702",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250703",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250704",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250707",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250708",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250709",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250710",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250711",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250714",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250715",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250716",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250717",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250718",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250721",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250722",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250723",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250724",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250725",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250728",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250729",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250730",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250731",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250801",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250804",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250805",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250806",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250807",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250808",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250811",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250812",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250813",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250814",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "603377.SH",
+      "trade_date": "20250815",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "api": "suspend_d",
+  "params": {
+    "ts_code": "002793.SZ",
+    "start_date": "20190419",
+    "end_date": "20190419",
+    "suspend_type": "S"
+  },
+  "fetched_at": "2026-10-29T13:55:56.537328+08:00",
+  "records": [
+    {
+      "ts_code": "002793.SZ",
+      "trade_date": "20190419",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    }
+  ]
+}

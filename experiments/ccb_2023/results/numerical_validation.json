@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "cases": 12,
+  "paths_per_case": 32768,
+  "bridge_steps_per_year": 192,
+  "standard_error": "independent antithetic pair means",
+  "estimator": "stopped-equity martingale plus simulated surviving coupons and terminal put",
+  "max_grid_difference": 0.007271178551690127,
+  "max_mc_z": 1.2993480565398745
+}

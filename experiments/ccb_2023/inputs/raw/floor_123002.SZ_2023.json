@@ -1,0 +1,18 @@
+{
+  "api": "cb_daily",
+  "params": {
+    "ts_code": "123002.SZ",
+    "start_date": "20231124",
+    "end_date": "20231124"
+  },
+  "fields": "ts_code,trade_date,close,bond_value",
+  "fetched_at": "2026-10-29T13:47:25.669031+08:00",
+  "records": [
+    {
+      "ts_code": "123002.SZ",
+      "trade_date": "20231124",
+      "close": 105.94,
+      "bond_value": null
+    }
+  ]
+}

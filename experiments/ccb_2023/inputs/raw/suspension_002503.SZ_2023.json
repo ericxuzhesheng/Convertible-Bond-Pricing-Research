@@ -1,0 +1,276 @@
+{
+  "api": "suspend_d",
+  "params": {
+    "ts_code": "002503.SZ",
+    "start_date": "20230602",
+    "end_date": "20230804",
+    "suspend_type": "S"
+  },
+  "fetched_at": "2026-10-29T13:55:51.042639+08:00",
+  "records": [
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230602",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230605",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230606",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230607",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230608",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230609",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230612",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230613",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230614",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230615",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230616",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230619",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230620",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230621",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230626",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230627",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230628",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230629",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230630",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230703",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230704",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230705",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230706",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230707",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230710",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230711",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230712",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230713",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230714",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230717",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230718",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230719",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230720",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230721",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230724",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230725",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230726",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230727",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230728",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230731",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230801",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230802",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230803",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002503.SZ",
+      "trade_date": "20230804",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    }
+  ]
+}

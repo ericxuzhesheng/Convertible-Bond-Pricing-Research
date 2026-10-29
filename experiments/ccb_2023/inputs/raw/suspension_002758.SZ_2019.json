@@ -1,0 +1,48 @@
+{
+  "api": "suspend_d",
+  "params": {
+    "ts_code": "002758.SZ",
+    "start_date": "20190412",
+    "end_date": "20190419",
+    "suspend_type": "S"
+  },
+  "fetched_at": "2026-10-29T13:55:54.792438+08:00",
+  "records": [
+    {
+      "ts_code": "002758.SZ",
+      "trade_date": "20190412",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002758.SZ",
+      "trade_date": "20190415",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002758.SZ",
+      "trade_date": "20190416",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002758.SZ",
+      "trade_date": "20190417",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002758.SZ",
+      "trade_date": "20190418",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    },
+    {
+      "ts_code": "002758.SZ",
+      "trade_date": "20190419",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    }
+  ]
+}

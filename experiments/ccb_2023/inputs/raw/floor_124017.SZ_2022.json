@@ -1,0 +1,138 @@
+{
+  "api": "cb_daily",
+  "params": {
+    "ts_code": "124017.SZ",
+    "start_date": "20221028",
+    "end_date": "20221125"
+  },
+  "fields": "ts_code,trade_date,close,bond_value",
+  "fetched_at": "2026-10-29T13:47:30.560067+08:00",
+  "records": [
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221125",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221124",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221123",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221122",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221121",
+      "close": 100.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221118",
+      "close": 105.4,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221117",
+      "close": 105.67,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221116",
+      "close": 109.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221115",
+      "close": 104.67,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221114",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221111",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221110",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221109",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221108",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221107",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221104",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221103",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221102",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221101",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221031",
+      "close": 103.5,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124017.SZ",
+      "trade_date": "20221028",
+      "close": 103.5,
+      "bond_value": null
+    }
+  ]
+}

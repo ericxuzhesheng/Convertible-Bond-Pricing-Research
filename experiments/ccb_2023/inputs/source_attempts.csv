@@ -1,0 +1,97 @@
+api,key,status,rows
+cb_daily,floor_110032.SH_2019.json,returned,1
+cb_daily,floor_113010.SH_2019.json,returned,1
+cb_daily,floor_113018.SH_2019.json,returned,1
+cb_daily,floor_113506.SH_2019.json,returned,1
+cb_daily,floor_113512.SH_2019.json,returned,1
+cb_daily,floor_113578.SH_2023.json,returned,11
+cb_daily,floor_113578.SH_2024.json,returned,11
+cb_daily,floor_123001.SZ_2019.json,returned,1
+cb_daily,floor_123002.SZ_2023.json,returned,1
+cb_daily,floor_123003.SZ_2020.json,returned,1
+cb_daily,floor_123006.SZ_2019.json,returned,1
+cb_daily,floor_123009.SZ_2020.json,returned,1
+cb_daily,floor_123016.SZ_2020.json,returned,1
+cb_daily,floor_124017.SZ_2022.json,returned,21
+cb_daily,floor_124024.SZ_2024.json,returned,26
+cb_daily,floor_124024.SZ_2025.json,returned,18
+cb_daily,floor_127009.SZ_2019.json,returned,1
+cb_daily,floor_127010.SZ_2019.json,returned,1
+cb_daily,floor_127033.SZ_2025.json,returned,1
+cb_daily,floor_128020.SZ_2020.json,returned,6
+cb_daily,floor_128024.SZ_2019.json,returned,1
+cb_daily,floor_128027.SZ_2019.json,returned,1
+cb_daily,floor_128047.SZ_2019.json,returned,1
+cb_daily,floor_128060.SZ_2020.json,returned,1
+cb_daily,floor_128061.SZ_2020.json,returned,1
+cb_daily,floor_128114.SZ_2023.json,returned,35
+volatility,127030.SZ/2021-05-07,last_observed_quote_age_days=14; no valid volatility,393
+volatility,127025.SZ/2021-03-26,last_observed_quote_age_days=9; no valid volatility,397
+volatility,127025.SZ/2021-12-03,last_observed_quote_age_days=8; no valid volatility,555
+volatility,127025.SZ/2021-12-10,last_observed_quote_age_days=15; no valid volatility,555
+volatility,127028.SZ/2022-05-20,last_observed_quote_age_days=9; no valid volatility,393
+volatility,127027.SZ/2022-04-22,last_observed_quote_age_days=14; no valid volatility,393
+volatility,127027.SZ/2026-04-10,last_observed_quote_age_days=9; no valid volatility,395
+volatility,127038.SZ/2026-01-09,last_observed_quote_age_days=11; no valid volatility,395
+volatility,128100.SZ/2023-06-02,last_observed_quote_age_days=11; no valid volatility,392
+volatility,128100.SZ/2023-06-09,last_observed_quote_age_days=18; no valid volatility,392
+volatility,128100.SZ/2023-06-16,last_observed_quote_age_days=25; no valid volatility,392
+volatility,128100.SZ/2023-06-21,last_observed_quote_age_days=30; no valid volatility,392
+volatility,128100.SZ/2023-06-30,last_observed_quote_age_days=39; no valid volatility,392
+volatility,128100.SZ/2023-07-07,last_observed_quote_age_days=46; no valid volatility,392
+volatility,128100.SZ/2023-07-14,last_observed_quote_age_days=53; no valid volatility,392
+volatility,128100.SZ/2023-07-21,last_observed_quote_age_days=60; no valid volatility,392
+volatility,128100.SZ/2023-07-28,last_observed_quote_age_days=67; no valid volatility,392
+volatility,128100.SZ/2023-08-04,last_observed_quote_age_days=74; no valid volatility,392
+volatility,128037.SZ/2019-11-08,last_observed_quote_age_days=14; no valid volatility,396
+volatility,128022.SZ/2021-06-25,last_observed_quote_age_days=14; no valid volatility,396
+volatility,128044.SZ/2026-10-23,last_observed_quote_age_days=11; no valid volatility,394
+volatility,128040.SZ/2019-04-12,last_observed_quote_age_days=8; no valid volatility,395
+volatility,128040.SZ/2019-04-19,last_observed_quote_age_days=15; no valid volatility,395
+volatility,128043.SZ/2019-04-19,last_observed_quote_age_days=9; no valid volatility,398
+volatility,128137.SZ/2026-03-13,last_observed_quote_age_days=11; no valid volatility,393
+volatility,128054.SZ/2019-07-26,last_observed_quote_age_days=10; no valid volatility,398
+volatility,123004.SZ/2023-04-21,last_observed_quote_age_days=14; no valid volatility,393
+volatility,123015.SZ/2023-05-05,last_observed_quote_age_days=10; no valid volatility,394
+volatility,123015.SZ/2023-05-12,last_observed_quote_age_days=17; no valid volatility,394
+volatility,123015.SZ/2023-05-19,last_observed_quote_age_days=24; no valid volatility,394
+volatility,123015.SZ/2023-05-26,last_observed_quote_age_days=31; no valid volatility,394
+volatility,123015.SZ/2023-06-02,last_observed_quote_age_days=38; no valid volatility,394
+volatility,123015.SZ/2023-06-09,last_observed_quote_age_days=45; no valid volatility,394
+volatility,123015.SZ/2023-06-16,last_observed_quote_age_days=52; no valid volatility,394
+volatility,123015.SZ/2023-06-21,last_observed_quote_age_days=57; no valid volatility,394
+volatility,123015.SZ/2023-06-30,last_observed_quote_age_days=66; no valid volatility,394
+volatility,123015.SZ/2023-07-07,last_observed_quote_age_days=73; no valid volatility,394
+volatility,123092.SZ/2026-07-03,last_observed_quote_age_days=8; no valid volatility,398
+volatility,123170.SZ/2023-06-30,last_observed_quote_age_days=9; no valid volatility,395
+volatility,123122.SZ/2023-05-12,last_observed_quote_age_days=14; no valid volatility,393
+volatility,123099.SZ/2024-05-24,last_observed_quote_age_days=24; no valid volatility,380
+volatility,123043.SZ/2020-07-17,last_observed_quote_age_days=8; no valid volatility,398
+volatility,123052.SZ/2020-09-11,last_observed_quote_age_days=11; no valid volatility,397
+volatility,123161.SZ/2023-01-06,last_observed_quote_age_days=8; no valid volatility,398
+volatility,110072.SH/2024-07-26,last_observed_quote_age_days=9; no valid volatility,397
+volatility,110072.SH/2024-08-02,last_observed_quote_age_days=16; no valid volatility,397
+volatility,110072.SH/2024-08-09,last_observed_quote_age_days=23; no valid volatility,397
+volatility,110072.SH/2024-08-16,last_observed_quote_age_days=30; no valid volatility,397
+volatility,110072.SH/2024-08-23,last_observed_quote_age_days=37; no valid volatility,397
+volatility,110085.SH/2026-03-06,last_observed_quote_age_days=10; no valid volatility,394
+volatility,110056.SH/2019-06-14,last_observed_quote_age_days=14; no valid volatility,388
+volatility,110081.SH/2025-10-10,last_observed_quote_age_days=10; no valid volatility,397
+volatility,113051.SH/2022-11-25,last_observed_quote_age_days=8; no valid volatility,399
+volatility,113043.SH/2022-04-08,last_observed_quote_age_days=9; no valid volatility,398
+volatility,113646.SH/2025-08-22,last_observed_quote_age_days=9; no valid volatility,396
+volatility,113681.SH/2025-08-29,last_observed_quote_age_days=10; no valid volatility,395
+volatility,113677.SH/2025-05-30,last_observed_quote_age_days=10; no valid volatility,391
+volatility,113575.SH/2025-06-27,last_observed_quote_age_days=8; no valid volatility,396
+volatility,113575.SH/2025-07-04,last_observed_quote_age_days=15; no valid volatility,396
+volatility,113575.SH/2025-07-11,last_observed_quote_age_days=22; no valid volatility,396
+volatility,113575.SH/2025-07-18,last_observed_quote_age_days=29; no valid volatility,396
+volatility,113575.SH/2025-07-25,last_observed_quote_age_days=36; no valid volatility,396
+volatility,113575.SH/2025-08-01,last_observed_quote_age_days=43; no valid volatility,396
+volatility,113575.SH/2025-08-08,last_observed_quote_age_days=50; no valid volatility,396
+volatility,113575.SH/2025-08-15,last_observed_quote_age_days=57; no valid volatility,396
+volatility,113524.SH/2021-02-19,last_observed_quote_age_days=9; no valid volatility,397
+volatility,113609.SH/2024-11-29,last_observed_quote_age_days=9; no valid volatility,396
+volatility,113596.SH/2024-10-11,last_observed_quote_age_days=11; no valid volatility,394
+volatility,118029.SH/2025-02-07,last_observed_quote_age_days=15; no valid volatility,400
+volatility,118011.SH/2026-06-26,last_observed_quote_age_days=15; no valid volatility,399

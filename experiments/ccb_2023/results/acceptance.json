@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "common_sample": 151991,
+  "all_prices": 152003,
+  "common_weeks": 400,
+  "common_bonds": 974,
+  "source_supplements": 16,
+  "supplements_successfully_priced": 12,
+  "unresolved_field_cells": 106,
+  "issue_observations": 483,
+  "acceptance": [
+    "exact common-sample intersection",
+    "no duplicate bond-date",
+    "all four MAE/RMSE independently recomputed",
+    "coverage and exclusion reconciliation",
+    "source supplement segregation",
+    "repair reconciliation",
+    "moderate grid tolerance"
+  ]
+}

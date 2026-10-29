@@ -1,0 +1,18 @@
+{
+  "api": "cb_daily",
+  "params": {
+    "ts_code": "113506.SH",
+    "start_date": "20190430",
+    "end_date": "20190430"
+  },
+  "fields": "ts_code,trade_date,close,bond_value",
+  "fetched_at": "2026-10-29T13:47:21.113682+08:00",
+  "records": [
+    {
+      "ts_code": "113506.SH",
+      "trade_date": "20190430",
+      "close": 128.2,
+      "bond_value": null
+    }
+  ]
+}

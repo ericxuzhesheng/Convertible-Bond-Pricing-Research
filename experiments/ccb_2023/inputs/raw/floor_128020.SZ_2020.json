@@ -1,0 +1,48 @@
+{
+  "api": "cb_daily",
+  "params": {
+    "ts_code": "128020.SZ",
+    "start_date": "20200214",
+    "end_date": "20200221"
+  },
+  "fields": "ts_code,trade_date,close,bond_value",
+  "fetched_at": "2026-10-29T13:47:36.412998+08:00",
+  "records": [
+    {
+      "ts_code": "128020.SZ",
+      "trade_date": "20200221",
+      "close": 134.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128020.SZ",
+      "trade_date": "20200220",
+      "close": 134.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128020.SZ",
+      "trade_date": "20200219",
+      "close": 134.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128020.SZ",
+      "trade_date": "20200218",
+      "close": 134.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128020.SZ",
+      "trade_date": "20200217",
+      "close": 134.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "128020.SZ",
+      "trade_date": "20200214",
+      "close": 134.0,
+      "bond_value": null
+    }
+  ]
+}

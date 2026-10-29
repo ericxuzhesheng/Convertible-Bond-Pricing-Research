@@ -1,0 +1,18 @@
+{
+  "api": "suspend_d",
+  "params": {
+    "ts_code": "603887.SH",
+    "start_date": "20241011",
+    "end_date": "20241011",
+    "suspend_type": "S"
+  },
+  "fetched_at": "2026-10-29T13:56:19.235294+08:00",
+  "records": [
+    {
+      "ts_code": "603887.SH",
+      "trade_date": "20241011",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    }
+  ]
+}

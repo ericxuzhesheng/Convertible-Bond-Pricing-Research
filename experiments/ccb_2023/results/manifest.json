@@ -1,0 +1,48 @@
+{
+  "method": "CCB-2023-observed-curve-pde-v1",
+  "cutoff": "2026-10-23",
+  "weeks": 400,
+  "prices": 152003,
+  "common_sample": 151991,
+  "common_bonds": 974,
+  "implementation": "Crank-Nicolson; Rannacher event smoothing; log-price mesh",
+  "dx": 0.02,
+  "max_time_step": 0.010416666666666666,
+  "workers": 4,
+  "elapsed_seconds": 163.40833499992732,
+  "protection": "max(actual conversion start remaining ACT/365, 1/12 year)",
+  "rate": "observed government tenor curve, log1p effective yields, linear continuous-zero interpolation",
+  "credit": "flat nonnegative spread calibrated only to observed pure-bond value",
+  "barrier": "observed contractual call ratio times par; continuous monitoring after protection",
+  "expiry": "actual last conversion date; later contractual cashflows discounted to that date",
+  "dividends": "zero conversion-value-process dividend yield, same as BS/ZL/LSM baseline",
+  "limitations": [
+    "no historical waiver overlay: basic protection scenario, not issuer behaviour forecast",
+    "puts and future conversion-price resets omitted as in original CCB",
+    "credit term structure unavailable; scalar spread is identified by one bond-floor observation",
+    "rates and actual contractual barrier extend the 2023 constant-rate analytical specification",
+    "existing BS/ZL/LSM prices are unchanged; same sample does not mean identical exercise rules"
+  ],
+  "numerical_validation": {
+    "passed": true,
+    "cases": 12,
+    "paths_per_case": 32768,
+    "bridge_steps_per_year": 192,
+    "standard_error": "independent antithetic pair means",
+    "estimator": "stopped-equity martingale plus simulated surviving coupons and terminal put",
+    "max_grid_difference": 0.007271178551690127,
+    "max_mc_z": 1.2993480565398745
+  },
+  "observed_grid_cases": 159,
+  "max_observed_grid_difference": 0.02371535317507778,
+  "repair_count": 16,
+  "baseline_cutoffs": {
+    "BS": "2026-10-23",
+    "ZL": "2026-10-23",
+    "LSM": "2026-10-23"
+  },
+  "baseline_integrity": "existing validate_outputs verified workbook and all CSV artifact hashes",
+  "source_commit": "835a3baa544b061ee9dca7b28dda37a8e0284bca",
+  "precision": "moderate",
+  "observed_grid_tolerance_yuan": 0.05
+}

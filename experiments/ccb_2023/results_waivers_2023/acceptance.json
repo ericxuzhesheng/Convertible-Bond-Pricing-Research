@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "unique_observations": 152003,
+  "common_sample": 148420,
+  "asof_provenance_checks": 11748,
+  "unchanged_prices_verified": 139280,
+  "unresolved_excluded": 3571,
+  "production_artifact_guards": {
+    "BS": "2026-10-23",
+    "ZL": "2026-10-23",
+    "LSM": "2026-10-23"
+  },
+  "grid_cases": 108,
+  "max_grid_difference": 0.0086110178291107,
+  "tests": "26 base-model tests and 14 waiver tests passed; one base fixture rerun with workspace temp directory"
+}

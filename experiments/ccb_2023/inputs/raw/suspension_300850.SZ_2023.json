@@ -1,0 +1,18 @@
+{
+  "api": "suspend_d",
+  "params": {
+    "ts_code": "300850.SZ",
+    "start_date": "20230106",
+    "end_date": "20230106",
+    "suspend_type": "S"
+  },
+  "fetched_at": "2026-10-29T13:56:07.240589+08:00",
+  "records": [
+    {
+      "ts_code": "300850.SZ",
+      "trade_date": "20230106",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    }
+  ]
+}

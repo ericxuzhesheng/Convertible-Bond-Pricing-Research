@@ -1,0 +1,18 @@
+{
+  "api": "cb_daily",
+  "params": {
+    "ts_code": "110032.SH",
+    "start_date": "20190322",
+    "end_date": "20190322"
+  },
+  "fields": "ts_code,trade_date,close,bond_value",
+  "fetched_at": "2026-10-29T13:47:18.410375+08:00",
+  "records": [
+    {
+      "ts_code": "110032.SH",
+      "trade_date": "20190322",
+      "close": 176.09,
+      "bond_value": null
+    }
+  ]
+}

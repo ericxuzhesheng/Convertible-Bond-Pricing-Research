@@ -1,0 +1,120 @@
+{
+  "api": "cb_daily",
+  "params": {
+    "ts_code": "124024.SZ",
+    "start_date": "20250905",
+    "end_date": "20250930"
+  },
+  "fields": "ts_code,trade_date,close,bond_value",
+  "fetched_at": "2026-10-29T13:47:32.433016+08:00",
+  "records": [
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250930",
+      "close": 144.4,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250929",
+      "close": 144.4,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250926",
+      "close": 144.4,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250925",
+      "close": 144.4,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250924",
+      "close": 144.4,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250923",
+      "close": 144.4,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250922",
+      "close": 144.4,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250919",
+      "close": 145.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250918",
+      "close": 145.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250917",
+      "close": 145.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250916",
+      "close": 145.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250915",
+      "close": 145.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250912",
+      "close": 145.0,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250911",
+      "close": 114.615,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250910",
+      "close": 114.615,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250909",
+      "close": 114.615,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250908",
+      "close": 114.615,
+      "bond_value": null
+    },
+    {
+      "ts_code": "124024.SZ",
+      "trade_date": "20250905",
+      "close": 114.615,
+      "bond_value": null
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "api": "suspend_d",
+  "params": {
+    "ts_code": "603306.SH",
+    "start_date": "20250530",
+    "end_date": "20250530",
+    "suspend_type": "S"
+  },
+  "fetched_at": "2026-10-29T13:56:15.571959+08:00",
+  "records": [
+    {
+      "ts_code": "603306.SH",
+      "trade_date": "20250530",
+      "suspend_timing": null,
+      "suspend_type": "S"
+    }
+  ]
+}
