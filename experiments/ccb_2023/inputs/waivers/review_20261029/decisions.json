@@ -1,0 +1,62 @@
+{
+  "1208275596": {
+    "status": "explicit", "end": "2020-11-03", "outcome": "resolved_coupon_year",
+    "required_text": ["决定本次及本计息年度不行使"], "supporting_ids": ["1207047863"],
+    "reason": "承诺明确覆盖本计息年度；2019募集摘要约定2019-11-04起息、每年付息一次，故当期为2019-11-04至2020-11-03。2020付息公告仅作事后交叉核对，不作为8月估值输入。"
+  },
+  "1208941420": {
+    "status": "explicit", "end": "2021-11-03", "outcome": "resolved_coupon_year",
+    "required_text": ["决定本次及本计息年度不行使"], "supporting_ids": ["1207047863"],
+    "reason": "承诺明确覆盖本计息年度；按2019募集摘要的11月4日起息和年度付息约定，当期为2020-11-04至2021-11-03。"
+  },
+  "1210602132": {
+    "status": "explicit", "end": "2021-08-23", "outcome": "resolved_explicit_endpoint",
+    "required_text": ["决定2021年8月24日前"],
+    "reason": "原文直接给出2021-08-24日前，不包含8月24日；历史引用的7月26日前不再适用。"
+  },
+  "1212073657": {
+    "status": "explicit", "end": "2022-12-21", "outcome": "resolved_explicit_endpoint",
+    "required_text": ["存续期结束前（即2022年12月22日前）"],
+    "reason": "原文承诺至2022-12-22日前，按明确的前字处理为12月21日收盘仍受保护。"
+  },
+  "1212262768": {
+    "status": "explicit", "end": "2023-10-31", "outcome": "resolved_explicit_endpoint",
+    "required_text": ["存续期结束前（2023年11月1日）"],
+    "reason": "原文承诺至存续期结束前（2023-11-01）；按前字的排除边界处理，未把11月1日额外纳入承诺。"
+  },
+  "1224526193": {
+    "status": "explicit", "end": "2025-12-23", "outcome": "resolved_contractual_maturity",
+    "required_text": ["至“东风转债”到期日止"], "supporting_ids": ["1207180040"],
+    "reason": "公告明确承诺直到到期日；2019发行公告直接约定2019-12-24至2025-12-23。未使用2025年11月才公布的兑付公告回填8月信号。"
+  },
+  "1215000985": {
+    "status": "explicit", "end": "2022-11-12", "outcome": "resolved_remaining_life_commitment",
+    "required_text": ["即将于2022年11月12日到期", "决定如后续公司触发“济川转债”的赎回条款均不行使"],
+    "reason": "原文董事会已决定后续触发均不行使赎回权，并明确即将于2022-11-12到期；不是仅预计无法赎回，覆盖剩余存续期。"
+  },
+  "1209358147": {
+    "status": "informational_notice", "outcome": "share_trading_supplement",
+    "required_text": ["现就不提前赎回相关事项补充公告如下", "六个月内均未交易"],
+    "reason": "完整补充内容仅为股东及高管历史交易情况，不构成新的承诺或终止原决定。"
+  },
+  "1209952403": {
+    "status": "informational_notice", "outcome": "share_trading_supplement",
+    "required_text": ["现对上述公告补充说明如下", "不存在交易本公司可转债的情形"],
+    "reason": "完整补充内容仅为赎回条件满足前六个月的相关主体交易情况。"
+  },
+  "1210418368": {
+    "status": "informational_notice", "outcome": "prior_decision_risk_reminder",
+    "required_text": ["关于前次不提前赎回", "补充风险提示"],
+    "reason": "只重述7月1日已披露决定并提示再次触发后可能赎回，没有新的董事会不赎回决定。"
+  },
+  "1209207056": {
+    "status": "superseded_notice", "superseded_by": "1209210378", "outcome": "resolved_replacement_link",
+    "required_text": ["公告编号:2021-009号", "2021年1月29日至2022年1月28日"],
+    "reason": "同日同编号更新版保留相同不赎回区间，并将董事会日期2020年1月28日更正为2021年1月28日。仅在更新版可用后忽略旧稿冲突；未推断撤销操作的历史时刻。"
+  },
+  "1210612656": {
+    "status": "superseded_notice", "superseded_by": "1210659122", "outcome": "resolved_replacement_link",
+    "required_text": ["2021年7月29日—2021年10月29日"], "related_ids": ["1210659121"],
+    "reason": "2021-08-04更正公告说明只修正触发统计区间、其他事项不变；同日更新版明确保留7月29日至10月29日。更新版8月5日可用，8月2日至4日仍留缺失，绝不倒填。"
+  }
+}

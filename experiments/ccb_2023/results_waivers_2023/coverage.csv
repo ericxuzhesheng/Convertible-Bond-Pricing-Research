@@ -1,6 +1,6 @@
 waiver_state,observations,bonds
-explicit_active,11748,274
-explicit_commitment_expired,13909,267
+explicit_active,12014,277
+explicit_commitment_expired,13927,267
 searched_no_observed_commitment,122775,975
-unresolved_latest_notice,3521,55
+unresolved_latest_notice,3237,49
 unresolved_same_day_conflict,50,2

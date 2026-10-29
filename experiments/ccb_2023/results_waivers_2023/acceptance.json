@@ -1,16 +1,16 @@
 {
   "passed": true,
   "unique_observations": 152003,
-  "common_sample": 148420,
-  "asof_provenance_checks": 11748,
-  "unchanged_prices_verified": 139280,
-  "unresolved_excluded": 3571,
+  "common_sample": 148704,
+  "asof_provenance_checks": 12014,
+  "unchanged_prices_verified": 139328,
+  "unresolved_excluded": 3287,
   "production_artifact_guards": {
     "BS": "2026-10-23",
     "ZL": "2026-10-23",
     "LSM": "2026-10-23"
   },
-  "grid_cases": 108,
-  "max_grid_difference": 0.0086110178291107,
-  "tests": "26 base-model tests and 14 waiver tests passed; one base fixture rerun with workspace temp directory"
+  "grid_cases": 112,
+  "max_grid_difference": 0.0067551691009271,
+  "tests": "26 unchanged base-model tests previously passed; 18 current waiver tests passed"
 }

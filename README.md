@@ -33,13 +33,19 @@
 
 ## 定价方法
 
-文献中的 CCB 在给定不赎回保护期下进行解析定价；CCBA 则按发行人行为概率，对不同保护期情景的 CCB 估值加权。两者仅作方法参考，未纳入本项目现有定价结果。
+文献中的 CCB 在给定不赎回保护期下进行解析定价。本项目已完成独立的[CCB 2023实验](experiments/ccb_2023/README.md)，使用实际利率曲线并纳入可核实的不赎回承诺；CCBA的发行人行为概率加权尚未实施。
 
 三个模型独立读取真实观测输入，统一使用合同票息、到期支付、转股日期和条款终止规则。现金支付考虑信用折现，转股支付使用国债利率代理。缺失或不一致输入保留排除原因。
 
 - **BS** 使用真实转股到期日和剩余合同现金价值计算欧式转股基准，不显式处理发行人赎回与持有人回售。
 - **ZL** 模拟真实条款计数、转股边界与存续现金流。触发后赎回及 30 个模拟交易观察日的通知期是明确的政策假设；不编造未来下修或未核实的不赎回承诺。
 - **LSM** 通过继续价值回归加入自愿提前转股与回售选择，使用 8,192 条训练路径和另 8,192 条独立估值路径、对偶抽样及 192 个基础行权区间，并加入合同边界。不读取 ZL 价格，也不使用 ZL 估值下限。
+
+### 独立CCB 2023实验（2026-10-29）
+
+覆盖2019-01-04至2026-10-23。最新公告复核后，共有700份明确期限公告；原194份待核文件中，7份补出期限、3份确认为信息性文件、2份关联更新版，182份仍不猜填。恢复284个券日，CCB与已有BS/ZL/LSM的共同样本增至**148,704个券日、974只债券、400周**。
+
+该共同样本上，加入明确承诺的CCB **MAE为11.3459元、RMSE为30.8193元**。18项公告测试通过，112个网格加密样本最大差异0.0068元，低于0.05元数值容差。原共同样本的价格保持不变，本次改善的是覆盖范围。见[同样本比较报告](experiments/ccb_2023/results_waivers_2023/REPORT.md)和[逐项公告复核](experiments/ccb_2023/results_waivers_2023/REVIEW_20261029.md)。CCB保留在独立研究目录，未接入生产策略；下方三模型生产指标仍使用各自原定样本。
 
 <!-- pricing-metrics-zh:start -->
 ## 定价结果
@@ -179,13 +185,19 @@ This project compares Black-Scholes (BS), clause-stopping Monte Carlo (ZL), and 
 
 ## Pricing methods
 
-In the referenced research, CCB provides analytical pricing for a specified call-protection period; CCBA weights CCB values across protection-period scenarios using issuer-behaviour probabilities. Both remain methodological references and are not included in the current pricing results.
+In the referenced research, CCB provides analytical pricing for a specified call-protection period. The independent [CCB 2023 experiment](experiments/ccb_2023/README.md) now uses observed yield curves and verified non-call commitments. CCBA's issuer-behaviour probability weighting has not been implemented.
 
 All models read observed inputs independently. Contractual coupons, maturity payments, conversion dates and termination rules use the same conventions. Cash payments receive credit discounting; share conversion uses the government-rate proxy. Missing or inconsistent inputs remain excluded with recorded reasons.
 
 - **BS** values European conversion with actual conversion expiry and contractual cash value. Issuer call and holder put options are outside this baseline.
 - **ZL** simulates observed clause counters, conversion boundaries and cash flows. Calling after a qualifying trigger with a 30-observation notice period is a disclosed policy assumption. Future discretionary resets and unverified waivers are not invented.
 - **LSM** adds voluntary early conversion and optional puts using continuation regression. It uses 8,192 training paths and another 8,192 independent valuation paths, antithetic sampling and 192 base exercise intervals with contractual boundaries. It does not read ZL prices or impose a ZL floor.
+
+### Independent CCB 2023 experiment (2026-10-29)
+
+The experiment covers 2019-01-04 through 2026-10-23 and now includes 700 notices with explicit protection periods. Reviewing the previous 194-item queue resolved seven periods, classified three informational notices and linked two superseded drafts to their replacements; 182 periods remain unfilled. This restores 284 bond-date observations and expands the common sample with saved BS/ZL/LSM prices to **148,704 observations, 974 bonds and 400 weeks**.
+
+On that common sample, CCB with explicit commitments has **MAE 11.3459 yuan and RMSE 30.8193 yuan**. All 18 announcement tests pass; 112 refined-grid checks have a maximum difference of 0.0068 yuan, below the 0.05-yuan numerical tolerance. Prices on the previous common sample are unchanged: this review increases coverage. See the [comparison report](experiments/ccb_2023/results_waivers_2023/REPORT.md) and [notice audit](experiments/ccb_2023/results_waivers_2023/REVIEW_20261029.md). CCB remains independent of production strategies; the three-model production metrics below retain their original sample.
 
 <!-- pricing-metrics-en:start -->
 ## Pricing results

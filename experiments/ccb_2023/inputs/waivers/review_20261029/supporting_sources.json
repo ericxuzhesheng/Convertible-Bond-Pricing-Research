@@ -1,0 +1,52 @@
+[
+  {
+    "announcement_id": "1207047863",
+    "status": "ok",
+    "characters": 176835,
+    "pdf": "inputs\\waivers\\pdf\\1207047863.pdf",
+    "text": "inputs\\waivers\\text\\1207047863.txt",
+    "title": "通光转债募集说明书摘要",
+    "source": "https://static.cninfo.com.cn/finalpage/2019-10-31/1207047863.PDF",
+    "publication_date": "2019-10-31"
+  },
+  {
+    "announcement_id": "1208636184",
+    "status": "ok",
+    "characters": 3540,
+    "pdf": "inputs\\waivers\\pdf\\1208636184.pdf",
+    "text": "inputs\\waivers\\text\\1208636184.txt",
+    "title": "通光转债2020年付息公告",
+    "source": "https://static.cninfo.com.cn/finalpage/2020-10-28/1208636184.PDF",
+    "publication_date": "2020-10-28"
+  },
+  {
+    "announcement_id": "1207180040",
+    "status": "ok",
+    "characters": 28538,
+    "pdf": "inputs\\waivers\\pdf\\1207180040.pdf",
+    "text": "inputs\\waivers\\text\\1207180040.txt",
+    "title": "东风转债发行公告",
+    "source": "https://static.cninfo.com.cn/finalpage/2019-12-20/1207180040.PDF",
+    "publication_date": "2019-12-20"
+  },
+  {
+    "announcement_id": "1209625701",
+    "status": "ok",
+    "characters": 589,
+    "pdf": "inputs\\waivers\\pdf\\1209625701.pdf",
+    "text": "inputs\\waivers\\text\\1209625701.txt",
+    "source": "https://static.cninfo.com.cn/finalpage/2021-04-02/1209625701.PDF",
+    "publication_date": "2021-04-02",
+    "title": "小康董事会决议"
+  },
+  {
+    "announcement_id": "1213142947",
+    "status": "ok",
+    "characters": 560,
+    "pdf": "inputs\\waivers\\pdf\\1213142947.pdf",
+    "text": "inputs\\waivers\\text\\1213142947.txt",
+    "source": "https://static.cninfo.com.cn/finalpage/2022-04-27/1213142947.PDF",
+    "publication_date": "2022-04-27",
+    "title": "小康董事会决议"
+  }
+]

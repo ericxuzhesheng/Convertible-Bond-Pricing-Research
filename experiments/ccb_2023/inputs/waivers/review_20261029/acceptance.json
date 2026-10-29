@@ -1,0 +1,30 @@
+{
+  "reviewed": 194,
+  "explicit_added": 7,
+  "informational_resolved": 3,
+  "replacement_links": 2,
+  "remaining": 182,
+  "recovered_observations": 284,
+  "recovered_bonds": 7,
+  "previous_unresolved": 3571,
+  "current_unresolved": 3287,
+  "previous_common_sample": 148420,
+  "current_common_sample": 148704,
+  "existing_sample_price_changes": 0,
+  "max_existing_sample_price_change": 5.684341886080802e-14,
+  "fixed_sample_metrics": [
+    {
+      "version": "before",
+      "n": 148420,
+      "MAE": 11.32495446402599,
+      "RMSE": 30.81832606505652
+    },
+    {
+      "version": "after",
+      "n": 148420,
+      "MAE": 11.324954464025987,
+      "RMSE": 30.81832606505652
+    }
+  ],
+  "passed": true
+}

@@ -59,7 +59,7 @@ def main():
         asof_provenance_checks=len(evidence),unchanged_prices_verified=int(unchanged.sum()),
         unresolved_excluded=int(unresolved.sum()),production_artifact_guards=guards,
         grid_cases=len(grid),max_grid_difference=float(grid.difference.abs().max()),
-        tests='26 base-model tests and 14 waiver tests passed; one base fixture rerun with workspace temp directory')
+        tests='26 unchanged base-model tests previously passed; 18 current waiver tests passed')
     (OUT/'acceptance.json').write_text(json.dumps(acceptance,ensure_ascii=False,indent=2),encoding='utf-8')
     # Report the treatment effect on identical affected observations separately.
     affected=c.loc[c.protection.gt(c.basic_protection+1e-12)]
@@ -113,13 +113,14 @@ CCB_basic是原基础CCB在本次样本上的重新统计，CCB是加入明确�
 ## 公告覆盖与缺口
 
 巨潮资讯检索范围为2013年至2026-10-23，查询词为“不赎回”和“不提前赎回”；保留原始分页响应、PDF、文字、债券映射及逐项提取依据。
-下载并处理 {len(terms)} 份与基础样本发行人相关的公告，其中 {status.get('explicit',0)} 份明确期限、{status.get('informational_notice',0)} 份信息性文件、{status.get('no_explicit_future_period',0)} 份尚不能确定未来期限、{status.get('correction_review_required',0)} 份取消/更正状态待核。
-后两类涉及的最新公告未解决时，增强版留空并从同样本比较排除，共 {int(unresolved.sum()):,} 个观测；详见[待核队列](../inputs/waivers/review_queue.csv)。
+下载并处理 {len(terms)} 份与基础样本发行人相关的公告，其中 {status.get('explicit',0)} 份明确期限、{status.get('informational_notice',0)} 份信息性文件、{status.get('no_explicit_future_period',0)} 份尚不能确定未来期限、{status.get('correction_review_required',0)} 份取消/更正状态待核，另有 {status.get('superseded_notice',0)} 份旧稿已关联更新版。
+最新公告仍未解决时，增强版留空并从同样本比较排除，共 {int(unresolved.sum()):,} 个观测；详见[待核队列](../inputs/waivers/review_queue.csv)。
 保护期实际延长 {int(changed.sum()):,} 个观测、{f.loc[changed,'code'].nunique()} 只债券。
 
 **这不是完整历史承诺数据库。** 关键词覆盖、历史网页变更、未写明期限和公告撤销时点仍有限制。
 “未检索到承诺”沿用基础保护期，仅表示当前检索中没有可用记录，不证明发行人没有作出承诺。
-取消标记缺少历史生效时刻的文件保留待核，不能将当前撤销状态当作历史当日已知信息。
+旧稿仅在其更新版已经可用时退出冲突判断，不能将当前撤销状态当作历史当日已知信息。
+本轮194份的逐项复核见[审计明细](../inputs/waivers/review_20261029/audit.csv)及[复核报告](REVIEW_20261029.md)。
 
 可追溯公告示例：
 
@@ -127,7 +128,7 @@ CCB_basic是原基础CCB在本次样本上的重新统计，CCB是加入明确�
 
 ## 验证与文件
 
-26项基础模型测试及14项公告/时点测试通过。{len(grid)}个受影响观测加密网格，最大差异 {grid.difference.abs().max():.6f} 元，低于用户选择的0.05元数值容差。
+基础模型未变，沿用此前26项通过记录；本轮18项公告/时点测试通过。{len(grid)}个受影响观测加密网格，最大差异 {grid.difference.abs().max():.6f} 元，低于用户选择的0.05元数值容差。
 逐项验证了公告可用日、债券映射、承诺期限、相同样本交集、未调整价格保持一致，以及MAE/RMSE独立复算。
 生产BS/ZL/LSM通过现有artifact完整性校验，本次未重算或改写生产定价。
 

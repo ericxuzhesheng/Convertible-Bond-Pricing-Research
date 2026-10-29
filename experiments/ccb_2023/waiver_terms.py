@@ -177,16 +177,58 @@ def build_terms():
                           evidence='Source reviewed: wording/trading supplement or trigger forecast only; no new explicit non-call period.')
         records.append(result)
     terms=pd.DataFrame(records)
+    terms=apply_reviewed_decisions(terms)
     terms.to_csv(ROOT/'terms.csv',index=False)
-    terms.loc[~terms.status.isin(['explicit','informational_notice'])].to_csv(ROOT/'review_queue.csv',index=False)
+    terms.loc[~terms.status.isin(['explicit','informational_notice','superseded_notice'])].to_csv(ROOT/'review_queue.csv',index=False)
     print(terms.status.value_counts().to_string(),flush=True)
     return terms
+
+
+def apply_reviewed_decisions(terms):
+    """Apply narrowly reviewed source decisions, with as-of source guards."""
+    folder=ROOT/'review_20261029'
+    path=folder/'decisions.json'
+    if not path.exists():return terms
+    decisions=json.loads(path.read_text(encoding='utf-8'))
+    supporting={r['announcement_id']:r for r in json.loads((folder/'supporting_sources.json').read_text(encoding='utf-8'))}
+    result=terms.copy()
+    for ident,review in decisions.items():
+        matches=result.index[result.announcement_id.eq(ident)]
+        if len(matches)!=1:raise ValueError('reviewed announcement missing or duplicated: '+ident)
+        idx=matches[0];row=result.loc[idx]
+        text=normalize((ROOT/'text'/f'{ident}.txt').read_text(encoding='utf-8'))
+        if not all(quote in text for quote in review['required_text']):
+            raise ValueError('review evidence no longer matches original: '+ident)
+        links=[]
+        for source_id in review.get('supporting_ids',[]):
+            source=supporting[source_id]
+            if source['publication_date']>row.announcement_at[:10]:
+                raise ValueError('future supporting source cannot backfill commitment')
+            if not (HERE/source['text']).is_file():raise ValueError('supporting source unavailable')
+            links.append(source['source'])
+        replacement=review.get('superseded_by','')
+        if replacement:
+            linked=result.loc[result.announcement_id.eq(replacement)]
+            if len(linked)!=1 or linked.iloc[0].code!=row.code or linked.iloc[0].status!='explicit':
+                raise ValueError('invalid replacement linkage')
+        result.at[idx,'status']=review['status']
+        result.at[idx,'start']=row.announcement_at[:10] if review['status']=='explicit' else ''
+        result.at[idx,'end']=review.get('end','')
+        result.at[idx,'superseded_by']=replacement
+        result.at[idx,'rule']='source_review_20261029_'+review['outcome']
+        result.at[idx,'evidence']='；'.join(review['required_text'])+'；'+review['reason']
+        result.at[idx,'supporting_sources']=';'.join(links)
+    return result
 
 
 def protection_at(events,date,base_protection):
     """Return explicit extension, provenance, and unresolved latest-decision flag."""
     day=pd.Timestamp(date)
     observed=events.loc[events.available_date<=day]
+    if 'superseded_by' in observed:
+        # A replacement only neutralizes the old draft after it becomes public.
+        replaced=observed.status.eq('superseded_notice') & observed.superseded_by.isin(observed.announcement_id)
+        observed=observed.loc[~replaced]
     observed=observed.loc[~observed.status.eq('informational_notice')]
     if observed.empty:return base_protection,'searched_no_observed_commitment',''
     latest_date=observed.available_date.max()

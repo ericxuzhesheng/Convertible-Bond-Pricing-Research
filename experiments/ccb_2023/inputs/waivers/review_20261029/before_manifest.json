@@ -1,0 +1,31 @@
+{
+  "method": "CCB-2023-explicit-waivers-observed-curve-v1",
+  "protection": "max(actual conversion start, 1/12 year, remaining explicitly dated non-call commitment)",
+  "availability": "date-only and after-close notices available next trading session; no backward projection",
+  "scope": "2023 CCB only; no CCBA, no default quarter, no inferred silent non-call",
+  "source": "CNInfo issuer notices; cached original PDFs and extracted text",
+  "search": "2013 through 2026-10-23; CNInfo queries 不赎回 and 不提前赎回; not certified exhaustive",
+  "prices": 148432,
+  "common_sample": 148420,
+  "common_bonds": 974,
+  "changed_protection": 9152,
+  "changed_bonds": 270,
+  "unresolved_observations": 3571,
+  "term_status_counts": {
+    "explicit": 693,
+    "no_explicit_future_period": 192,
+    "informational_notice": 27,
+    "correction_review_required": 2
+  },
+  "numerical_tolerance_yuan": 0.05,
+  "grid_cases": 108,
+  "max_grid_difference": 0.008611017829110779,
+  "basic_manifest": "results/manifest.json",
+  "elapsed_seconds": 70.87185809994116,
+  "limitations": [
+    "keyword search and PDF extraction do not establish complete historical absence",
+    "unresolved latest notices excluded from enhanced same-sample comparison",
+    "actual curves extend the original fixed-rate report, as requested",
+    "BS/ZL/LSM are existing outputs; differing exercise rules remain"
+  ]
+}

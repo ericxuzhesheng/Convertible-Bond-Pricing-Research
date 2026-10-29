@@ -100,3 +100,37 @@ def test_later_shorter_corrected_period_supersedes_old_end():
               dict(announcement_id='corrected',available_date='2023-11-21',start='2023-11-17',end='2024-02-16',status='explicit')])
     assert protection_at(f,'2023-11-24',1/12)[0]==85/365
     assert protection_at(f,'2024-03-01',1/12)[0]==1/12
+
+
+def test_replacement_cannot_remove_uncertainty_before_publication():
+    f=events([dict(announcement_id='old',available_date='2021-08-02',start=None,end=None,status='superseded_notice',superseded_by='new'),
+              dict(announcement_id='new',available_date='2021-08-05',start='2021-07-29',end='2021-10-29',status='explicit',superseded_by='')])
+    assert protection_at(f,'2021-08-03',1/12)[1]=='unresolved_latest_notice'
+    assert protection_at(f,'2021-08-06',1/12)[1:] == ('explicit_active','new')
+
+
+def test_same_day_replacement_resolves_cancelled_draft_conflict():
+    f=events([dict(announcement_id='old',available_date='2021-02-01',start=None,end=None,status='superseded_notice',superseded_by='new'),
+              dict(announcement_id='new',available_date='2021-02-01',start='2021-01-29',end='2022-01-28',status='explicit',superseded_by='')])
+    assert protection_at(f,'2021-02-05',1/12)[1:] == ('explicit_active','new')
+
+
+def test_reviewed_sources_and_unchanged_unknowns():
+    from waiver_terms import ROOT,apply_reviewed_decisions
+    original=pd.read_csv(ROOT/'review_20261029/terms_before.csv',dtype=str)
+    revised=apply_reviewed_decisions(original).set_index('announcement_id')
+    assert revised.at['1208275596','end']=='2020-11-03'
+    assert revised.at['1208941420','end']=='2021-11-03'
+    assert revised.at['1224526193','end']=='2025-12-23'
+    assert revised.at['1210602132','end']=='2021-08-23'
+    for ident in ['1209625702','1213142942']:
+        assert revised.at[ident,'status']=='no_explicit_future_period'
+        assert pd.isna(revised.at[ident,'end'])
+
+
+def test_review_rejects_replacement_for_different_bond():
+    from waiver_terms import ROOT,apply_reviewed_decisions
+    original=pd.read_csv(ROOT/'review_20261029/terms_before.csv',dtype=str)
+    original.loc[original.announcement_id.eq('1209210378'),'code']='123027.SZ'
+    with pytest.raises(ValueError,match='replacement linkage'):
+        apply_reviewed_decisions(original)

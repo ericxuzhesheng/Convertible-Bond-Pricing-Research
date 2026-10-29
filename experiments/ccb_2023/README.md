@@ -3,6 +3,11 @@
 结果见 [基础报告](results/REPORT.md) 和 [2023版明确不赎回承诺补充](results_waivers_2023/REPORT.md)。独立研究目录；不会修改已有
 BS/ZL/LSM 定价、manifest、策略或冻结账本。覆盖2019-01-04至2026-10-23。
 
+最新状态（2026-10-29）：明确期限公告700份，剩余182份不填期限；2份取消旧稿已关联更新版并按可用日处理。
+本轮恢复284个券日，共同样本148,704个，补充承诺CCB的MAE为11.3459元、RMSE为30.8193元。
+18项公告测试通过，112个网格加密样本的最大差异0.0068元。
+`results/`是仍用于验证的基础对照，`review_20261029/*before*`是可复现复核影响所需的历史证据，均须保留。
+
 ## 经济设定
 
 按国盛证券2023年3月2日报告第5—9、30—31页的基础 CCB 假设：保护期为
@@ -63,6 +68,16 @@ python -X utf8 experiments/ccb_2023/waiver_terms.py
 python -X utf8 experiments/ccb_2023/run_waivers.py
 python -X utf8 experiments/ccb_2023/verify_waivers.py
 python -X utf8 -m pytest -q tests/test_ccb_waivers_2023.py
+```
+
+2026-10-29对原194份待核文件的专项复核见
+[复核报告](results_waivers_2023/REVIEW_20261029.md)。`inputs/waivers/review_20261029/`
+保存原队列、原结果、逐项决定及支持材料。`waiver_terms.py`会校验原文和支持材料的时点后应用已复核记录；
+被替代的旧稿只有在更新版可用后才退出冲突判断。更新后的审计及影响报告可用以下命令复现：
+
+```powershell
+python -X utf8 experiments/ccb_2023/review_waivers.py
+python -X utf8 experiments/ccb_2023/review_waivers.py --report
 ```
 
 巨潮检索保留分页响应、原公告PDF和提取文字；期限表记录逐条来源、可用日期、

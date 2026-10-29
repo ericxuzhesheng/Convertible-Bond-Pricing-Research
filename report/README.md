@@ -23,29 +23,29 @@ English titles below are descriptive translations; the original Chinese PDF cont
 - Guosheng Securities (2024-02-08), [*Redemption Probability Adjusted Pricing Model for Convertible Bonds*](Guosheng_Securities_Convertible_Bond_Redemption_Probability_Adjusted_Pricing_Model_20240208.pdf). CCBA construction and announcement-based calibration, pp. 7-19.
 - Zheshang Securities (2025-09-18), [*Convertible Bond Quantitative Investing: Option Pricing, Factor Enhancement and Clause Games*](Zheshang_Securities_Convertible_Bond_Quantitative_Investing_Option_Pricing_Factor_Enhancement_and_Clause_Games_20250918.pdf). LSM applications, factor strategies and clause-exercise prediction.
 
-## Next model experiment: CCB before CCBA
+## Independent CCB 2023 results
 
-Start with an independent CCB analytical benchmark. In the 2023 Guosheng report,
-CCB uses a specified call-protection period followed by immediate redemption at
-the price barrier; it omits puts and conversion-price resets. This differs from
-the rolling trigger counts and notice period in the current ZL/LSM engines.
-Validate the analytical result against a simulation with the same assumptions,
-then test protection-period sensitivity. Historical comparisons require verified
-as-of waiver dates; a declared protection-period scenario is not an observed
-issuer decision. Do not calibrate protection periods to the same convertible
-market prices later used to claim pricing accuracy.
+The [CCB 2023 experiment](../experiments/ccb_2023/README.md) has completed pricing
+for 400 observed weeks from 2019-01-04 through 2026-10-23. It retains the 2023
+protection-period and continuous-barrier framework, omitting puts and future
+conversion-price resets. Observed yield curves and contractual inputs extend
+the report's fixed-parameter specification at the user's request.
 
-A fixed-parameter CCB numerical experiment can run alongside the pricing
-migration: keep its code and outputs separate, read only stable input snapshots,
-and do not write production caches, manifests or strategy results. Complete
-historical announcement coverage is not needed for this numerical experiment.
+- [Current same-sample comparison](../experiments/ccb_2023/results_waivers_2023/REPORT.md):
+  148,704 common bond-date observations across CCB, BS, ZL and LSM. CCB MAE is
+  11.3459 yuan and RMSE is 30.8193 yuan.
+- [2026-10-29 announcement review](../experiments/ccb_2023/results_waivers_2023/REVIEW_20261029.md):
+  seven additional explicit periods, three informational notices and two linked
+  replacement versions; 182 notices still lack a usable period. Coverage recovers
+  284 observations, with prices on the previous common sample unchanged.
+- [Basic CCB comparison](../experiments/ccb_2023/results/REPORT.md): retained as
+  the control scenario, together with the original audit snapshots.
 
-CCBA is the subsequent issuer-behaviour experiment. The 2024 Guosheng report
-defines it as a probability-weighted sum of CCB prices over protection periods.
-Its rolling Logistic calibration requires historical call/non-call announcements,
-their availability dates and waiver end dates. The current event-cache metadata
-explicitly leaves trigger/waiver history incomplete, and some announcement
-records lack `available_at`. Verify these inputs and fit only on information
-available at each valuation date before making historical CCBA claims. Neither
-model has been implemented or backtested by this documentation update; the
-existing BS/ZL/LSM baseline and research-migration guards remain in force.
+The current dataset contains 700 notices with explicit periods and is not certified
+exhaustive. Unknown periods remain missing; replacement notices are used only
+after their availability date. No default quarter or inference from issuer
+silence is applied. CCB outputs remain separate from production BS/ZL/LSM
+artifacts and frozen strategy ledgers.
+
+CCBA probability weighting and issuer-behaviour calibration remain outside the
+current scope. The 2024 research paper above is retained as a reference.
