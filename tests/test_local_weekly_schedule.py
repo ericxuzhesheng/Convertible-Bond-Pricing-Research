@@ -15,7 +15,7 @@ def test_local_task_schedule_and_runtime():
     launcher = (ROOT/'backtest/run_scheduled_weekly.ps1').read_text(encoding='utf-8')
     assert "$env:PYTHONNOUSERSITE = '1'" in launcher
     assert 'logs\\plot_runtime' in launcher
-    assert '-DaysOfWeek Friday -At "17:15"' in setup
+    assert '-DaysOfWeek Friday -At "16:30"' in setup
     assert '-WindowStyle Hidden' in setup
     assert '-StartWhenAvailable' in setup
     assert '-MultipleInstances IgnoreNew' in setup

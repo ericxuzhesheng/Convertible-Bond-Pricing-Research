@@ -155,7 +155,7 @@ python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --pr
 
 该研究入口读取已有定价、刷新策略输入并重算研究结果。常规周更新在本地运行 `backtest/weekly_update.bat`，包括前置数据和定价更新、周报生成及推送 GitHub。GitHub Actions 已取消定时触发，仅保留手动备用入口。
 
-通过 `backtest/setup_weekly_task.ps1` 注册 Windows 本地任务：每周五北京时间 17:15，使用已验证的 Python 环境。电脑需开机、联网且用户已登录；错过时间后在条件满足时补跑。校验失败停止发布，自动提交仅包含周更新产物，保留无关的本地修改。
+通过 `backtest/setup_weekly_task.ps1` 注册 Windows 本地任务：每周五北京时间 16:30，使用已验证的 Python 环境。电脑需开机、联网且用户已登录；错过时间后在条件满足时补跑。校验失败停止发布，自动提交仅包含周更新产物，保留无关的本地修改。
 
 ## 局限性
 
@@ -307,7 +307,7 @@ python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --pr
 
 This research entrypoint uses saved pricing outputs, refreshes strategy inputs and recalculates research. Routine weekly updates run locally with `backtest/weekly_update.bat`, including the preceding data and pricing stages, weekly reports and GitHub publication. GitHub Actions has no scheduled trigger; its manual entrypoint is retained as an optional fallback.
 
-Register the local Windows task with `backtest/setup_weekly_task.ps1`: Fridays at 17:15 Beijing time, using a validated Python environment. The computer must be on, online and the user logged in; missed starts are retried when available. Validation failures stop publication. Only generated weekly outputs are committed, preserving unrelated local changes.
+Register the local Windows task with `backtest/setup_weekly_task.ps1`: Fridays at 16:30 Beijing time, using a validated Python environment. The computer must be on, online and the user logged in; missed starts are retried when available. Validation failures stop publication. Only generated weekly outputs are committed, preserving unrelated local changes.
 
 ## Limitations
 

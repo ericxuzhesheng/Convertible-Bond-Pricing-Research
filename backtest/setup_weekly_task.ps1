@@ -28,12 +28,12 @@ if (-not (Test-Path $batchFile)) {
     exit 1
 }
 
-# ── 触发器：每周五 17:15（本机时区应为北京时间） ─────────────────────────────
+# ── 触发器：每周五 16:30（本机时区应为北京时间） ─────────────────────────────
 # 若当周五为法定节假日，任务仍会触发；脚本本身会在无新数据时跳过 git 提交。
-if ((Get-TimeZone).Id -ne 'China Standard Time') { throw 'Set the intended local timezone before registering the 17:15 task.' }
+if ((Get-TimeZone).Id -ne 'China Standard Time') { throw 'Set the intended local timezone before registering the 16:30 task.' }
 & $launcher -PythonExe $PythonExe -CheckOnly
 if ($LASTEXITCODE -ne 0) { throw 'Weekly runtime preflight failed.' }
-$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At "17:15"
+$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At "16:30"
 
 # ── 操作：隐藏 PowerShell 窗口，使用已验证环境运行 batch ──────────────────────
 $action = New-ScheduledTaskAction `
@@ -63,13 +63,13 @@ Register-ScheduledTask `
     -Action $action `
     -Settings $settings `
     -Principal $principal `
-    -Description "每周五17:15本地更新行情、定价、策略、周报和README；验证通过才提交推送GitHub。" `
+    -Description "每周五16:30本地更新行情、定价、策略、周报和README；验证通过才提交推送GitHub。" `
     -Force | Out-Null
 
 Write-Host ""
 Write-Host "任务注册成功！" -ForegroundColor Green
 Write-Host "  任务名称  : $taskName"
-Write-Host "  触发时间  : 每周五 17:15"
+Write-Host "  触发时间  : 每周五 16:30"
 Write-Host "  执行脚本  : $batchFile"
 Write-Host "  日志目录  : $logDir"
 Write-Host ""
