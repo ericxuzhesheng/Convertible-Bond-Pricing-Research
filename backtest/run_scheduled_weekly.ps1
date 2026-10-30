@@ -5,7 +5,9 @@ param(
 $ErrorActionPreference = 'Stop'
 if (-not (Test-Path -LiteralPath $PythonExe -PathType Leaf)) { throw 'Configured Python is missing.' }
 $env:CB_PYTHON = $PythonExe
-$env:PYTHONPATH = "$PSScriptRoot\logs\research_runtime;$PSScriptRoot\logs\data_runtime;$PSScriptRoot\logs\pricing_runtime;$PSScriptRoot"
+$env:PYTHONPATH = "$PSScriptRoot\logs\research_runtime;$PSScriptRoot\logs\data_runtime;$PSScriptRoot\logs\pricing_runtime;$PSScriptRoot\logs\plot_runtime;$PSScriptRoot"
+# Scheduler and interactive preflight must see the same dependencies.
+$env:PYTHONNOUSERSITE = '1'
 $env:PYTHONIOENCODING = 'utf-8'
 $env:OPENBLAS_NUM_THREADS = '1'
 $env:OMP_NUM_THREADS = '1'

@@ -12,6 +12,9 @@ import publish_weekly_outputs as publisher
 def test_local_task_schedule_and_runtime():
     setup = (ROOT/'backtest/setup_weekly_task.ps1').read_text(encoding='utf-8-sig')
     batch = (ROOT/'backtest/weekly_update.bat').read_text(encoding='utf-8')
+    launcher = (ROOT/'backtest/run_scheduled_weekly.ps1').read_text(encoding='utf-8')
+    assert "$env:PYTHONNOUSERSITE = '1'" in launcher
+    assert 'logs\\plot_runtime' in launcher
     assert '-DaysOfWeek Friday -At "17:15"' in setup
     assert '-WindowStyle Hidden' in setup
     assert '-StartWhenAvailable' in setup
