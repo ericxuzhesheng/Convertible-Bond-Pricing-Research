@@ -3,10 +3,34 @@ import json
 import sys
 import numpy as np
 import pandas as pd
+import pytest
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'backtest'))
 import update_pricing_volatility as module
 from market_data_contracts import build_observed_volatility
+
+
+def test_transient_history_failure_retries_without_fabricating_values(monkeypatch):
+    calls=[]
+    expected=pd.DataFrame({'close':[100.]})
+    def bar(**kwargs):
+        calls.append(kwargs)
+        if len(calls)==1: raise OSError('provider unavailable')
+        return expected
+    monkeypatch.setattr(module.time,'sleep',lambda _:None)
+    assert module.fetch_adjusted_history(bar,ts_code='S') is expected
+    assert len(calls)==2
+
+
+def test_persistent_missing_history_fails_with_stock_code(monkeypatch):
+    calls=[]
+    def bar(**kwargs):
+        calls.append(kwargs)
+        return pd.DataFrame()
+    monkeypatch.setattr(module.time,'sleep',lambda _:None)
+    with pytest.raises(RuntimeError,match='underlying history unavailable: S'):
+        module.fetch_adjusted_history(bar,ts_code='S')
+    assert len(calls)==3
 
 
 def test_an_advanced_independent_model_protects_its_historical_missing_volatility(tmp_path):

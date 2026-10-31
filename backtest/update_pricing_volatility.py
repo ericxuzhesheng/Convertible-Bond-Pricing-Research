@@ -16,6 +16,20 @@ if hasattr(sys.stdout,"buffer") and sys.stdout.encoding.lower() not in ("utf-8",
 BASE=Path(__file__).resolve().parent
 
 
+def fetch_adjusted_history(bar, **kwargs):
+    for attempt in range(3):
+        try:
+            frame = bar(**kwargs)
+            if frame is None or frame.empty:
+                raise OSError('Empty adjusted history')
+            return frame
+        except OSError as exc:
+            if attempt == 2:
+                raise RuntimeError(f"Adjusted underlying history unavailable: {kwargs['ts_code']}") from exc
+            print(f"Retry adjusted history {kwargs['ts_code']}: {attempt+1}/2", flush=True)
+            time.sleep(5)
+
+
 def latest_verified_cutoff(base=BASE):
     paths=[Path(base)/f'{model}_Model_Manifest.json' for model in ('BS','ZL','LSM')]
     dates=[pd.Timestamp(json.loads(path.read_text(encoding='utf-8'))['input_cutoff']) for path in paths if path.exists()]
@@ -51,7 +65,7 @@ def update(*,base=BASE,after=None,pro=None,bar=None):
         pro=ts.pro_api(load_tushare_token(),timeout=60)
         bar=ts.pro_bar
     for count,(stock,bonds) in enumerate(stocks.groupby(stocks),1):
-        frame=bar(ts_code=stock,adj='qfq',api=pro,
+        frame=fetch_adjusted_history(bar,ts_code=stock,adj='qfq',api=pro,
             start_date=(dates.min()-pd.Timedelta(days=500)).strftime('%Y%m%d'),
             end_date=dates.max().strftime('%Y%m%d'))
         if frame is None or frame.empty:
