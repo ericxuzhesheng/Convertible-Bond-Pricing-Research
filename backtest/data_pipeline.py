@@ -913,7 +913,7 @@ def _normalize_yield_table(df: pd.DataFrame) -> pd.DataFrame:
 def fetch_yield_curve(start: str, end: str) -> pd.DataFrame:
     print("\n[Step 5] 拉取国债收益率曲线 ...")
     if os.path.exists(RF_CACHE):
-        existing = pd.read_csv(RF_CACHE, index_col=0, parse_dates=True)
+        existing = pd.read_csv(RF_CACHE, index_col=0, parse_dates=True, float_precision="round_trip")
         existing = _normalize_yield_table(existing)
         last_date = existing.index.max()
         end_ts    = pd.Timestamp(end)

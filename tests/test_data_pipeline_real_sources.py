@@ -761,6 +761,15 @@ def test_load_clause_terms_reuses_valid_retry_cache(
     assert result["ts_code"].tolist() == ["123001.SZ", "123002.SZ"]
 
 
+def test_cached_yield_curve_preserves_float_precision(monkeypatch, tmp_path):
+    cache = tmp_path / 'rf_yield_cache.csv'
+    cache.write_text(',1.0,3.0\n2026-10-23,0.012345678901234567,0.023456789012345678\n')
+    monkeypatch.setattr(data_pipeline, 'RF_CACHE', str(cache))
+    expected = pd.read_csv(cache, index_col=0, parse_dates=True, float_precision='round_trip')
+    actual = data_pipeline.fetch_yield_curve('20261023', '20261023')
+    np.testing.assert_array_equal(actual.to_numpy(), expected.to_numpy())
+
+
 def test_yield_curve_download_is_split_into_subannual_requests(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
