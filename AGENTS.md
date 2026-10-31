@@ -13,9 +13,10 @@ Absolute pricing research for Chinese A-share convertible bonds using three mode
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
 
-Current verified local model cutoff: **2026-10-23**; daily-input cutoff: **2026-10-23** (updated on 2026-10-27 using completed closing data). Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
-incremental; do not run a full-history rebuild unless a maintainer explicitly
-requests one.
+Current verified local model cutoff: **2026-10-30**; daily strategy-input cutoff: **2026-10-30**. Factors, IC, strategies, 2026 weekly reports, figures and README were refreshed and validated on 2026-10-31 using the existing verified pricing baseline. Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
+incremental for market data and pricing. Recalculate derived factors, IC,
+strategies, figures and README on every weekly update using the verified pricing
+baseline. A full-history pricing rebuild requires an explicit maintainer request.
 
 ---
 
@@ -119,7 +120,7 @@ The GitHub `weekly-incremental-cpu.yml` pipeline:
 1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_CPU_prod.py` — incrementally update weekly observed inputs and BS/ZL prices
 2. `LSM_backtest.py --weekly` — verifies its independent manifest and prices later observed weekly dates independently of ZL
 3. `long-short strategy/update_benchmark.py` — updates the 000832.CSI benchmark
-4. Research, weekly reports, IC histories and frozen ledgers are paused pending their separately versioned v2 migration
+4. `rebuild_research_outputs.py --full-history --refresh-inputs --promote` — stage and validate factors/IC, strategies, figures and README against the verified pricing baseline
 5. validation + `git commit && git push origin main` — publishes only complete verified changes
 
 The Windows `weekly_update.bat` remains available as a manual CPU path, but
@@ -208,15 +209,24 @@ before replacing pricing artifacts. Routine runs never initialize or overwrite
 history. See [PRICING_METHODS.md](backtest/PRICING_METHODS.md) for model assumptions,
 coverage controls and independent commands. The v1 CUDA algorithms are retired.
 
-Research/weekly-report rebuilding is paused during this pricing migration.
-Existing IC manifests, reports and frozen ledgers retain v1 prices. Do not remove
-or bypass their guards; a separately versioned research migration is required.
+Every weekly update rebuilds derived research against the verified pricing
+baseline. `Research_Migration.json` records pricing sources and the superseded
+Git commit. New IC baselines are calculated in staging and validated before
+promotion. Existing manifest guards are never deleted or bypassed.
+The maintainer authorized a one-off 2026 report backfill on 2026-10-28.
+Use `long-short strategy/rebuild_weekly_reports_2026.py` and the separate
+`weekly_value_results_pricing_v2_2026` directory. These are retrospective
+research reports, not historical frozen signals. Original prospective frozen
+signals and confirmed tracking ledger prefixes remain protected during the
+separately authorized full derived-research recalculation.
 
 Pricing-only figures and `Pricing_Metrics.csv` use the identical valid bond-date
-sample across models. Refresh `update_etf_benchmark.py` before plotting; its
+sample across models. Compare the ETF with portfolio NAVs in the key strategy
+figure, never with cross-sectional model mean prices. Refresh `update_etf_benchmark.py` before full plotting; its
 independent 511380.SH cache uses observed closes and same-date adjustment factors,
-never pre-listing backfills. Normalize ETF/model comparisons to a common observed
-start and label them as price diagnostics, not strategy returns.
+never pre-listing backfills. Preserve the full strategy NAV history; normalize
+each strategy/ETF curve at its own first observed value and leave the ETF empty
+before listing. Present this as a broad trend comparison with different starting points.
 
 ### Complex-model rebuilds: CUDA preference
 
@@ -247,6 +257,9 @@ and an independent manifest under `mispricing factor/`. The manifest verifies th
 method version, historical-input fingerprint, and history-file SHA-256. Once the
 baseline exists, routine runs append only holding periods after `last_return_date`.
 Do not delete or bypass a factor IC manifest to force a historical rewrite.
+The complete weekly pipeline instead creates and validates a fresh staging
+baseline before promotion, preserving the previous baseline in Git. This keeps
+changing partial-month endpoints from accumulating overlapping IC periods.
 
 ### Windows console encoding
 
@@ -311,7 +324,7 @@ batch calls. Do not remove these sleeps.
   │
   ├─ update_benchmark.py      ← 更新 000832.CSI 基准
   │
-  ├─ research/weekly reports  ← 暂停，待独立的 v2 研究迁移
+  ├─ research                ← 暂存重算因子、IC、策略与周报，校验后更新图表和 README
   │
   └─ git add -u               ← 暂存所有已追踪的变更文件
        git commit              ← 仅在有实际变更时提交（跳过空提交）
