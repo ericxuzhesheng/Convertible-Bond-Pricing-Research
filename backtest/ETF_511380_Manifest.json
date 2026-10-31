@@ -9,10 +9,10 @@
   "listing_source": "https://static.cninfo.com.cn/finalpage/2020-04-07/1207460850.PDF",
   "listed_on": "2020-04-07",
   "adjustment": "close * exact-date adj_factor; no backfill before listing",
-  "requested_end": "2026-10-23",
+  "requested_end": "2026-10-30",
   "first_date": "2020-04-07",
-  "last_date": "2026-10-23",
-  "rows": 1587,
-  "fetched_at": "2026-10-28T03:11:47.511251+00:00",
-  "sha256": "a37df8858b948c29deab5ab6ebefd5c108013d30a1b49147c1bb1d4dbe37bb25"
+  "last_date": "2026-10-30",
+  "rows": 1592,
+  "fetched_at": "2026-10-31T06:05:21.655368+00:00",
+  "sha256": "4ad134eb5587fe34c862589b81c0e51568fe091a61615489fcdcd7681c17cb68"
 }

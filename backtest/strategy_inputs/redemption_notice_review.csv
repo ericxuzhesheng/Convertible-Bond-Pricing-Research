@@ -6,7 +6,7 @@ SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_
 110097,110097.SH,天润转债,2025-08-16 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 110368,110368.SH,五洲转债,2009-05-25 00:00:00,,103.0,2009-07-02 00:00:00,2009-07-08 00:00:00,2,announcement_date_alone_not_redemption_evidence
 111000,111000.SH,起帆转债,2026-04-21 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
-111012,111012.SH,福新转债,2026-07-11 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
+111012,111012.SH,福新转债,2026-10-31 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 111017,111017.SH,蓝天转债,2024-11-05 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 111024,111024.SH,澳弘转债,2026-10-15 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 113048,113048.SH,晶科转债,2026-05-07 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
@@ -34,7 +34,7 @@ SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_
 118039,118039.SH,煜邦转债,2026-02-12 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118044,118044.SH,赛特转债,2026-04-21 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118050,118050.SH,航宇转债,2026-10-17 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
-118051,118051.SH,皓元转债,2026-06-10 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
+118051,118051.SH,皓元转债,2026-10-31 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118056,118056.SH,路维转债,2026-08-20 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118058,118058.SH,微导转债,2026-10-13 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118059,118059.SH,颀中转债,2026-06-18 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
@@ -42,7 +42,6 @@ SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_
 118061,118061.SH,茂莱转债,2026-07-04 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118062,118062.SH,天准转债,2026-07-10 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 118064,118064.SH,联瑞转债,2026-08-04 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
-123080,123080.SZ,海波转债,2023-01-06 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123091,123091.SZ,长海转债,2026-05-27 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123092,123092.SZ,天壕转债,2024-01-22 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123107,123107.SZ,温氏转债,2022-07-20 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
@@ -61,7 +60,7 @@ SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_
 123207,123207.SZ,冠中转债,2026-10-15 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123209,123209.SZ,聚隆转债,2026-02-13 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123211,123211.SZ,阳谷转债,2026-01-07 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
-123213,123213.SZ,天源转债,2026-04-02 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
+123213,123213.SZ,天源转债,2026-10-29 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123220,123220.SZ,易瑞转债,2025-08-20 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123222,123222.SZ,博俊转债,2025-12-12 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123223,123223.SZ,九典转02,2024-11-01 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
@@ -73,7 +72,7 @@ SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_
 123241,123241.SZ,欧通转债,2026-08-28 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123243,123243.SZ,严牌转债,2026-09-16 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123245,123245.SZ,集智转债,2026-10-22 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
-123247,123247.SZ,万凯转债,2026-07-08 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
+123247,123247.SZ,万凯转债,2026-10-30 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123255,123255.SZ,鼎龙转债,2026-04-29 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 123259,123259.SZ,锦浪转02,2026-05-21 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 125528,125528.SZ,柳工转债,2009-05-20 00:00:00,,104.0,2009-06-22 00:00:00,2009-06-30 00:00:00,2,announcement_date_alone_not_redemption_evidence
@@ -95,7 +94,7 @@ SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_
 127084,127084.SZ,柳工转2,2025-11-01 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 127088,127088.SZ,赫达转债,2026-04-21 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 127092,127092.SZ,运机转债,2025-12-27 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
-127096,127096.SZ,泰坦转债,2026-07-06 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
+127096,127096.SZ,泰坦转债,2026-10-29 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 127099,127099.SZ,盛航转债,2024-11-14 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 127103,127103.SZ,东南转债,2026-04-29 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence
 127104,127104.SZ,姚记转债,2026-02-10 00:00:00,,,,,,announcement_date_alone_not_redemption_evidence

@@ -1,9 +1,9 @@
 {
   "status": "passed",
-  "report_weeks": 43,
-  "observed_signal_weeks": 41,
+  "report_weeks": 44,
+  "observed_signal_weeks": 42,
   "start": "2026-01-01",
-  "end": "2026-10-23",
+  "end": "2026-10-30",
   "pricing_version": "cashflow-pricing-v2",
   "scope": "Retrospective research reports; no historical frozen signals or complete-total-return claim"
 }

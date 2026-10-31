@@ -250,6 +250,7 @@ ts_code,ann_date,is_call,available_at,source,vintage,fetched_at
 113607.SH,2021-12-07,announced_redemption,,https://data.eastmoney.com/kzz/detail/113607.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
 113608.SH,2025-03-07,announced_redemption,,https://data.eastmoney.com/kzz/detail/113608.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
 113609.SH,2025-07-15,announced_redemption,,https://data.eastmoney.com/kzz/detail/113609.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
+113610.SH,2026-10-28,announced_redemption,2026-10-31T14:11:10.152276+08:00,https://data.eastmoney.com/kzz/detail/113610.html,observed_increment,2026-10-31T14:11:10.152276+08:00
 113611.SH,2021-07-02,announced_redemption,,https://data.eastmoney.com/kzz/detail/113611.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
 113612.SH,2021-08-17,announced_redemption,,https://data.eastmoney.com/kzz/detail/113612.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
 113614.SH,2021-11-23,announced_redemption,,https://data.eastmoney.com/kzz/detail/113614.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
@@ -402,6 +403,7 @@ ts_code,ann_date,is_call,available_at,source,vintage,fetched_at
 123077.SZ,2023-04-07,announced_redemption,,https://data.eastmoney.com/kzz/detail/123077.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
 123078.SZ,2025-04-26,announced_redemption,,https://data.eastmoney.com/kzz/detail/123078.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
 123079.SZ,2021-07-29,announced_redemption,,https://data.eastmoney.com/kzz/detail/123079.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
+123080.SZ,2026-10-28,announced_redemption,2026-10-31T14:11:10.152276+08:00,https://data.eastmoney.com/kzz/detail/123080.html,observed_increment,2026-10-31T14:11:10.152276+08:00
 123081.SZ,2021-11-18,announced_redemption,,https://data.eastmoney.com/kzz/detail/123081.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
 123082.SZ,2025-07-15,announced_redemption,,https://data.eastmoney.com/kzz/detail/123082.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00
 123083.SZ,2023-03-23,announced_redemption,,https://data.eastmoney.com/kzz/detail/123083.html,provider_history_unverified,2026-09-12T13:51:30.063725+08:00

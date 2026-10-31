@@ -37,6 +37,8 @@ def test_publisher_keeps_unrelated_work_out_of_commit(monkeypatch):
     commit = next(c for c in calls if 'commit' in c)
     assert '--only' in commit
     assert set(commit[commit.index('--')+1:]) == {'README.md', reports}
+    check = next(c for c in calls if '--check' in c)
+    assert 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol' in check
     assert calls[-1][-3:] == ['push', 'origin', 'main']
 
 
@@ -54,6 +56,8 @@ def test_failed_commit_never_pushes(monkeypatch):
 
 @pytest.mark.parametrize('path', ['AGENTS.md', 'report/README.md',
     'experiments/new.csv', 'backtest/logs/BS_results.csv',
+    'backtest/BS_checkpoint_model.csv', 'backtest/ZL_checkpoint_error.csv',
+    'backtest/LSM_checkpoint_spread.csv',
     'backtest/strategy_inputs/raw/private.csv',
     'long-short strategy/weekly_value_results_event_v1_invalid/results.csv'])
 def test_non_output_paths_are_excluded(path):

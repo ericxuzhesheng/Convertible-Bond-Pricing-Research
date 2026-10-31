@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/定价模型-BS%20%C2%B7%20ZL%20%C2%B7%20LSM-F2C94C?style=for-the-badge" alt="BS + ZL + LSM">
-  <img src="https://img.shields.io/badge/定价截止-2026--10--23-4CAF50?style=for-the-badge" alt="Pricing through 2026-10-23">
+  <img src="https://img.shields.io/badge/定价截止-2026--10--30-4CAF50?style=for-the-badge" alt="Pricing through 2026-10-30">
   <img src="https://img.shields.io/badge/研究频率-周度定价与策略-9B51E0?style=for-the-badge" alt="Weekly pricing and strategy">
 </p>
 
@@ -50,16 +50,16 @@
 <!-- pricing-metrics-zh:start -->
 ## 定价结果
 
-三个模型使用相同的 **151,991 个有效券日、400 个观察周**。MSE 单位为元²，RMSE、MAE 和平均偏差为元，MAPE 为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **97.35%**，最新周 **312/313** 只。指标衡量模型与市场报价的偏离。
+三个模型使用相同的 **152,303 个有效券日、401 个观察周**。MSE 单位为元²，RMSE、MAE 和平均偏差为元，MAPE 为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **97.35%**，最新周 **312/313** 只。指标衡量模型与市场报价的偏离。
 
 | 模型 | 样本数 | MSE | RMSE | MAE | MAPE | 平均偏差 | R² |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| BS | 151,991 | 975.31 | 31.23 | 13.58 | 9.28% | +1.45 | 0.816 |
-| ZL | 151,991 | 999.37 | 31.61 | 12.36 | 7.92% | -9.38 | 0.812 |
-| LSM | 151,991 | 970.92 | 31.16 | 11.31 | 7.14% | -6.80 | 0.817 |
+| BS | 152,303 | 974.08 | 31.21 | 13.58 | 9.28% | +1.43 | 0.816 |
+| ZL | 152,303 | 999.01 | 31.61 | 12.37 | 7.93% | -9.40 | 0.812 |
+| LSM | 152,303 | 970.37 | 31.15 | 11.32 | 7.14% | -6.82 | 0.817 |
 <!-- pricing-metrics-zh:end -->
 
-[指标数据](backtest/Pricing_Metrics.csv) · [验证记录](backtest/Pricing_Validation.json)
+[指标数据](backtest/Pricing_Metrics.csv) · [当前研究来源](backtest/Research_Migration.json) · [历史重建验证](backtest/Pricing_Validation.json)
 
 ## 因子与预测检验
 
@@ -67,24 +67,24 @@
 
 | 模型 | 因子 | 持有期数 | IC | Rank IC | ICIR | Rank ICIR | IC 为正比例 |
 |---|---|---|---|---|---|---|---|
-| BS | 定价偏差 | 93 | 0.084 | 0.047 | 0.51 | 0.28 | 66.7% |
-| BS | 流动性 | 93 | -0.030 | -0.076 | -0.13 | -0.41 | 46.2% |
-| BS | 动量 | 93 | 0.018 | -0.008 | 0.09 | -0.05 | 60.2% |
-| BS | 量价相关性 | 93 | -0.006 | -0.061 | -0.04 | -0.39 | 46.2% |
-| BS | 估值 | 93 | 0.054 | 0.059 | 0.27 | 0.34 | 62.4% |
-| BS | 波动率 | 93 | -0.024 | -0.077 | -0.09 | -0.29 | 45.2% |
-| ZL | 流动性 | 93 | -0.030 | -0.076 | -0.13 | -0.41 | 46.2% |
-| ZL | 动量 | 93 | 0.018 | -0.008 | 0.09 | -0.05 | 60.2% |
-| ZL | 量价相关性 | 93 | -0.006 | -0.061 | -0.04 | -0.39 | 46.2% |
-| ZL | 估值 | 93 | 0.054 | 0.059 | 0.27 | 0.34 | 62.4% |
-| ZL | 波动率 | 93 | -0.024 | -0.077 | -0.09 | -0.29 | 45.2% |
-| ZL | 定价偏差 | 93 | 0.099 | 0.089 | 0.51 | 0.53 | 74.2% |
-| LSM | 流动性 | 93 | -0.030 | -0.076 | -0.13 | -0.41 | 46.2% |
-| LSM | 定价偏差 | 93 | 0.100 | 0.108 | 0.47 | 0.58 | 76.3% |
-| LSM | 动量 | 93 | 0.018 | -0.008 | 0.09 | -0.05 | 60.2% |
-| LSM | 量价相关性 | 93 | -0.006 | -0.061 | -0.04 | -0.39 | 46.2% |
-| LSM | 估值 | 93 | 0.054 | 0.059 | 0.27 | 0.34 | 62.4% |
-| LSM | 波动率 | 93 | -0.024 | -0.077 | -0.09 | -0.29 | 45.2% |
+| BS | 定价偏差 | 93 | 0.084 | 0.047 | 0.51 | 0.29 | 66.7% |
+| BS | 流动性 | 93 | -0.032 | -0.077 | -0.14 | -0.42 | 46.2% |
+| BS | 动量 | 93 | 0.019 | -0.007 | 0.09 | -0.04 | 60.2% |
+| BS | 量价相关性 | 93 | -0.007 | -0.062 | -0.04 | -0.39 | 46.2% |
+| BS | 估值 | 93 | 0.056 | 0.061 | 0.27 | 0.35 | 62.4% |
+| BS | 波动率 | 93 | -0.027 | -0.077 | -0.10 | -0.29 | 45.2% |
+| ZL | 流动性 | 93 | -0.032 | -0.077 | -0.14 | -0.42 | 46.2% |
+| ZL | 动量 | 93 | 0.019 | -0.007 | 0.09 | -0.04 | 60.2% |
+| ZL | 量价相关性 | 93 | -0.007 | -0.062 | -0.04 | -0.39 | 46.2% |
+| ZL | 估值 | 93 | 0.056 | 0.061 | 0.27 | 0.35 | 62.4% |
+| ZL | 波动率 | 93 | -0.027 | -0.077 | -0.10 | -0.29 | 45.2% |
+| ZL | 定价偏差 | 93 | 0.100 | 0.091 | 0.51 | 0.53 | 74.2% |
+| LSM | 流动性 | 93 | -0.032 | -0.077 | -0.14 | -0.42 | 46.2% |
+| LSM | 定价偏差 | 93 | 0.101 | 0.109 | 0.47 | 0.58 | 76.3% |
+| LSM | 动量 | 93 | 0.019 | -0.007 | 0.09 | -0.04 | 60.2% |
+| LSM | 量价相关性 | 93 | -0.007 | -0.062 | -0.04 | -0.39 | 46.2% |
+| LSM | 估值 | 93 | 0.056 | 0.061 | 0.27 | 0.35 | 62.4% |
+| LSM | 波动率 | 93 | -0.027 | -0.077 | -0.10 | -0.29 | 45.2% |
 
 ## 组合规则与结果
 
@@ -92,8 +92,8 @@
 
 | 组合 | 年化研究收益 | 夏普 | 最大回撤 |
 |---|---|---|---|
-| long_only | 16.83% | 1.27 | -16.45% |
-| long_short | 13.21% | 1.36 | -11.91% |
+| long_only | 16.70% | 1.26 | -16.45% |
+| long_short | 13.18% | 1.36 | -11.91% |
 
 净值是观测价格与已核验现金流的研究估计。历史付息、原始财务版本和券源仍未全部核验，因此不能称为完整总收益或事前实盘记录。事后重算信号不会覆盖原有交易前冻结证据。
 
@@ -101,9 +101,9 @@
 
 | 模型 | 年化超额收益 | 夏普 | 最大回撤 |
 |---|---|---|---|
-| BS | 11.69% | 0.8 | -29.72% |
-| ZL | 10.51% | 0.77 | -27.59% |
-| LSM | 10.63% | 0.78 | -28.24% |
+| BS | 11.32% | 0.75 | -29.72% |
+| ZL | 10.31% | 0.73 | -27.59% |
+| LSM | 10.47% | 0.75 | -28.24% |
 
 ## 关键图表
 
@@ -202,16 +202,16 @@ On that common sample, CCB with explicit commitments has **MAE 11.3459 yuan and 
 <!-- pricing-metrics-en:start -->
 ## Pricing results
 
-All models use the same **151,991 valid bond-date cells over 400 observed weeks**. MSE is in yuan²; RMSE, MAE and bias are in yuan. Bias is model minus market price; R² uses the market-price mean as its constant baseline. Minimum weekly common coverage is **97.35%**, with **312/313** bonds in the latest week. These are market-price deviation diagnostics.
+All models use the same **152,303 valid bond-date cells over 401 observed weeks**. MSE is in yuan²; RMSE, MAE and bias are in yuan. Bias is model minus market price; R² uses the market-price mean as its constant baseline. Minimum weekly common coverage is **97.35%**, with **312/313** bonds in the latest week. These are market-price deviation diagnostics.
 
 | Model | N | MSE | RMSE | MAE | MAPE | Bias | R² |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| BS | 151,991 | 975.31 | 31.23 | 13.58 | 9.28% | +1.45 | 0.816 |
-| ZL | 151,991 | 999.37 | 31.61 | 12.36 | 7.92% | -9.38 | 0.812 |
-| LSM | 151,991 | 970.92 | 31.16 | 11.31 | 7.14% | -6.80 | 0.817 |
+| BS | 152,303 | 974.08 | 31.21 | 13.58 | 9.28% | +1.43 | 0.816 |
+| ZL | 152,303 | 999.01 | 31.61 | 12.37 | 7.93% | -9.40 | 0.812 |
+| LSM | 152,303 | 970.37 | 31.15 | 11.32 | 7.14% | -6.82 | 0.817 |
 <!-- pricing-metrics-en:end -->
 
-[Pricing metrics](backtest/Pricing_Metrics.csv) · [Validation evidence](backtest/Pricing_Validation.json)
+[Pricing metrics](backtest/Pricing_Metrics.csv) · [Current research provenance](backtest/Research_Migration.json) · [Archived rebuild validation](backtest/Pricing_Validation.json)
 
 ## Factors and predictive tests
 
@@ -219,24 +219,24 @@ Five observed factors accompany each model's valuation gap: liquidity, volatilit
 
 | Model | Factor | Periods | IC | Rank IC | ICIR | Rank ICIR | Positive IC |
 |---|---|---|---|---|---|---|---|
-| BS | Mispricing | 93 | 0.084 | 0.047 | 0.51 | 0.28 | 66.7% |
-| BS | Liquidity | 93 | -0.030 | -0.076 | -0.13 | -0.41 | 46.2% |
-| BS | Momentum | 93 | 0.018 | -0.008 | 0.09 | -0.05 | 60.2% |
-| BS | Price-volume | 93 | -0.006 | -0.061 | -0.04 | -0.39 | 46.2% |
-| BS | Valuation | 93 | 0.054 | 0.059 | 0.27 | 0.34 | 62.4% |
-| BS | Volatility | 93 | -0.024 | -0.077 | -0.09 | -0.29 | 45.2% |
-| ZL | Liquidity | 93 | -0.030 | -0.076 | -0.13 | -0.41 | 46.2% |
-| ZL | Momentum | 93 | 0.018 | -0.008 | 0.09 | -0.05 | 60.2% |
-| ZL | Price-volume | 93 | -0.006 | -0.061 | -0.04 | -0.39 | 46.2% |
-| ZL | Valuation | 93 | 0.054 | 0.059 | 0.27 | 0.34 | 62.4% |
-| ZL | Volatility | 93 | -0.024 | -0.077 | -0.09 | -0.29 | 45.2% |
-| ZL | Mispricing | 93 | 0.099 | 0.089 | 0.51 | 0.53 | 74.2% |
-| LSM | Liquidity | 93 | -0.030 | -0.076 | -0.13 | -0.41 | 46.2% |
-| LSM | Mispricing | 93 | 0.100 | 0.108 | 0.47 | 0.58 | 76.3% |
-| LSM | Momentum | 93 | 0.018 | -0.008 | 0.09 | -0.05 | 60.2% |
-| LSM | Price-volume | 93 | -0.006 | -0.061 | -0.04 | -0.39 | 46.2% |
-| LSM | Valuation | 93 | 0.054 | 0.059 | 0.27 | 0.34 | 62.4% |
-| LSM | Volatility | 93 | -0.024 | -0.077 | -0.09 | -0.29 | 45.2% |
+| BS | Mispricing | 93 | 0.084 | 0.047 | 0.51 | 0.29 | 66.7% |
+| BS | Liquidity | 93 | -0.032 | -0.077 | -0.14 | -0.42 | 46.2% |
+| BS | Momentum | 93 | 0.019 | -0.007 | 0.09 | -0.04 | 60.2% |
+| BS | Price-volume | 93 | -0.007 | -0.062 | -0.04 | -0.39 | 46.2% |
+| BS | Valuation | 93 | 0.056 | 0.061 | 0.27 | 0.35 | 62.4% |
+| BS | Volatility | 93 | -0.027 | -0.077 | -0.10 | -0.29 | 45.2% |
+| ZL | Liquidity | 93 | -0.032 | -0.077 | -0.14 | -0.42 | 46.2% |
+| ZL | Momentum | 93 | 0.019 | -0.007 | 0.09 | -0.04 | 60.2% |
+| ZL | Price-volume | 93 | -0.007 | -0.062 | -0.04 | -0.39 | 46.2% |
+| ZL | Valuation | 93 | 0.056 | 0.061 | 0.27 | 0.35 | 62.4% |
+| ZL | Volatility | 93 | -0.027 | -0.077 | -0.10 | -0.29 | 45.2% |
+| ZL | Mispricing | 93 | 0.100 | 0.091 | 0.51 | 0.53 | 74.2% |
+| LSM | Liquidity | 93 | -0.032 | -0.077 | -0.14 | -0.42 | 46.2% |
+| LSM | Mispricing | 93 | 0.101 | 0.109 | 0.47 | 0.58 | 76.3% |
+| LSM | Momentum | 93 | 0.019 | -0.007 | 0.09 | -0.04 | 60.2% |
+| LSM | Price-volume | 93 | -0.007 | -0.062 | -0.04 | -0.39 | 46.2% |
+| LSM | Valuation | 93 | 0.056 | 0.061 | 0.27 | 0.35 | 62.4% |
+| LSM | Volatility | 93 | -0.027 | -0.077 | -0.10 | -0.29 | 45.2% |
 
 ## Portfolio rules and results
 
@@ -244,8 +244,8 @@ The weekly value strategy averages the three model prices, selects at most the h
 
 | Portfolio | Annualized research return | Sharpe | Max drawdown |
 |---|---|---|---|
-| long_only | 16.83% | 1.27 | -16.45% |
-| long_short | 13.21% | 1.36 | -11.91% |
+| long_only | 16.70% | 1.26 | -16.45% |
+| long_short | 13.18% | 1.36 | -11.91% |
 
 These are research estimates from observed prices and verified cash flows. Complete historical coupons, original financial vintages and short availability remain unverified, so the curves are not certified total returns or prospective live records. Original frozen tracking evidence is never replaced by a retrospectively recalculated signal.
 
@@ -253,9 +253,9 @@ The monthly six-factor portfolios rank equal-weight standardized factors and hol
 
 | Model | Annualized excess return | Sharpe | Max drawdown |
 |---|---|---|---|
-| BS | 11.69% | 0.8 | -29.72% |
-| ZL | 10.51% | 0.77 | -27.59% |
-| LSM | 10.63% | 0.78 | -28.24% |
+| BS | 11.32% | 0.75 | -29.72% |
+| ZL | 10.31% | 0.73 | -27.59% |
+| LSM | 10.47% | 0.75 | -28.24% |
 
 ## Key figures
 

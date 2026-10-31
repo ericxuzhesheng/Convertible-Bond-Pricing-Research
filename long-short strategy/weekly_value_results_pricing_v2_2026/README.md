@@ -47,3 +47,4 @@
 - [2026-10-09](weeks/2026-10-09.md)：historical_research
 - [2026-10-16](weeks/2026-10-16.md)：historical_research
 - [2026-10-23](weeks/2026-10-23.md)：historical_research
+- [2026-10-30](weeks/2026-10-30.md)：historical_research

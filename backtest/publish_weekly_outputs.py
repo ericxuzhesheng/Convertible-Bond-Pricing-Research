@@ -24,6 +24,8 @@ PATTERNS = (
 
 
 def is_output(path):
+    if Path(path).name.startswith(('BS_checkpoint_', 'ZL_checkpoint_', 'LSM_checkpoint_')):
+        return False
     # fnmatch * includes slashes; top-level CSV patterns must not admit logs.
     if path.startswith('backtest/') and path.count('/') > 1:
         return path.startswith('backtest/strategy_inputs/') and '/raw/' not in path
@@ -41,7 +43,9 @@ def main():
     paths = sorted({p for p in changed + new if p and is_output(p)})
     if paths:
         subprocess.run([*git, 'add', '--', *paths], check=True)
-        subprocess.run([*git, 'diff', '--cached', '--check', '--', *paths], check=True)
+        subprocess.run([*git, '-c',
+            'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+            'diff', '--cached', '--check', '--', *paths], check=True)
         subprocess.run([*git, 'commit', '--only', '-m',
             f'chore: verified local weekly update {datetime.now():%Y%m%d}', '--', *paths], check=True)
     else:

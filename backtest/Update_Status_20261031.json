@@ -1,0 +1,70 @@
+{
+  "BS": {
+    "cutoff": "2026-10-30",
+    "backend": "cpu",
+    "historical_prefix_max_error": 0.0,
+    "coverage": {
+      "date": "2026-10-30",
+      "market_count": 313,
+      "priced_count": 312,
+      "coverage": 0.9968051118210862
+    }
+  },
+  "ZL": {
+    "cutoff": "2026-10-30",
+    "backend": "cpu",
+    "historical_prefix_max_error": 0.0,
+    "coverage": {
+      "date": "2026-10-30",
+      "market_count": 313,
+      "priced_count": 312,
+      "coverage": 0.9968051118210862
+    }
+  },
+  "LSM": {
+    "cutoff": "2026-10-30",
+    "backend": "cpu",
+    "historical_prefix_max_error": 0.0,
+    "coverage": {
+      "date": "2026-10-30",
+      "market_count": 313,
+      "priced_count": 312,
+      "coverage": 0.9968051118210862
+    }
+  },
+  "universe": {
+    "newly_listed": [
+      "118077.SH"
+    ],
+    "newly_delisted": [
+      "113046.SH"
+    ]
+  },
+  "strategy_input_cutoff": "2026-10-30",
+  "research_status": "validated and promoted through 2026-10-30",
+  "publish_status": "passed publication checks; included in the verified weekly commit",
+  "pricing_rerun_on_retry": false,
+  "weekly_reports": {
+    "status": "passed",
+    "checked_at": "2026-10-31T14:25:56.316230+08:00",
+    "report_weeks": 44,
+    "observed_signal_weeks": 42,
+    "model_metric_rows_checked": 126,
+    "ranked_bond_dates_checked": 14035,
+    "selected_positions_checked": 43,
+    "pricing_manifest_integrity": "passed",
+    "strategy_input_vintage": "matched",
+    "source_price_reconciliation": "passed",
+    "links": "passed",
+    "nav_and_weekly_return_reconciliation": "passed",
+    "scope": "Retrospective 2026 weekly reports through 2026-10-30; no model repricing or frozen tracking rewrite"
+  },
+  "targeted_tests_passed": 18,
+  "staged_validation": {
+    "staged_model_artifacts_verified": 27,
+    "model_input_fingerprints_verified": 3,
+    "input_reader_pandas": "2.3.3",
+    "etf_hash_verified": true,
+    "readme_metrics_verified": true
+  }
+}

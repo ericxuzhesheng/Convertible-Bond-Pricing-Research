@@ -1,13 +1,13 @@
 {
-  "cutoff": "2026-10-23",
+  "cutoff": "2026-10-30",
   "status": "complete",
-  "fetched_at": "2026-10-27T09:32:00.853572+08:00",
+  "fetched_at": "2026-10-31T14:11:10.152276+08:00",
   "source": "https://datacenter-web.eastmoney.com/api/data/v1/get",
   "records": 1066,
-  "notices": 718,
-  "review_candidates": 103,
+  "notices": 720,
+  "review_candidates": 102,
   "normalization_revision": 2,
-  "normalized_at": "2026-10-27T09:32:11.515723+08:00",
+  "normalized_at": "2026-10-31T14:11:18.652019+08:00",
   "cashflow_verified": false,
   "limitation": "Provider redemption type and execution evidence required; dates alone include waivers. Missing trigger/waiver history remains unknown."
 }
