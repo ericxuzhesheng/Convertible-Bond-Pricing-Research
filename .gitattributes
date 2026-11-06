@@ -8,3 +8,4 @@ backtest/*_Pricing_Coverage.csv -text
 backtest/*_Pricing_Issues.csv -text
 backtest/ETF_*_Daily.csv -text
 backtest/Pricing_Metrics.csv -text
+"mispricing factor/*_factor_ic_history.csv" -text

@@ -1,13 +1,13 @@
 {
   "engine_revision": 2,
   "input_vintage": {
-    "daily": "2026-10-31T14:11:10.142284+08:00",
+    "daily": "2026-11-06T23:52:56.145347+08:00",
     "pricing": {
-      "BS": "50ee1b564805840cfd0d2b5635a7335035875790857923151a8df572a6c01d61",
-      "ZL": "9090bba279d228585f1d04d14996089d07f4577ac13999079e3c40a8e0a89d4f",
-      "LSM": "555b6b3456761c737cf0e5782de7c7cc5e583adde84ab1262f3551ec73af955c"
+      "BS": "a7dd498dea766649645ed3177ab99ae8d679299661f6bfffbece666a416fa9a3",
+      "ZL": "68686ac982df171f27dc3274a17053070f2382ca9eaad879414b2fae9709ff37",
+      "LSM": "b73a3aaf6f63178a3bc322d50f354bfbdb00dae3f1ef0f0646623df35b8f1e16"
     },
-    "events": "2026-10-31T14:11:10.152276+08:00",
+    "events": "2026-11-06T23:52:56.160378+08:00",
     "event_normalization": 2,
     "cashflows": 1789192757387214700,
     "suspensions": 1789192757384214200
@@ -29,9 +29,9 @@
     "start": "2026-01-01",
     "mode": "both"
   },
-  "input_cutoff": "2026-10-30",
-  "requested_end": "2026-10-30",
-  "last_signal": "2026-10-30",
+  "input_cutoff": "2026-11-06",
+  "requested_end": "2026-11-06",
+  "last_signal": "2026-11-06",
   "total_return_certified": false,
   "limitations": [
     "cb_call: 抱歉，您没有接口(cb_call)访问权限，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。",

@@ -1,9 +1,9 @@
 {
   "model": "BS",
   "methodology_version": 1,
-  "last_rebalance_date": "2026-09-30",
-  "last_return_date": "2026-10-30",
-  "history_sha256": "6bb2ed3ab330fa26ec83bda39afe83178a27474ea60818c76b7317cfe628245c",
+  "last_rebalance_date": "2026-10-30",
+  "last_return_date": "2026-11-06",
+  "history_sha256": "4d454ff47cf2f3294dce417d764d876efff09dac0df84e1e94178280f6f6ea47",
   "historical_columns": [
     "110030.SH",
     "110031.SH",
@@ -735,6 +735,8 @@
     "123286.SZ",
     "123287.SZ",
     "123288.SZ",
+    "123289.SZ",
+    "123290.SZ",
     "124017.SZ",
     "124024.SZ",
     "127003.SZ",
@@ -852,6 +854,7 @@
     "127115.SZ",
     "127116.SZ",
     "127117.SZ",
+    "127118.SZ",
     "128009.SZ",
     "128010.SZ",
     "128011.SZ",
@@ -989,5 +992,5 @@
     "128144.SZ",
     "128145.SZ"
   ],
-  "historical_input_fingerprint": "bf65a184743c9bb5e2624ba9b5678f7e53019d09b927861b1026a7a6da0f7132"
+  "historical_input_fingerprint": "5a5528a30e03ea19b5ac52598ebef7c03b5f9633522762971f0511a3f08795f8"
 }
