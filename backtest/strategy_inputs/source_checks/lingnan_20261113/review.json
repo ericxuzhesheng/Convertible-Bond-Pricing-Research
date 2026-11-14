@@ -1,0 +1,70 @@
+{
+  "checked_at": "2026-11-14T17:22:48.736556+08:00",
+  "valuation_date": "2026-11-13",
+  "bond": "128044.SZ",
+  "underlying": "002717.SZ",
+  "status": "verified_stale_underlying_do_not_impute",
+  "last_observed_stock_date": "2026-10-12",
+  "age_calendar_days": 32,
+  "allowed_staleness_days": 7,
+  "compared_observations": 309,
+  "max_adjusted_close_difference": 0.0,
+  "bond_quote": {
+    "date": "2026-11-13",
+    "close": 71.372,
+    "open": 0,
+    "high": 0,
+    "low": 0,
+    "volume": 0,
+    "amount": 0
+  },
+  "action": "Preserve missing volatility and model prices; keep existing strategy exclusion and historical records.",
+  "sources": [
+    {
+      "provider": "Tushare",
+      "endpoint": "pro_bar",
+      "parameters": {
+        "ts_code": "002717.SZ",
+        "start_date": "20250701",
+        "end_date": "20261113",
+        "adj": "qfq"
+      },
+      "file": "tushare_qfq.csv"
+    },
+    {
+      "provider": "Tushare",
+      "endpoint": "suspend_d",
+      "parameters": {
+        "ts_code": "002717.SZ",
+        "start_date": "20261001",
+        "end_date": "20261113"
+      },
+      "file": "tushare_suspend.csv"
+    },
+    {
+      "provider": "Tushare",
+      "endpoint": "cb_daily",
+      "parameters": {
+        "ts_code": "128044.SZ",
+        "start_date": "20261101",
+        "end_date": "20261113"
+      },
+      "file": "tushare_cb_daily.csv"
+    },
+    {
+      "provider": "Tencent",
+      "url": "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sz002717,day,2025-07-01,2026-11-13,640,qfq",
+      "file": "tencent_qfq.csv"
+    },
+    {
+      "provider": "CNInfo issuer disclosure",
+      "published": "2026-10-13",
+      "url": "https://static.cninfo.com.cn/finalpage/2026-10-13/1225602315.PDF"
+    },
+    {
+      "provider": "CNInfo trustee report",
+      "published": "2026-11-12",
+      "url": "https://static.cninfo.com.cn/finalpage/2026-11-12/1225667855.PDF"
+    }
+  ]
+}

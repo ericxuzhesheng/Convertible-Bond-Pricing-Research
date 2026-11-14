@@ -74,6 +74,15 @@ def update(*,base=BASE,after=None,pro=None,bar=None):
         frame.index=pd.to_datetime(frame.trade_date.astype(str),format='%Y%m%d')
         series=build_observed_volatility(adjusted_close=frame.close.sort_index(),target_dates=dates,
             window=250,min_observations=60,max_staleness_days=7)
+        observed = frame.loc[pd.to_numeric(frame.close, errors='coerce').gt(0)].index
+        for date in dates[series.isna()]:
+            prior = observed[observed <= date]
+            last = prior.max() if len(prior) else pd.NaT
+            age = (date-last).days if pd.notna(last) else None
+            reason = 'stale_adjusted_history' if age is not None and age > 7 else 'insufficient_or_invalid_adjusted_history'
+            print(f'Volatility missing: stock={stock} date={date.date()} '
+                  f'last_observation={last.date() if pd.notna(last) else "none"} '
+                  f'age_days={age} limit_days=7 reason={reason}', flush=True)
         for code in bonds.index:
             vol.loc[pending[code],code]=series.loc[pending[code]]
         time.sleep(.5)

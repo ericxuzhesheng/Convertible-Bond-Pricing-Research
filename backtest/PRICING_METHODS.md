@@ -31,6 +31,10 @@ missing. Repair records retain the source observation date and age. No future
 quote or constant-volatility fallback is used. Zero dividend yield is a declared
 conversion-value-process assumption.
 
+For the 2026-11-13 Lingnan observation, Tushare, Tencent and issuer disclosures
+confirm stale underlying history after suspension. The missing price is retained;
+see the [source review](strategy_inputs/source_checks/lingnan_20261113/README.md).
+
 ## BS
 
 The European-conversion baseline uses the actual conversion expiry and the

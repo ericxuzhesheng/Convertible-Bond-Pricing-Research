@@ -78,3 +78,21 @@ def test_new_observed_volatility_preserves_history_and_groups_underlying_fetch(t
     before=cache.read_bytes()
     module.update(base=tmp_path,after='2024-01-12',pro=object(),bar=bar)
     assert cache.read_bytes()==before and calls==['S']
+
+
+def test_stale_underlying_is_reported_and_not_filled(tmp_path, monkeypatch, capsys):
+    day = pd.Timestamp('2026-11-13')
+    pd.DataFrame({'A': [71.372]}, index=[day]).to_csv(tmp_path/'cb_price_cache.csv')
+    cache = tmp_path/'bs_volatility_cache.csv'
+    pd.DataFrame({'A': [np.nan]}, index=[day]).to_csv(cache)
+    pd.DataFrame({'ts_code': ['A'], 'stk_cd': ['S']}).to_csv(tmp_path/'cb_basic_info.csv', index=False)
+    days = pd.bdate_range('2025-07-01', '2026-10-12')
+    def bar(**kwargs):
+        return pd.DataFrame({'trade_date': days.strftime('%Y%m%d'),
+                             'close': 100*np.exp(.01*np.sin(np.arange(len(days))))})
+    monkeypatch.setattr(module.time, 'sleep', lambda _: None)
+    module.update(base=tmp_path, after='2026-11-06', pro=object(), bar=bar)
+    assert pd.isna(pd.read_csv(cache, index_col=0).loc['2026-11-13', 'A'])
+    message = capsys.readouterr().out
+    assert 'last_observation=2026-10-12 age_days=32' in message
+    assert 'reason=stale_adjusted_history' in message

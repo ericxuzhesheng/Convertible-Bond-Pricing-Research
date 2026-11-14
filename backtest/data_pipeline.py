@@ -1470,6 +1470,22 @@ def run_pipeline(
         for label, frame in daily.items()
     }
     df_price_new = daily['price']
+    if weekly_validation:
+        # Quotes can arrive hours before the provider's valuation fields.
+        validate_pricing_coverage(
+            market_price=df_price_new,
+            model_price=build_observed_bond_floor(
+                provider_bond_value=daily['provider_bond_value'],
+                market_price=df_price_new,
+            ),
+            dates=select_completed_weekly_dates(
+                df_price_new.index, as_of=weekly_validation_cutoff(end)
+            )[-1:],
+            min_coverage=float(os.environ.get("MIN_WEEKLY_SOURCE_COVERAGE", "0.98")),
+            min_count=int(os.environ.get("MIN_WEEKLY_SOURCE_COUNT", "20")),
+            label="Tushare bond_value source (publication may be delayed)",
+            min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
+        )
     df_price = (
         df_price_new
         if rebuild_all

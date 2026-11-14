@@ -13,7 +13,7 @@ Absolute pricing research for Chinese A-share convertible bonds using three mode
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
 
-Current verified local model cutoff: **2026-11-06**; daily strategy-input cutoff: **2026-11-06**. Factors, IC, strategies, 2026 weekly reports, figures and README were refreshed and validated on 2026-11-07 using the existing verified pricing baseline. Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
+Current verified local model cutoff: **2026-11-13**; daily strategy-input cutoff: **2026-11-13**. Factors, IC, strategies, 2026 weekly reports, figures and README were refreshed and validated on 2026-11-14 using the existing verified pricing baseline. Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
 incremental for market data and pricing. Recalculate derived factors, IC,
 strategies, figures and README on every weekly update using the verified pricing
 baseline. A full-history pricing rebuild requires an explicit maintainer request.
@@ -99,32 +99,26 @@ python backtest/reprice_history.py --resume --promote
 python backtest/regenerate_plots.py
 ```
 
-### Weekly automation (GitHub cloud, with local catch-up)
+### Weekly automation (local Windows task)
 
-```powershell
-# GitHub Actions runs the complete incremental pipeline every Friday at 17:30
-# Asia/Shanghai. Configure the repository TUSHARE_TOKEN secret once.
+Routine updates run locally every Friday at 16:30 Asia/Shanghai through
+`run_scheduled_weekly.ps1` and `weekly_update.bat`. Register with
+`backtest/setup_weekly_task.ps1`. The computer must be on, online and the
+user logged in. Failed runs retry hourly up to 12 times using Windows Task
+Scheduler. Each attempt retains the existing validation and publishing guards.
+Weekly acquisition checks observed pure-bond-value coverage before writing
+market caches, because provider valuation fields may arrive after closing quotes.
 
-# Optional one-time local setup: fetch hourly and fast-forward a clean main.
-cd backtest
-.\setup_main_sync_task.ps1
+The pipeline updates weekly inputs and volatility, runs independent BS/ZL/LSM
+incremental pricing, updates the index benchmark, then stages and validates
+factors, IC, strategies, reports, figures and README before publication.
+`publish_weekly_outputs.py` selects generated outputs, including new reports,
+and commits and pushes only after successful completion.
 
-# Manual local catch-up
-.\sync_main_from_github.ps1
-
-# Check local sync logs
-Get-Content .\logs\main_sync.log -Tail 30
-```
-
-The GitHub `weekly-incremental-cpu.yml` pipeline:
-1. `data_pipeline.py`, `B-S_backtest.py`, and `Z-L_backtest_CPU_prod.py` — incrementally update weekly observed inputs and BS/ZL prices
-2. `LSM_backtest.py --weekly` — verifies its independent manifest and prices later observed weekly dates independently of ZL
-3. `long-short strategy/update_benchmark.py` — updates the 000832.CSI benchmark
-4. `rebuild_research_outputs.py --full-history --refresh-inputs --promote` — stage and validate factors/IC, strategies, figures and README against the verified pricing baseline
-5. validation + `git commit && git push origin main` — publishes only complete verified changes
-
-The Windows `weekly_update.bat` remains available as a manual CPU path, but
-the scheduled cloud update does not depend on the local computer being on.
+GitHub `weekly-incremental-cpu.yml` is a manual fallback with
+`workflow_dispatch`; it has no scheduled trigger. The optional
+`setup_main_sync_task.ps1` / `sync_main_from_github.ps1` scripts provide local
+catch-up from GitHub.
 
 ### Incremental update (most common)
 
@@ -313,7 +307,7 @@ batch calls. Do not remove these sleeps.
 ### Pipeline order in `weekly_update.bat`
 
 ```
-18:00 Friday
+16:30 Friday
   │
   ├─ manifest cutoff          ← 读取已验证截止日，只允许后续新交易周
   ├─ data_pipeline.py         ← 从截止日次日起增量更新真实市场数据
@@ -326,7 +320,7 @@ batch calls. Do not remove these sleeps.
   │
   ├─ research                ← 暂存重算因子、IC、策略与周报，校验后更新图表和 README
   │
-  └─ git add -u               ← 暂存所有已追踪的变更文件
+  └─ publish_weekly_outputs.py ← 选择本次生成的更新产物
        git commit              ← 仅在有实际变更时提交（跳过空提交）
        git push origin main    ← 推送到 GitHub
 ```
@@ -353,11 +347,12 @@ Factor CSV bond code format: `sh110030` → normalized to `110030.SH` by `_stand
 | 属性 | 值 |
 |------|-----|
 | 任务名 | ConvertibleBond_WeeklyUpdate |
-| 触发 | 每周五 18:00 |
-| 执行 | `cmd.exe /c weekly_update.bat` |
+| 触发 | 每周五 16:30 |
+| 执行 | 隐藏 PowerShell 运行 `run_scheduled_weekly.ps1` |
 | 登录类型 | Interactive（当前用户，需已登录） |
 | 网络要求 | 仅在网络可用时运行 |
-| 超时 | 4 小时 |
+| 超时 | 6 小时 |
+| 失败补跑 | 每小时一次，最多12次 |
 
 If Friday is a public holiday, `data_pipeline.py` fetches no new completed week,
 the models find no dates after the verified cutoff, and

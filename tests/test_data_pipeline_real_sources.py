@@ -134,6 +134,33 @@ def test_cb_daily_downloads_observed_conversion_and_bond_values(
     ] == pytest.approx(96.2)
 
 
+@pytest.mark.parametrize("available", [False, True])
+def test_weekly_bond_value_readiness_precedes_market_cache_writes(monkeypatch, tmp_path, available):
+    dates = pd.to_datetime(["2026-11-13"])
+    price = pd.DataFrame({f"{i:06d}.SH": [100.] for i in range(20)}, index=dates)
+    monkeypatch.setattr(data_pipeline, "init_tushare", lambda: object())
+    monkeypatch.setattr(data_pipeline, "fetch_cb_basic", lambda _: pd.DataFrame({"ts_code": price.columns}))
+    monkeypatch.setattr(data_pipeline, "resolve_completed_weekly_end", lambda *_, **__: "20261113")
+    monkeypatch.setattr(data_pipeline, "OUT_BASIC", str(tmp_path / "basic.csv"))
+    monkeypatch.setattr(data_pipeline, "OUT_PRICE", str(tmp_path / "price.csv"))
+    monkeypatch.setattr(data_pipeline, "OUT_AMOUNT", str(tmp_path / "amount.csv"))
+    price.to_csv(data_pipeline.OUT_PRICE)
+    before = Path(data_pipeline.OUT_PRICE).read_bytes()
+    monkeypatch.setattr(data_pipeline, "fetch_cb_daily", lambda *_: {
+        "price": price * 1.1, "amount": price,
+        "provider_bond_value": price if available else price * np.nan,
+    })
+    class ReachedConversion(Exception):
+        pass
+    def stop(*_, **__):
+        raise ReachedConversion
+    monkeypatch.setattr(data_pipeline, "load_conversion_price_events", stop)
+    with pytest.raises(ReachedConversion if available else DataContractError,
+                       match=None if available else "Tushare bond_value source"):
+        data_pipeline.run_pipeline("20261107", "20261113", weekly_validation=True)
+    assert (Path(data_pipeline.OUT_PRICE).read_bytes() == before) == (not available)
+
+
 def test_cb_basic_explicitly_requests_nondefault_maturity_price() -> None:
     pro = FakePro()
 

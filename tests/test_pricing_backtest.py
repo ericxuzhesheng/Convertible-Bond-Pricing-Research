@@ -94,6 +94,20 @@ def test_encoded_float_dates_keep_the_contractual_calendar_date():
     assert contract_date('2020-10-22')==pd.Timestamp('2020-10-22')
 
 
+@pytest.mark.parametrize('field,value', [('volatility', np.nan), ('parity', 0.), ('floor', np.inf)])
+def test_missing_input_error_identifies_the_actual_field(field, value):
+    data = PricingInputs.__new__(PricingInputs)
+    day = pd.Timestamp('2026-11-13')
+    data.static = {'A': None}
+    data.basic = pd.DataFrame({'list_date': [pd.Timestamp('2020-01-01')],
+                               'delist_date': [pd.NaT]}, index=['A'])
+    data.frames = {key: pd.DataFrame({'A': [0.3 if key == 'volatility' else 100.]}, index=[day])
+                   for key in ('market', 'parity', 'floor', 'volatility')}
+    data.frames[field].at[day, 'A'] = value
+    with pytest.raises(DataContractError, match=f'^missing or invalid observed inputs: {field}$'):
+        data.contract('A', day)
+
+
 def test_effective_curve_yields_preserve_annual_discount_factors():
     data=PricingInputs.__new__(PricingInputs)
     day=pd.Timestamp('2024-01-05')

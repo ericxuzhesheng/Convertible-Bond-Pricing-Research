@@ -1,14 +1,14 @@
 {
   "BS": {
-    "manifest_sha256": "befd9ba31c9440e83dfd59bb41b0bf62811342b0351903ed9350f80304060adb",
-    "cutoff": "2026-11-06"
+    "manifest_sha256": "2f6655ad282b8ed654e4e591bbdccfad05f5cb02ea7de4a1d41a660d85e5030c",
+    "cutoff": "2026-11-13"
   },
   "ZL": {
-    "manifest_sha256": "1d09ca5d99de2764147aba3c91d1b6db0b72d609eabb74c08def908e5efbd890",
-    "cutoff": "2026-11-06"
+    "manifest_sha256": "584ff1ad399a871215b00d9096ea7c77ff07fea98ffd5e0f520bc9c9588e4d44",
+    "cutoff": "2026-11-13"
   },
   "LSM": {
-    "manifest_sha256": "644c674eca34dabe6e3f14f319198c5c18574ab9315b5dd7606d026db35fc2e9",
-    "cutoff": "2026-11-06"
+    "manifest_sha256": "f00ec00a0b42aeef1093e2974036d7d78b41bfb8e4ddd129ec245fe859a82736",
+    "cutoff": "2026-11-13"
   }
 }

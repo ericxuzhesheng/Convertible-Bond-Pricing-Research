@@ -45,6 +45,8 @@ $action = New-ScheduledTaskAction `
 # 注: -WakeToRun 是 switch 参数，默认即为关闭；写成 "-WakeToRun $false" 会导致参数绑定错误
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
+    -RestartCount 12 `
+    -RestartInterval (New-TimeSpan -Hours 1) `
     -RunOnlyIfNetworkAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Hours 6) `
     -AllowStartIfOnBatteries `

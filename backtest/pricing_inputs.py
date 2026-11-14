@@ -92,8 +92,10 @@ class PricingInputs:
             raise DataContractError("not listed on valuation date")
         values = {key: frame.at[date, code] if date in frame.index and code in frame else np.nan
                   for key, frame in self.frames.items()}
-        if not np.isfinite(list(values.values())).all() or min(values["market"], values["parity"], values["floor"]) <= 0:
-            raise DataContractError("missing observed market, parity, floor or volatility")
+        invalid = [key for key, value in values.items()
+                   if not np.isfinite(value) or (key != "volatility" and value <= 0)]
+        if invalid:
+            raise DataContractError("missing or invalid observed inputs: " + ", ".join(invalid))
         if values["volatility"] < 0 or pd.isna(row.conv_start_date) or pd.isna(row.maturity_date):
             raise DataContractError("invalid volatility or contractual dates")
         tenors, rates = self.observed_curve(date)

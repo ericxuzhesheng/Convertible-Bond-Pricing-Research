@@ -18,6 +18,8 @@ def test_local_task_schedule_and_runtime():
     assert '-DaysOfWeek Friday -At "16:30"' in setup
     assert '-WindowStyle Hidden' in setup
     assert '-StartWhenAvailable' in setup
+    assert '-RestartCount 12' in setup
+    assert '-RestartInterval (New-TimeSpan -Hours 1)' in setup
     assert '-MultipleInstances IgnoreNew' in setup
     assert 'set "PYTHON=%CB_PYTHON%"' in batch
     assert 'git add -u' not in batch
