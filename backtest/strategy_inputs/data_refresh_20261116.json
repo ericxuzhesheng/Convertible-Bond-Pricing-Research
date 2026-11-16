@@ -1,0 +1,24 @@
+{
+  "checked_on": "2026-11-16",
+  "validation": "passed",
+  "data_cutoff": "2026-11-16",
+  "daily_quote_count": 319,
+  "close_only_count": 5,
+  "pricing_cutoffs": {
+    "BS": "2026-11-13",
+    "ZL": "2026-11-13",
+    "LSM": "2026-11-13"
+  },
+  "universe_check": {
+    "as_of": "2026-11-16",
+    "new_bonds": [],
+    "new_bonds_with_quotes": [],
+    "newly_delisted": [],
+    "daily_quote_count": 319
+  },
+  "scope": "Daily data only; pricing, weekly research and frozen signals retained",
+  "source_limitations": [
+    "cb_call: 抱歉，您没有接口(cb_call)访问权限，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。",
+    "Coupon rate periods alone do not verify record/ex/payment dates; total return needs verified cashflow_events.csv"
+  ]
+}
