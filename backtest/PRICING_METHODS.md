@@ -184,9 +184,25 @@ CPU/GPU contractual cases and a 128-seed European sampling check accompany
 the nine-contract convergence diagnostic in `Pricing_CUDA_Validation.json`.
 The CPU-only GitHub weekly workflow remains supported.
 
+## CCB and ensemble
+
+The production CCB uses observed curves, cash flows and bond floors. It solves
+the continuous call-barrier problem on a log-price finite-difference grid.
+Call protection starts from the larger of one month and remaining time until
+conversion opens, and may be extended by a dated, publicly available issuer
+commitment. Date-only or after-close notices enter at the next trading session.
+Unresolved commitments are recorded in the pricing issues. The model uses zero
+dividend yield and omits holder puts and discretionary future resets.
+
+`python backtest/ccb_weekly.py` searches new announcement dates and prices only
+new weekly dates through the earliest verified BS, ZL, or LSM cutoff.
+The historical manifest verifies the as-of notice inputs and pricing exports.
+The production common sample starts in 2019. The independent CCB research archive
+additionally includes 2017 and 2018.
+
 ## Price diagnostics and ETF reference
 
-`Pricing_Metrics.csv` evaluates all three models on identical positive, finite
+`Pricing_Metrics.csv` evaluates the four models and their arithmetic mean on identical positive, finite
 bond-date cells. MSE is mean squared price deviation (yuan squared); RMSE and
 MAE are in yuan; MAPE is mean absolute percentage deviation; bias is model minus
 market price. R-squared uses the market-price mean as its constant baseline.

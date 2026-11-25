@@ -6,14 +6,15 @@ This file tells Codex how to navigate and work with this codebase.
 
 ## Project Purpose
 
-Absolute pricing research for Chinese A-share convertible bonds using three models:
+Absolute pricing research for Chinese A-share convertible bonds using four models:
 - **Black-Scholes (BS)**: closed-form, offensive anchor (equity/vol driven)
 - **ZL (project label)**: clause-stopping Monte Carlo policy baseline, defensive anchor
 - **Least-Squares Monte Carlo (LSM)**: vectorized continuation-value regression and voluntary early conversion
+- **CCB**: finite-difference pricing with observed curves and issuer-disclosed non-call protection
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
 
-Current verified local model cutoff: **2026-11-13**; daily strategy-input cutoff: **2026-11-13**. Factors, IC, strategies, 2026 weekly reports, figures and README were refreshed and validated on 2026-11-14 using the existing verified pricing baseline. Pricing and six-factor text tables dated **2026-08-28** are archived evidence, not results of the new weekly value strategy. Routine weekly work is strictly
+Current verified local model cutoff: **2026-11-20**; daily strategy-input cutoff: **2026-11-25**. The production ensemble equally weights BS, ZL, LSM and CCB on the shared weekly calendar from 2019. The standalone CCB archive also includes 2017 and 2018. Pricing and six-factor text tables dated **2026-08-28** are archived evidence. Routine weekly work is strictly
 incremental for market data and pricing. Recalculate derived factors, IC,
 strategies, figures and README on every weekly update using the verified pricing
 baseline. A full-history pricing rebuild requires an explicit maintainer request.
@@ -32,6 +33,7 @@ Convertible-Bond-Pricing-Research/
 │   ├── Z-L_backtest_GPU_prod.py       ← corrected clause-MC entrypoint (CPU)
 │   ├── Z-L_backtest_CPU_prod.py       ← GitHub CPU incremental entrypoint
 │   ├── LSM_backtest.py                 ← vectorized strict-incremental LSM driver
+│   ├── ccb_weekly.py                   ← incremental CCB and CNInfo notice update
 │   ├── lsm_backend.py                  ← batched quadratic Longstaff-Schwartz engine
 │   ├── Z-L_backtest_GPU.py            ← disabled legacy entrypoint
 │   ├── full_history_rebuild.py        ← fail-closed full-history rebuild
@@ -109,7 +111,7 @@ Scheduler. Each attempt retains the existing validation and publishing guards.
 Weekly acquisition checks observed pure-bond-value coverage before writing
 market caches, because provider valuation fields may arrive after closing quotes.
 
-The pipeline updates weekly inputs and volatility, runs independent BS/ZL/LSM
+The pipeline updates weekly inputs and volatility, runs independent BS/ZL/LSM/CCB
 incremental pricing, updates the index benchmark, then stages and validates
 factors, IC, strategies, reports, figures and README before publication.
 `publish_weekly_outputs.py` selects generated outputs, including new reports,
@@ -213,6 +215,13 @@ Use `long-short strategy/rebuild_weekly_reports_2026.py` and the separate
 research reports, not historical frozen signals. Original prospective frozen
 signals and confirmed tracking ledger prefixes remain protected during the
 separately authorized full derived-research recalculation.
+
+Four-model research reports are stored under `weekly_value_results_pricing_four_{year}`.
+Prospective four-model tracking uses `weekly_value_results/tracking_four_models`.
+CCB uses the earliest verified BS/ZL/LSM cutoff as its upper bound. It uses
+only notices available at each valuation date and validates the archived
+pricing and notice prefixes before appending new weeks. The research average
+requires all four valid prices.
 
 Pricing-only figures and `Pricing_Metrics.csv` use the identical valid bond-date
 sample across models. Compare the ETF with portfolio NAVs in the key strategy

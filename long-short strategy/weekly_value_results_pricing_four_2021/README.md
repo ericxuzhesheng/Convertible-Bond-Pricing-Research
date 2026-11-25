@@ -1,0 +1,59 @@
+# 2021年周报（四模型均价历史回顾）
+
+理论多空，无历史券源验证；历史强赎/ST覆盖不完整；初次抓取的财务历史不是原始发布版本。日净值为价格与已核验现金流的研究估计，尚未验证全部历史付息，不能称为完整总收益。
+
+研究估值采用 BS、ZL、LSM、CCB 等权均价。
+
+- [2021-01-01](weeks/2021-01-01.md)：historical_research
+- [2021-01-08](weeks/2021-01-08.md)：historical_research
+- [2021-01-15](weeks/2021-01-15.md)：historical_research
+- [2021-01-22](weeks/2021-01-22.md)：historical_research
+- [2021-01-29](weeks/2021-01-29.md)：historical_research
+- [2021-02-05](weeks/2021-02-05.md)：historical_research
+- [2021-02-12](weeks/2021-02-12.md)：historical_research
+- [2021-02-19](weeks/2021-02-19.md)：historical_research
+- [2021-02-26](weeks/2021-02-26.md)：historical_research
+- [2021-03-05](weeks/2021-03-05.md)：historical_research
+- [2021-03-12](weeks/2021-03-12.md)：historical_research
+- [2021-03-19](weeks/2021-03-19.md)：historical_research
+- [2021-03-26](weeks/2021-03-26.md)：historical_research
+- [2021-04-02](weeks/2021-04-02.md)：historical_research
+- [2021-04-09](weeks/2021-04-09.md)：historical_research
+- [2021-04-16](weeks/2021-04-16.md)：historical_research
+- [2021-04-23](weeks/2021-04-23.md)：historical_research
+- [2021-04-30](weeks/2021-04-30.md)：historical_research
+- [2021-05-07](weeks/2021-05-07.md)：historical_research
+- [2021-05-14](weeks/2021-05-14.md)：historical_research
+- [2021-05-21](weeks/2021-05-21.md)：historical_research
+- [2021-05-28](weeks/2021-05-28.md)：historical_research
+- [2021-06-04](weeks/2021-06-04.md)：historical_research
+- [2021-06-11](weeks/2021-06-11.md)：historical_research
+- [2021-06-18](weeks/2021-06-18.md)：historical_research
+- [2021-06-25](weeks/2021-06-25.md)：historical_research
+- [2021-07-02](weeks/2021-07-02.md)：historical_research
+- [2021-07-09](weeks/2021-07-09.md)：historical_research
+- [2021-07-16](weeks/2021-07-16.md)：historical_research
+- [2021-07-23](weeks/2021-07-23.md)：historical_research
+- [2021-07-30](weeks/2021-07-30.md)：historical_research
+- [2021-08-06](weeks/2021-08-06.md)：historical_research
+- [2021-08-13](weeks/2021-08-13.md)：historical_research
+- [2021-08-20](weeks/2021-08-20.md)：historical_research
+- [2021-08-27](weeks/2021-08-27.md)：historical_research
+- [2021-09-03](weeks/2021-09-03.md)：historical_research
+- [2021-09-10](weeks/2021-09-10.md)：historical_research
+- [2021-09-17](weeks/2021-09-17.md)：historical_research
+- [2021-09-24](weeks/2021-09-24.md)：historical_research
+- [2021-10-01](weeks/2021-10-01.md)：historical_research
+- [2021-10-08](weeks/2021-10-08.md)：historical_research
+- [2021-10-15](weeks/2021-10-15.md)：historical_research
+- [2021-10-22](weeks/2021-10-22.md)：historical_research
+- [2021-10-29](weeks/2021-10-29.md)：historical_research
+- [2021-11-05](weeks/2021-11-05.md)：historical_research
+- [2021-11-12](weeks/2021-11-12.md)：historical_research
+- [2021-11-19](weeks/2021-11-19.md)：historical_research
+- [2021-11-26](weeks/2021-11-26.md)：historical_research
+- [2021-12-03](weeks/2021-12-03.md)：historical_research
+- [2021-12-10](weeks/2021-12-10.md)：historical_research
+- [2021-12-17](weeks/2021-12-17.md)：historical_research
+- [2021-12-24](weeks/2021-12-24.md)：historical_research
+- [2021-12-31](weeks/2021-12-31.md)：historical_research

@@ -3,10 +3,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from pricing_backtest import RESEARCH_MODELS as MODELS, pricing_panel
 
 BASE=Path(__file__).resolve().parent
-MODELS=('BS','ZL','LSM')
-COLORS={'BS':'#c88b20','ZL':'#286da8','LSM':'#28846d','Market':'#343a40','ETF':'#b44d63'}
+COLORS={'BS':'#c88b20','ZL':'#286da8','LSM':'#28846d','CCB':'#9867a5',
+        'Mean':'#b44d63','Market':'#343a40','ETF':'#b44d63'}
 
 
 def common_sample(models,market):
@@ -56,7 +57,7 @@ def update_readme_metrics(path,metrics,weeks,minimum_coverage,latest_count,lates
     rows=''.join(f'| {r.model} | {r.n:,} | {r.mse:.2f} | {r.rmse:.2f} | {r.mae:.2f} | {r.mape_pct:.2f}% | {r.bias:+.2f} | {r.r_squared:.3f} |\n' for r in metrics.itertuples())
     for language in ['zh','en']:
         if language=='zh':
-            intro=f'## 定价结果\n\n三个模型使用相同的 **{first.n:,} 个有效券日、{weeks} 个观察周**。MSE 单位为元²，RMSE、MAE 和平均偏差为元，MAPE 为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **{minimum_coverage:.2f}%**，最新周 **{latest_count}/{latest_quoted}** 只。指标衡量模型与市场报价的偏离。\n\n'
+            intro=f'## 定价结果\n\n同样本比较覆盖 **{first.n:,} 个有效券日、{weeks} 个观察周**，均价为四个模型价格的算术平均。MSE 单位为元²，RMSE、MAE 和平均偏差为元，MAPE 为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **{minimum_coverage:.2f}%**，最新周 **{latest_count}/{latest_quoted}** 只。指标衡量模型与市场报价的偏离。\n\n'
             header='| 模型 | 样本数 | MSE | RMSE | MAE | MAPE | 平均偏差 | R² |\n'
         else:
             intro=f'## Pricing results\n\nAll models use the same **{first.n:,} valid bond-date cells over {weeks} observed weeks**. MSE is in yuan²; RMSE, MAE and bias are in yuan. Bias is model minus market price; R² uses the market-price mean as its constant baseline. Minimum weekly common coverage is **{minimum_coverage:.2f}%**, with **{latest_count}/{latest_quoted}** bonds in the latest week. These are market-price deviation diagnostics.\n\n'
@@ -73,8 +74,7 @@ def plot_pricing_diagnostics(base=BASE):
     base=Path(base)
     def read(name):
         return pd.read_csv(base/name,index_col=0,parse_dates=True,float_precision='round_trip')
-    models={m:read(f'{m}_Model_Prices.csv') for m in MODELS}
-    market=read('Market_Prices.csv')
+    models,market=pricing_panel(base)
     valid=common_sample(models,market)
     metrics=pricing_metrics(models,market)
     metrics.to_csv(base/'Pricing_Metrics.csv',index=False)
@@ -89,7 +89,7 @@ def plot_pricing_diagnostics(base=BASE):
     boxes=ax.boxplot(values,vert=False,tick_labels=MODELS,whis=(5,95),showfliers=False,patch_artist=True)
     for box,m in zip(boxes['boxes'],MODELS):box.set(facecolor=COLORS[m],alpha=.65)
     ax.axvline(0,color='#555',lw=.9)
-    ax.set(title='三模型定价偏差分布（相同有效券日样本）',xlabel='（理论价 - 市场价）/ 市场价（%）')
+    ax.set(title='四模型及其均价的定价偏差分布（相同有效券日样本）',xlabel='（理论价 - 市场价）/ 市场价（%）')
     fig.text(.5,.01,f'每模型 N = {int(valid.sum().sum()):,}；箱体为25–75分位，须线为5–95分位；所有有效样本参与统计。',ha='center',fontsize=9)
     fig.tight_layout(rect=(0,.05,1,1))
     save('Fig_Pricing_Deviation_Distribution.png')
@@ -99,11 +99,11 @@ def plot_pricing_diagnostics(base=BASE):
     fig,ax=plt.subplots(figsize=(11,3.5))
     bound=max(1.,float(np.abs(annual).max()))
     img=ax.imshow(annual,cmap='RdBu_r',vmin=-bound,vmax=bound,aspect='auto')
-    for i in range(3):
+    for i in range(len(MODELS)):
         for j in range(len(years)):
             ax.text(j,i,f'{annual[i,j]:+.1f}%',ha='center',va='center',color='white' if abs(annual[i,j])>bound*.6 else '#222')
     ax.set_xticks(range(len(years)),years)
-    ax.set_yticks(range(3),MODELS)
+    ax.set_yticks(range(len(MODELS)),MODELS)
     ax.set_title('年度平均相对定价偏差（券日等权）')
     ax.grid(False)
     fig.colorbar(img,ax=ax,label='偏差（%）')
@@ -116,7 +116,7 @@ def plot_pricing_diagnostics(base=BASE):
     coverage=count/quoted*100
     update_readme_metrics(base.parent/'README.md',metrics,len(market),float(coverage.min()),int(count.iloc[-1]),int(quoted.iloc[-1]))
     ax.plot(count.index,quoted,label='有市场报价',color='#777',ls='--')
-    ax.plot(count.index,count,label='三模型共同有效样本',color='#286da8')
+    ax.plot(count.index,count,label='四模型共同有效样本',color='#286da8')
     ax.set(ylabel='转债数量',title='有效样本覆盖与蒙特卡罗抽样误差')
     right=ax.twinx()
     right.plot(coverage.index,coverage,color='#9867a5',alpha=.65,label='共同有效覆盖率')

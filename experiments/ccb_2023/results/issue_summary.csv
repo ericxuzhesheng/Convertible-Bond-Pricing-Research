@@ -1,6 +1,7 @@
 reason,observations
 observed bond value exceeds the contractual risk-free value,313
-"missing observed market, parity, floor or volatility",105
+missing or invalid observed inputs: volatility,185
 no remaining contractual cash flows,58
+missing or invalid observed inputs: floor,40
+outside listed lifecycle,19
 contractual cash-flow fields are unavailable,5
-outside listed lifecycle,2

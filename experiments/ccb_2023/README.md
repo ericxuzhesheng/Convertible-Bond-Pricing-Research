@@ -1,12 +1,8 @@
 # CCB 2023：实际利率曲线扩展与同样本比较
 
-结果见 [基础报告](results/REPORT.md) 和 [2023版明确不赎回承诺补充](results_waivers_2023/REPORT.md)。独立研究目录；不会修改已有
-BS/ZL/LSM 定价、manifest、策略或冻结账本。覆盖2019-01-04至2026-10-23。
+本实验使用仓库最早可用的周度市场截面，估值区间为 2017-01-06 至 2026-11-20，共 506 周。四模型共同样本从 BS、ZL、LSM 最早可用的 2019-01-04 起算。结果见 [基础报告](results/REPORT.md) 和 [明确不赎回承诺补充](results_waivers_2023/REPORT.md)。
 
-最新状态（2026-10-29）：明确期限公告700份，剩余182份不填期限；2份取消旧稿已关联更新版并按可用日处理。
-本轮恢复284个券日，共同样本148,704个，补充承诺CCB的MAE为11.3459元、RMSE为30.8193元。
-18项公告测试通过，112个网格加密样本的最大差异0.0068元。
-`results/`是仍用于验证的基础对照，`review_20261029/*before*`是可复现复核影响所需的历史证据，均须保留。
+2017 和 2018 年补入 503 条中债国债观测。原始曲线通过 AkShare 的 `bond_china_yield` 按自然年提取，保留 1、3、5、7、10 年期，百分数除以 100 后保存。 [中债历史查询](https://yield.chinabond.com.cn/cbweb-pbc-web/pbc/historyQuery?startDate=2017-01-01&endDate=2017-12-31&gjqx=0&qxId=ycqx&locale=cn_ZH) · [定价输入](inputs/chinabond_yields_2017_2018.csv)
 
 ## 经济设定
 
@@ -44,50 +40,33 @@ BS/ZL/LSM 定价、manifest、策略或冻结账本。覆盖2019-01-04至2026-10
 实际转股截止早于兑付日时，把之后现金流折现到最后转股选择日。
 采用 Crank–Nicolson、事件后的两个隐式半步和精确事件节点，合并浮点精度内重复节点。
 
-## 运行
+## 更新与验证
 
-使用项目相同的 Python/pandas/numpy/scipy/numba 环境；取数还需 requests 和现有 Tushare 凭据。
-所有路径由脚本位置解析，可从仓库根目录运行：
+Windows 定时周更通过 `backtest/ccb_weekly.py` 增量更新生产 CCB，截止日取 BS、ZL、LSM 中最早的已验证截止日。生产 CCB 使用四模型自 2019 年开始的共同周度日历。以下独立研究命令重算自 2017 年开始的 CCB 专项估值和报告。
 
 ```powershell
-python -X utf8 experiments/ccb_2023/prepare_inputs.py --fetch
-python -X utf8 experiments/ccb_2023/supplement_floor.py
-python -X utf8 experiments/ccb_2023/diagnose_volatility.py
-python -X utf8 experiments/ccb_2023/validate.py
 python -X utf8 experiments/ccb_2023/run_history.py --workers 4
 python -X utf8 experiments/ccb_2023/summarize.py
 python -X utf8 experiments/ccb_2023/verify_results.py
-python -X utf8 -m pytest -q tests/test_ccb_2023.py
-```
-
-明确承诺补充在基础结果完成后独立运行：
-
-```powershell
 python -X utf8 experiments/ccb_2023/waiver_data.py --download
 python -X utf8 experiments/ccb_2023/waiver_terms.py
 python -X utf8 experiments/ccb_2023/run_waivers.py
 python -X utf8 experiments/ccb_2023/verify_waivers.py
-python -X utf8 -m pytest -q tests/test_ccb_waivers_2023.py
+python -X utf8 -m pytest -q tests/test_ccb_2023.py tests/test_ccb_waivers_2023.py
 ```
 
 2026-10-29对原194份待核文件的专项复核见
 [复核报告](results_waivers_2023/REVIEW_20261029.md)。`inputs/waivers/review_20261029/`
 保存原队列、原结果、逐项决定及支持材料。`waiver_terms.py`会校验原文和支持材料的时点后应用已复核记录；
-被替代的旧稿只有在更新版可用后才退出冲突判断。更新后的审计及影响报告可用以下命令复现：
+被替代的旧稿只有在更新版可用后才退出冲突判断。该次专项复核的数据与结论以存档为准。
 
-```powershell
-python -X utf8 experiments/ccb_2023/review_waivers.py
-python -X utf8 experiments/ccb_2023/review_waivers.py --report
-```
+2026-11-25 核对了贵广和佳禾的更正稿及历史待核公告。 [复核结果与原始资料](inputs/waivers/review_20261125/README.md)
 
 巨潮检索保留分页响应、原公告PDF和提取文字；期限表记录逐条来源、可用日期、
 证据及解析规则。当前最新公告期限未解决的观测从增强版共同样本中排除，
 基础CCB也在完全相同的样本上重新计算误差指标。未检索到公告不等于已确认没有承诺。
 
-取数脚本缓存响应并保留接口参数、获取时间和逐项修复记录；不补常数、不做历史插值。
-`prepare_inputs.py` 重新整理原始缺失，随后 `supplement_floor.py` 才添加独立来源。
-后者也可复用已有缓存。东方财富债底与Tushare方法不等价，单独标记；
-四模型比较程序拒绝混入独立债底补充样本。
+重查历史输入缺口时，可用 `prepare_inputs.py --fetch` 拉取 Tushare 数据，再用 `supplement_floor.py` 查询独立债底和 `diagnose_volatility.py` 核查停牌。取数需要 requests 和 Tushare 凭据，并保存接口参数、获取时点和修复明细。东方财富债底在 CCB 中单独标记，四模型共同样本限用已有生产债底。
 
 ## 文件
 

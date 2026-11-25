@@ -6,16 +6,17 @@ import numpy as np
 import pandas as pd
 
 from pricing_diagnostics import common_sample,update_readme_metrics
+from pricing_backtest import RESEARCH_MODELS as MODELS, pricing_panel
 
 BASE=Path(__file__).resolve().parent
 ROOT=BASE.parent
 FACTORS=ROOT/'mispricing factor'
 STRATEGY=ROOT/'long-short strategy/weekly_value_results/research'
-MODELS=('BS','ZL','LSM')
 LABELS={'liquidity':('流动性','Liquidity'),'volatility':('波动率','Volatility'),
     'price_volume':('量价相关性','Price-volume'),'valuation':('估值','Valuation'),
     'momentum':('动量','Momentum'),'bs_deviation':('定价偏差','Mispricing'),
-    'zl_deviation':('定价偏差','Mispricing'),'lsm_deviation':('定价偏差','Mispricing')}
+    'zl_deviation':('定价偏差','Mispricing'),'lsm_deviation':('定价偏差','Mispricing'),
+    'ccb_deviation':('定价偏差','Mispricing'),'mean_deviation':('均价偏差','Mean-price deviation')}
 REFERENCES=[
     ('郑振龙、林海（2004）— 中国可转换债券定价研究，厦门大学学报（哲学社会科学版）第2期，93–99页','中国可转换债券定价研究.pdf'),
     ('中国可转债定价模型比较研究','A%20Comparison%20of%20Chinese%20Convertible%20Bond%20Pricing%20Models.pdf'),
@@ -33,7 +34,7 @@ def table(headers,rows):
 
 def header(cutoff):
     date = pd.Timestamp(cutoff).strftime('%Y-%m-%d')
-    year = pd.Timestamp(cutoff).year
+    year = pd.Timestamp(cutoff).to_period('W-FRI').end_time.year
     badge_date = quote(date.replace('-', '--'))
     return f'''# 中国市场可转债定价模型研究 | Convertible Bond Pricing Research
 
@@ -45,14 +46,14 @@ def header(cutoff):
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/定价模型-BS%20%C2%B7%20ZL%20%C2%B7%20LSM-F2C94C?style=for-the-badge" alt="BS + ZL + LSM">
+  <img src="https://img.shields.io/badge/定价模型-BS%20%C2%B7%20ZL%20%C2%B7%20LSM%20%C2%B7%20CCB-F2C94C?style=for-the-badge" alt="BS + ZL + LSM + CCB">
   <img src="https://img.shields.io/badge/定价截止-{badge_date}-4CAF50?style=for-the-badge" alt="Pricing through {date}">
   <img src="https://img.shields.io/badge/研究频率-周度定价与策略-9B51E0?style=for-the-badge" alt="Weekly pricing and strategy">
 </p>
 
 <p align="center">
   <a href="summary/key_findings.md"><img src="https://img.shields.io/badge/研究摘要-阅读-2F73C9?style=for-the-badge" alt="研究摘要"></a>
-  <a href="long-short%20strategy/weekly_value_results_pricing_v2_{year}/README.md"><img src="https://img.shields.io/badge/{year}周报-查看-4CAF50?style=for-the-badge" alt="{year}周报"></a>
+  <a href="long-short%20strategy/weekly_value_results_pricing_four_{year}/README.md"><img src="https://img.shields.io/badge/{year}周报-查看-4CAF50?style=for-the-badge" alt="{year}周报"></a>
   <a href="report/README.md"><img src="https://img.shields.io/badge/研报索引-PDF-E84D3D?style=for-the-badge" alt="研报索引"></a>
 </p>
 
@@ -73,7 +74,7 @@ def research_tables(english):
         for row in summary.itertuples():
             ic.append([model,LABELS[row.factor][int(english)],int(row.periods),f'{row.mean_ic:.3f}',
                 f'{row.mean_rank_ic:.3f}',number(row.icir),number(row.rank_icir),f'{row.ic_positive_ratio:.1%}'])
-        dash={'BS':'B-S','ZL':'Z-L','LSM':'LSM'}[model]
+        dash={'BS':'B-S','ZL':'Z-L'}.get(model,model)
         metrics=pd.read_csv(FACTORS/f'{dash}_alpha_strategy_metrics.csv')
         chosen=metrics.loc[metrics['因子名称'].eq('六因子等权合成因子')].iloc[0]
         monthly.append([model,*[chosen[k] for k in ('年化超额收益率','夏普比率','最大回撤')]])
@@ -82,7 +83,9 @@ def research_tables(english):
     weekly=pd.read_csv(STRATEGY/'metrics.csv')
     rows=[[r.portfolio,number(r.annual_return,True),number(r.sharpe),number(r.max_drawdown,True)] for r in weekly.itertuples()]
     weekly_headers=['Portfolio','Annualized research return','Sharpe','Max drawdown'] if english else ['组合','年化研究收益','夏普','最大回撤']
-    return table(headers,ic),table(month_headers,monthly),table(weekly_headers,rows)
+    cutoff=weekly.period_end.iloc[0]
+    weekly_cutoff=f'Daily portfolio accounting through **{cutoff}**.' if english else f'组合日度核算截至 **{cutoff}**。'
+    return table(headers,ic),table(month_headers,monthly),weekly_cutoff+'\n\n'+table(weekly_headers,rows)
 
 
 def figures(english):
@@ -105,6 +108,12 @@ def figures(english):
     return '\n\n'.join(parts)
 
 
+def annual_reports():
+    reports = sorted((ROOT/'long-short strategy').glob('weekly_value_results_pricing_four_*/README.md'))
+    return ' · '.join(f'[{path.parent.name.rsplit("_",1)[-1]}]({quote(path.relative_to(ROOT).as_posix())})'
+                      for path in reports)
+
+
 def render(english):
     ic,monthly,weekly=research_tables(english)
     lang='en' if english else 'zh'
@@ -118,23 +127,41 @@ def render(english):
 
 ## Overview
 
-This project compares Black-Scholes (BS), clause-stopping Monte Carlo (ZL), and Least-Squares Monte Carlo (LSM) for Chinese convertible bonds. Pricing deviations, factor predictiveness and investable portfolio behaviour are evaluated separately.
+This project prices Chinese convertible bonds with Black-Scholes (BS), clause-stopping Monte Carlo (ZL), Least-Squares Monte Carlo (LSM) and CCB with issuer call protection. The four-model arithmetic mean is the main valuation signal for the factor and portfolio research.
 
 ## Pricing methods
 
-In the referenced research, CCB provides analytical pricing for a specified call-protection period. The independent [CCB 2023 experiment](experiments/ccb_2023/README.md) now uses observed yield curves and verified non-call commitments. CCBA's issuer-behaviour probability weighting has not been implemented.
+All four models independently read observed conversion value, volatility and government yields, along with the bond's coupon schedule, redemption amount and conversion dates. Each calibrates a nonnegative credit spread to the observed straight-bond value using the contractual cash flows. Cash payments are discounted with that spread and the government-rate proxy. Shares received on conversion are discounted at the government-rate proxy alone. Volatility uses up to 250 adjusted stock closes, with at least 60 required. Missing or inconsistent inputs are recorded by bond and date.
 
-All models read observed inputs independently. Contractual coupons, maturity payments, conversion dates and termination rules use the same conventions. Cash payments receive credit discounting; share conversion uses the government-rate proxy. Missing or inconsistent inputs remain excluded with recorded reasons.
+### Black–Scholes (BS)
 
-- **BS** values European conversion with actual conversion expiry and contractual cash value. Issuer call and holder put options are outside this baseline.
-- **ZL** simulates observed clause counters, conversion boundaries and cash flows. Calling after a qualifying trigger with a 30-observation notice period is a disclosed policy assumption. Future discretionary resets and unverified waivers are not invented.
-- **LSM** adds voluntary early conversion and optional puts using continuation regression. It uses 8,192 training paths and another 8,192 independent valuation paths, antithetic sampling and 192 base exercise intervals with contractual boundaries. It does not read ZL prices or impose a ZL floor.
+BS is the closed-form European conversion benchmark. It carries the observed conversion value to the last permitted conversion date under a risk-neutral lognormal process. On that date the holder chooses between converting into shares and retaining the remaining contractual cash flows. The model values those cash flows at the decision date, including any later redemption payment. Coupons paid before the last conversion date are discounted separately.
 
-### Independent CCB 2023 experiment (2026-10-29)
+Conversion value and stock volatility drive the option component. The model's single exercise date and omission of issuer calls and holder puts make it a benchmark for the equity exposure of the bond. The valuation uses the actual contractual cash alternative as the exercise threshold, and the final coupon already included in the redemption amount is counted once.
 
-The experiment covers 2019-01-04 through 2026-10-23 and now includes 700 notices with explicit protection periods. Reviewing the previous 194-item queue resolved seven periods, classified three informational notices and linked two superseded drafts to their replacements; 182 periods remain unfilled. This restores 284 bond-date observations and expands the common sample with saved BS/ZL/LSM prices to **148,704 observations, 974 bonds and 400 weeks**.
+### Clause-stopping Monte Carlo (ZL)
 
-On that common sample, CCB with explicit commitments has **MAE 11.3459 yuan and RMSE 30.8193 yuan**. All 18 announcement tests pass; 112 refined-grid checks have a maximum difference of 0.0068 yuan, below the 0.05-yuan numerical tolerance. Prices on the previous common sample are unchanged: this review increases coverage. See the [comparison report](experiments/ccb_2023/results_waivers_2023/REPORT.md) and [notice audit](experiments/ccb_2023/results_waivers_2023/REVIEW_20261029.md). CCB remains independent of production strategies; the three-model production metrics below retain their original sample.
+ZL simulates 10,000 risk-neutral paths for conversion value. Each path starts from the call and put counters observed on the valuation date. A call can qualify once conversion opens and the contractual rolling count reaches its threshold. A price-triggered put requires the applicable contract window and consecutive observations below the put threshold.
+
+The issuer is assumed to call after the qualifying trigger, with a notice period of 30 simulated trading observations. The holder is assumed to take a qualifying put. The model evaluates conversion through the last permitted conversion date and stops future coupons when the contract terminates. The result is a valuation under a specified exercise policy. Future discretionary conversion-price resets and unverified non-call commitments fall outside that policy.
+
+### Least-Squares Monte Carlo (LSM)
+
+LSM uses the contractual path rules and estimates whether a holder should convert early, exercise an available put or continue holding. Working backward through exercise dates, it regresses future discounted cash flows on conversion value, its square, the call and put counters, and the time left in any call notice. It compares that continuation estimate with the value of each permitted immediate action.
+
+The production model uses 8,192 antithetic training paths to fit the policy and another 8,192 independent valuation paths to price it. Its 192 base exercise intervals are supplemented with contractual boundaries and coupon observations. Each valuation comes from this fitted policy and the bond's cash flows. Reported Monte Carlo standard errors measure sampling uncertainty conditional on that policy.
+
+### CCB with issuer call protection
+
+CCB starts with a call-protection period based on the remaining time before conversion opens and a one-month minimum. When a dated issuer commitment to refrain from calling was public by the valuation close, the remaining commitment period can extend that protection. Date-only and after-close disclosures enter on the next trading session. A latest decision whose period remains unresolved leaves the corresponding CCB price missing.
+
+Once protection ends, the observed contractual call threshold becomes a continuously monitored barrier. Crossing it ends the cash-flow stream and delivers shares. The model uses the observed government yield curve and contractual cash flows in a finite-difference solution, with grid refinement checks before publication. Its holder-put and future reset assumptions follow the 2023 model; the result omits both features.
+
+### Four-model mean
+
+The mean weights BS, ZL, LSM and CCB at 25% each. A bond-date requires four positive finite prices and an identical observed market quote. The four-model comparison and strategy history begin at the first shared weekly valuation in 2019.
+
+[Detailed pricing methods and numerical checks](backtest/PRICING_METHODS.md)
 
 {pricing}
 
@@ -148,7 +175,7 @@ Five observed factors accompany each model's valuation gap: liquidity, volatilit
 
 ## Portfolio rules and results
 
-The weekly value strategy averages the three model prices, selects at most the highest eligible quintile and requires a 2% valuation margin after round-trip friction. One-way friction is 5bp; each long is capped at 10%, with unused capital in cash. Frozen valuation limits are checked again at the next session's open. Daily accounting includes observed executions, transaction costs, a 3% annual short-borrow assumption and explicitly recorded stale or unexplained marks.
+The weekly value strategy ranks the four-model mean relative to the same-day close. It selects at most the highest eligible quintile and requires a 2% valuation margin after round-trip friction. One-way friction is 5bp. Each long is capped at 10%, with unused capital in cash. Frozen valuation limits are checked again at the next session's open. Daily accounting includes observed executions, transaction costs, a 3% annual short-borrow assumption and explicitly recorded stale or unexplained marks.
 
 {weekly}
 
@@ -164,7 +191,9 @@ The monthly six-factor portfolios rank equal-weight standardized factors and hol
 
 ## Updates and reproducibility
 
-Every weekly update runs market inputs, independent BS/ZL/LSM pricing, observed factors, IC, strategy accounting, annual weekly reports, figures and this README before publication. Annual reports are generated and checked in staging, then committed and pushed together, including newly created weeks. Any failed stage stops publication. Pricing appends only verified new weeks; factor and portfolio outputs are recalculated against the same pricing baseline. Input fingerprints and artifact manifests detect changed data and model prices even when the cutoff is unchanged. Git preserves replaced results.
+Weekly research archives {annual_reports()}
+
+Every weekly update runs market inputs, independent BS/ZL/LSM/CCB pricing, observed factors, IC, strategy accounting, annual weekly reports, figures and this README before publication. Pricing appends verified new weeks. CCB searches for new issuer notices before valuing new weeks, and factor and portfolio research are recalculated against the resulting four-model baseline. Any failed stage stops publication.
 
 ```powershell
 python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote
@@ -187,23 +216,41 @@ Market deviations are not errors against known fair value. Issuer behaviour, div
 
 ## 项目概述
 
-本项目比较中国可转债的 Black-Scholes（BS）、条款停止蒙特卡洛（ZL）和最小二乘蒙特卡洛（LSM）定价，并分别检验定价偏差、因子预测能力和组合表现。定价更贴近市场报价，并不直接意味着策略收益更高。
+本项目使用 Black-Scholes（BS）、条款停止蒙特卡洛（ZL）、最小二乘蒙特卡洛（LSM）和含不赎回保护期的 CCB 为中国可转债定价。四模型算术平均是因子检验和组合研究的主要估值信号。
 
 ## 定价方法
 
-文献中的 CCB 在给定不赎回保护期下进行解析定价。本项目已完成独立的[CCB 2023实验](experiments/ccb_2023/README.md)，使用实际利率曲线并纳入可核实的不赎回承诺；CCBA的发行人行为概率加权尚未实施。
+四个模型各自读取估值日观测到的转股价值、正股波动率和国债利率，以及合同票息、到期兑付金额和转股起止日。信用利差用合同现金流与观测债底校准。现金支付按国债利率代理加信用利差折现，转股取得的股票按国债利率代理折现。波动率采用最多 250 个、至少 60 个复权收盘价估算。缺失或不一致的输入按债券和估值日记录。
 
-三个模型独立读取真实观测输入，统一使用合同票息、到期支付、转股日期和条款终止规则。现金支付考虑信用折现，转股支付使用国债利率代理。缺失或不一致输入保留排除原因。
+### Black–Scholes（BS）
 
-- **BS** 使用真实转股到期日和剩余合同现金价值计算欧式转股基准，不显式处理发行人赎回与持有人回售。
-- **ZL** 模拟真实条款计数、转股边界与存续现金流。触发后赎回及 30 个模拟交易观察日的通知期是明确的政策假设；不编造未来下修或未核实的不赎回承诺。
-- **LSM** 通过继续价值回归加入自愿提前转股与回售选择，使用 8,192 条训练路径和另 8,192 条独立估值路径、对偶抽样及 192 个基础行权区间，并加入合同边界。不读取 ZL 价格，也不使用 ZL 估值下限。
+BS 给出欧式转股的解析估值。模型在风险中性对数正态假设下计算转股价值到实际最后转股日的分布。持有人在这一天比较转股所得和继续持有剩余合同现金流的价值，后续到期兑付款先折现到该决策日。最后转股日之前的票息单独折现。
 
-### 独立CCB 2023实验（2026-10-29）
+转股价值和正股波动率是期权部分的主要驱动。模型只在最后转股日评估转股选择，省略发行人提前赎回和持有人回售，用于观察权益敞口对转债估值的影响。行权门槛取自合同现金流，已计入到期兑付款的末期票息只算一次。
 
-覆盖2019-01-04至2026-10-23。最新公告复核后，共有700份明确期限公告；原194份待核文件中，7份补出期限、3份确认为信息性文件、2份关联更新版，182份仍不猜填。恢复284个券日，CCB与已有BS/ZL/LSM的共同样本增至**148,704个券日、974只债券、400周**。
+### 条款停止蒙特卡洛（ZL）
 
-该共同样本上，加入明确承诺的CCB **MAE为11.3459元、RMSE为30.8193元**。18项公告测试通过，112个网格加密样本最大差异0.0068元，低于0.05元数值容差。原共同样本的价格保持不变，本次改善的是覆盖范围。见[同样本比较报告](experiments/ccb_2023/results_waivers_2023/REPORT.md)和[逐项公告复核](experiments/ccb_2023/results_waivers_2023/REVIEW_20261029.md)。CCB保留在独立研究目录，未接入生产策略；下方三模型生产指标仍使用各自原定样本。
+ZL 在风险中性假设下模拟 10,000 条转股价值路径，并用估值日前已观测到的条款计数初始化。进入转股期后，模型在合同滚动窗口内累计达到赎回阈值的观察日。价格触发型回售则按合同规定的适用期间和连续低于回售阈值的天数判断。
+
+估值假定发行人在达到触发条件后赎回，设置 30 个模拟交易观察日的通知期，并假定持有人在满足条件时回售。模型保留实际最后转股日的选择权，合约终止后停止计入后续票息。这个价格反映给定条款和行权规则下的现金流价值，未来酌情下修和未核实的不赎回承诺未纳入该规则。
+
+### 最小二乘蒙特卡洛（LSM）
+
+LSM 在合同路径规则下评估持有人何时主动转股、行使已满足条件的回售权，或继续持有。模型从到期向前回溯，用转股价值及其平方、赎回和回售计数、赎回通知剩余时间回归未来折现现金流，再将估计的继续持有价值与各项可行的即时行权价值比较。
+
+生产设定以 8,192 条对偶训练路径拟合行权规则，再用另 8,192 条独立估值路径计算价格。192 个基础行权区间之外还加入合同边界和票息观测点。估值由拟合的行权规则和本券现金流得出。报告中的蒙特卡洛标准误衡量给定行权规则后的抽样不确定性。
+
+### 含不赎回保护期的可转债模型（CCB）
+
+CCB 先确定保护期，取距转股开始日的剩余期限和一个月下限中的较大值。估值日收盘时已经公开、能够确定有效期限的不赎回承诺，可以延长保护期。只有日期或在盘后发布的公告从下一交易日纳入，最新公告期限仍待核实时，该券日的 CCB 估值留空。
+
+保护期结束后，以合同赎回价格阈值作为连续监控的障碍。平价触碰阈值时停止后续现金流并转股。模型使用真实国债期限曲线、合同现金流和观察债底，通过有限差分求解价值，周更对新增样本做网格加密检查。估值沿用 2023 版 CCB 的经济设定，省略持有人回售和未来酌情下修。
+
+### 四模型均价
+
+BS、ZL、LSM、CCB 各占 25%。同一券日需有四个正且有限的估值，并与同一市场报价对齐，才能计算均价。共同回测从 2019 年首个四模型周度截面起算。
+
+[定价方法与数值验证](backtest/PRICING_METHODS.md)
 
 {pricing}
 
@@ -217,7 +264,7 @@ Market deviations are not errors against known fair value. Issuer behaviour, div
 
 ## 组合规则与结果
 
-周度均价策略使用三模型理论价的算术平均，在风险合格池中最多选取前 20%，要求扣除往返成本后的估值余量至少为 2%。单边综合摩擦 5bp，单券最多 10%，未使用资金保留现金；下一交易日开盘重新检查冻结估值给出的买入上限。每日核算实际模拟成交、费用、按年化 3% 假设计提的借券成本，以及有记录的陈旧或无法解释估值。
+周度策略按四模型均价相对当日收盘价的估值余量排名，在风险合格池中最多选取前 20%，要求扣除往返成本后的估值余量至少为 2%。单边综合摩擦 5bp，单券最多 10%，未使用资金保留现金。下一交易日开盘重新检查冻结估值给出的买入上限。账户按日核算模拟成交、费用、年化 3% 的假设借券成本和有记录的陈旧估值。
 
 {weekly}
 
@@ -233,7 +280,9 @@ Market deviations are not errors against known fair value. Issuer behaviour, div
 
 ## 更新与复现
 
-每次周更新依次执行行情输入、三模型独立定价、观测因子、IC、策略核算、年度逐周报告、图表和 README，任一步失败即停止发布。周报在暂存目录生成并校验后，与其他结果一起提交和推送，新增周报也纳入提交。定价只追加已验证边界之后的交易周，因子与组合结果按同一套定价输入重新计算。输入指纹和产物 Manifest 会识别相同截止日下的数据或定价变更，替换前的结果由 Git 保留。
+历年研究周报 {annual_reports()}
+
+每次周更新依次执行行情输入、四模型独立定价、观测因子、IC、策略核算、年度逐周报告、图表和 README。定价只追加已验证边界之后的交易周。CCB 先增量检索发行人公告，再为新增交易周估值，因子与组合研究按同一套定价结果重新计算。任一步失败即停止发布。
 
 ```powershell
 python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote
@@ -251,10 +300,37 @@ python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --pr
     return text+'\n## '+('References' if english else '参考资料')+'\n\n'+refs+'\n'
 
 
+def refresh_summary(metrics, weeks):
+    path = ROOT/'summary/key_findings.md'
+    title, _, body = path.read_text(encoding='utf-8').partition('\n')
+    start = '<!-- four-model-summary:start -->'
+    end = '<!-- four-model-summary:end -->'
+    if start in body:
+        _, _, body = body.partition(end)
+    else:
+        body = '\n\n## 历史研究档案 | Historical Research Archive\n'+body
+    mean = metrics.set_index('model').loc['Mean']
+    weekly = pd.read_csv(STRATEGY/'metrics.csv')
+    rows = [[r.portfolio, number(r.annual_return, True), number(r.sharpe), number(r.max_drawdown, True)]
+            for r in weekly.itertuples()]
+    results = table(['组合 / Portfolio','年化研究收益 / Annualized estimate','夏普 / Sharpe','最大回撤 / Max drawdown'], rows)
+    block = f"""{start}
+## 四模型均价研究 | Four-Model Mean
+
+定价共同样本覆盖 {mean.start} 至 {mean.end} 的 {weeks} 周，共 {mean.n:,} 个券日。BS、ZL、LSM 和 CCB 各占 25%，均价相对市场的 MAE 为 {mean.mae:.2f} 元，RMSE 为 {mean.rmse:.2f} 元。
+
+The four-model arithmetic mean uses the same {mean.n:,} observations over {weeks} weeks. The table reports daily-accounted research results.
+
+{results}
+
+周度研究使用下一交易日开盘复核和交易成本，历史付息与理论空头券源仍有缺口。 [定价、因子及策略结果](../README.md)
+{end}"""
+    path.write_text(f'{title}\n\n{block}{body}', encoding='utf-8')
+
+
 def main():
     metrics=pd.read_csv(BASE/'Pricing_Metrics.csv')
-    market=pd.read_csv(BASE/'Market_Prices.csv',index_col=0,parse_dates=True)
-    models={model:pd.read_csv(BASE/f'{model}_Model_Prices.csv',index_col=0,parse_dates=True) for model in MODELS}
+    models,market=pricing_panel(BASE)
     valid=common_sample(models,market)
     if set(metrics.model)!=set(MODELS) or not metrics.n.eq(int(valid.sum().sum())).all():
         raise ValueError('Pricing metrics do not match the current common sample')
@@ -264,6 +340,7 @@ def main():
     text=header(market.index.max())+render(False)+'\n---\n\n'+render(True)
     path.write_text(text,encoding='utf-8')
     update_readme_metrics(path,metrics,len(market),float(coverage.min()),int(valid.iloc[-1].sum()),int(quoted.iloc[-1]))
+    refresh_summary(metrics, len(market))
     print('README refreshed from current pricing, factor and strategy outputs')
 
 

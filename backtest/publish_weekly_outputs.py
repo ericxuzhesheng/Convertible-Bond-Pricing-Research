@@ -6,9 +6,9 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 PATTERNS = (
-    'README.md', 'backtest/cb_*.csv', 'backtest/rf_yield_cache.csv',
+    'README.md', 'summary/key_findings.md', 'backtest/cb_*.csv', 'backtest/rf_yield_cache.csv',
     'backtest/bs_volatility_cache.csv', 'backtest/BS_*.csv',
-    'backtest/ZL_*.csv', 'backtest/LSM_*.csv', 'backtest/Market_Prices.csv',
+    'backtest/ZL_*.csv', 'backtest/LSM_*.csv', 'backtest/CCB_*.csv', 'backtest/Market_Prices.csv',
     'backtest/Pricing_Metrics.csv', 'backtest/ETF_511380_Daily.csv',
     'backtest/*_Model_Manifest.json',
     'backtest/*_Model_Summary.xlsx', 'backtest/Research_Migration.json',
@@ -20,6 +20,15 @@ PATTERNS = (
     'long-short strategy/weekly_value_results/*',
     'long-short strategy/weekly_results/*',
     'long-short strategy/weekly_value_results_pricing_v2_*/*',
+    'long-short strategy/weekly_value_results_pricing_four_*/*',
+    'experiments/ccb_2023/inputs/waivers/announcement_index.csv',
+    'experiments/ccb_2023/inputs/waivers/downloads.csv',
+    'experiments/ccb_2023/inputs/waivers/search_coverage.csv',
+    'experiments/ccb_2023/inputs/waivers/terms.csv',
+    'experiments/ccb_2023/inputs/waivers/review_queue.csv',
+    'experiments/ccb_2023/inputs/waivers/index/*.json',
+    'experiments/ccb_2023/inputs/waivers/pdf/*.pdf',
+    'experiments/ccb_2023/inputs/waivers/text/*.txt',
 )
 
 

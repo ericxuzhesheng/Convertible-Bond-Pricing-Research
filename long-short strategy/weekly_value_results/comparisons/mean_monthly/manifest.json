@@ -1,19 +1,20 @@
 {
-  "engine_revision": 2,
+  "engine_revision": 4,
   "input_vintage": {
-    "daily": "2026-11-14T16:47:07.234901+08:00",
+    "daily": "2026-11-25T21:51:44.230801+08:00",
     "pricing": {
-      "BS": "62a2785566a462ddc417d06b8bff5dd1ce44aa8a9b7700989f52d6c1c2b9c80d",
-      "ZL": "9ae99d34c7423d532c64b11a95d008ddc3a3a50a0dd29bfc062db4126e1518b4",
-      "LSM": "e05514abf06d5de9fbd938ef6140743543fd81fa303bc29d950840d1783105c3"
+      "BS": "d5f947ee0f80db9784e9a2ed27e2fa15b0d295d4dd59bc8e3d33748f0077577c",
+      "ZL": "e65b5b890e6e8961e0dc35d704641ccfa5aebecb064336b1faef638e22726d30",
+      "LSM": "c50904ab173d770bf0b4dc4a8ec74dcdaaa4a7bcf4b7888f20e54996c7a34dc8",
+      "CCB": "2c5dc40f61f332c5d55803484fd2f44ace7c29cbd53358703a7d0c319f9f6e8f"
     },
-    "events": "2026-11-14T16:47:07.247448+08:00",
+    "events": "2026-11-25T21:53:18.860645+08:00",
     "event_normalization": 2,
-    "cashflows": 1789192757387214700,
-    "suspensions": 1789192757384214200
+    "cashflows": 1795592556878516900,
+    "suspensions": 1795592557123693700
   },
   "specification": {
-    "method": "weekly-value-v1",
+    "method": "weekly-value-four-model-v2",
     "config": {
       "model": "mean",
       "frequency": "monthly",
@@ -29,8 +30,8 @@
     "start": "2019-01-25",
     "mode": "both"
   },
-  "input_cutoff": "2026-11-13",
-  "requested_end": "2026-11-13",
+  "input_cutoff": "2026-11-25",
+  "requested_end": "2026-11-25",
   "last_signal": "2026-10-30",
   "total_return_certified": false,
   "limitations": [

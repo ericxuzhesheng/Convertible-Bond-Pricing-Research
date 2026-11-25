@@ -2,8 +2,8 @@
   "model": "ZL",
   "methodology_version": 1,
   "last_rebalance_date": "2026-10-30",
-  "last_return_date": "2026-11-13",
-  "history_sha256": "8278cab343a8017dbec78cdcfe9e989471e97b4688d748ca9e23a7b44b85c666",
+  "last_return_date": "2026-11-20",
+  "history_sha256": "e8e639173c53465b320eb1ec699fec22fb4aafd65a0cffde7c6eb7cceb9f27f8",
   "historical_columns": [
     "110030.SH",
     "110031.SH",
@@ -448,6 +448,7 @@
     "118075.SH",
     "118076.SH",
     "118077.SH",
+    "118078.SH",
     "123001.SZ",
     "123002.SZ",
     "123003.SZ",
@@ -995,5 +996,5 @@
     "128144.SZ",
     "128145.SZ"
   ],
-  "historical_input_fingerprint": "f3b2a40f1f9ea5d545bf61eb79cfe871afeae00d6beeade0dbf4b7a0443f4bee"
+  "historical_input_fingerprint": "c9204073e9d4ec3e000639cd6ca59ed534d4b5895dfc74e9e6325a0460f53cdb"
 }

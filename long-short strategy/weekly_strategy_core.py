@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-MODELS = ("BS", "ZL", "LSM")
+from pricing_backtest import MODELS, paths_for
 FINANCIAL = ("bps", "eps", "profit_dedt", "roe", "debt_to_assets", "ocfps")
 
 def timestamp(value):
@@ -160,8 +160,8 @@ class Inputs:
         if completed.empty:
             raise ValueError("No completed market week in daily acquisition")
         self.model = {m: read_matrix(self.base / f"{m}_Model_Prices.csv") for m in MODELS}
-        self.model_market = {m: read_matrix(self.base / f).apply(pd.to_numeric, errors="coerce")
-            for m, f in zip(MODELS, ["Market_Prices.csv", "ZL_Market_Prices.csv", "LSM_Market_Prices.csv"])}
+        self.model_market = {m: read_matrix(paths_for(self.base, m)["market"]).apply(pd.to_numeric, errors="coerce")
+            for m in MODELS}
         for model in MODELS:
             if not self.model[model].index.equals(self.model_market[model].index):
                 raise ValueError(f"{model}: model and market date axes differ")
@@ -296,7 +296,7 @@ def build_ranking(data, date, config):
         market_ok &= np.isclose(quoted, price, rtol=1e-8, atol=1e-6, equal_nan=False)
     daily_close = data.bars["close"].loc[date].reindex(out.index)
     market_ok &= np.isclose(daily_close, price, rtol=1e-8, atol=1e-6, equal_nan=False)
-    out["average_price"] = out[list(MODELS)].mean(axis=1, skipna=False)
+    out["average_price"] = out[list(MODELS)].mean(axis=1, skipna=False).where(model_ok & market_ok)
     fair = out.average_price if config.model == "mean" else out[config.model]
     out["signal"] = fair / price - 1
     out["mean_upside"] = out.average_price / price - 1
@@ -322,7 +322,7 @@ def build_ranking(data, date, config):
     delisting = data.basic.delist_date.map(timestamp).reindex(out.index)
     conditions = {
         "finite_risk_inputs": np.isfinite(out[["floor", "term", "balance"]]).all(axis=1),
-        "three_models_present": model_ok,
+        "four_models_present": model_ok,
         "market_prices_match": market_ok,
         "rating_at_least_AA": out.rating.astype(str).str.strip().isin(["AAA", "AA+", "AA"]),
         "price_at_most_150": price.le(150),
@@ -436,8 +436,9 @@ def simulate(bars, calendar, targets, *, config, mode, cashflows=None, alert_fn=
                         raise ValueError("Redemption entitlement differs from extinguished holding")
                     units.pop(row.ts_code, None)
                     forced.discard(row.ts_code)
-                    trades.append({"date": date, "code": row.ts_code, "quantity": -quantity,
-                        "price": row.amount_per_bond, "cost": 0., "reason": "verified_redemption", "status": "settled_to_receivable"})
+                    if quantity:
+                        trades.append({"date": date, "code": row.ts_code, "quantity": -quantity,
+                            "price": row.amount_per_bond, "cost": 0., "reason": "verified_redemption", "status": "settled_to_receivable"})
             if row.payment_date == date:
                 cash += receivables.pop(row.event_id, 0.)
         open_prices = bars["open"].loc[date]

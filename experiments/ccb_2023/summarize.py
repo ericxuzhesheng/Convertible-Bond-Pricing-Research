@@ -46,12 +46,11 @@ def main():
         row.update({r.model:float(r.RMSE) for r in g.itertuples()});rows.append(row)
     issue_counts=issues.groupby('reason').size().rename('observations').reset_index().sort_values('observations',ascending=False)
     issue_counts.to_csv(OUT/'issue_summary.csv',index=False)
-    recent=yearly.loc[yearly.year.eq(yearly.year.max())].set_index('model')
     text=f'''# 基础 CCB 与 BS / ZL / LSM 同样本比较
 
-估值区间：2019-01-04 至 {m['cutoff']}，{m['weeks']} 个周度截面。
-CCB 共得到 {m['prices']:,} 条价格；四模型共同有效样本 {m['common_sample']:,} 条、{m['common_bonds']} 只债。
-本次只做定价与市场报价的比较，不是策略收益回测。未重算、覆盖或发布现有 BS/ZL/LSM 基线。
+基础 CCB 的估值区间为 {m['start']} 至 {m['cutoff']}，共 {m['weeks']} 个周度截面、{m['prices']:,} 条价格。
+四模型共同样本有 {m['common_sample']:,} 个券日、{m['common_bonds']} 只债券，覆盖 {common.date.min()} 至 {common.date.max()} 的 {m['common_weeks']} 个周度截面。
+2017 和 2018 年的估值采用[中债国债收益率曲线历史观测](../inputs/chinabond_yields_2017_2018.csv)。共同样本从 BS、ZL、LSM 最早的可用估值日开始。
 
 ## 全样本结果
 
@@ -61,9 +60,6 @@ MAE、RMSE、bias、绝对误差中位数单位为元/张；MAPE 为百分数；
 同一行券日必须同时有四个正的有限模型价格及市场报价，且已有三模型的市场报价与输入一致。
 所有模型采用完全相同的样本、每个券日等权，没有按单个模型另选样本。
 上述指标衡量与市场价格的偏离，不能证明谁的真实公允价值更准确。
-全期 CCB 的 MAE 低于 BS、ZL，高于 LSM；RMSE 略高于 BS 和 LSM。
-但最新2026年样本中，CCB 的 RMSE 为 {recent.at['CCB','RMSE']:.2f} 元，BS 为 {recent.at['BS','RMSE']:.2f} 元，
-CCB 并未在最新年份取得更好的市场拟合。不能用全期平均代替逐年结论。
 
 ## 年度 RMSE
 
@@ -96,12 +92,12 @@ CCB 并未在最新年份取得更好的市场拟合。不能用全期平均代�
 
 ## 补数及剩余缺口
 
-- 本次已上市且有报价样本原有基础缺失：{len(before)} 个字段单元（债底{int(before.field.eq('floor').sum())}、波动率{int(before.field.eq('volatility').sum())}；同一券日可能同时缺两项。
+- 2026-10-29 保存的补数审计记录了 {len(before)} 个基础字段缺失，其中债底 {int(before.field.eq('floor').sum())} 个，波动率 {int(before.field.eq('volatility').sum())} 个。同一券日可能同时缺两项。
 - Tushare 缺失债底重新查询后仍未返回；从东方财富历史数据取得并通过同日平价核对的独立债底 {len(repairs)} 条，全部有来源记录。
 - 这些东方财富值不是同口径 Tushare 债底，只用于补充 CCB 研究覆盖；程序断言四模型共同样本不包含这些来源替换。
-- 剩余字段单元 {len(after)} 个：债底{int(after.field.eq('floor').sum())}、波动率{int(after.field.eq('volatility').sum())}。
+- 当轮剩余字段缺失 {len(after)} 个，其中债底 {int(after.field.eq('floor').sum())} 个，波动率 {int(after.field.eq('volatility').sum())} 个。
 - 波动率缺口中 {int(vols.full_day_suspension.sum())}/{len(vols)} 条对应正股全天停牌，保留缺失。停牌证据来自 [Tushare suspend_d](https://tushare.pro/document/2?doc_id=214)，未用假报价或常数波动率填平。
-- 缺失字段数量不等于模型排除数量；部分补入债底仍可能不满足现金流一致性检查。以下按模型实际退出原因计数。
+- 下表统计当前全历史报价样本的排除原因。部分补入债底仍可能不满足现金流一致性检查。
 
 {table(issue_counts,['reason','observations'])}
 
@@ -115,7 +111,7 @@ CCB 并未在最新年份取得更好的市场拟合。不能用全期平均代�
 - [总体指标](comparison_overall.csv)、[年度指标](comparison_by_year.csv)、[按平价分组](comparison_by_parity.csv)
 - [周度覆盖率](coverage.csv)、[逐券排除原因](pricing_issues.csv)、[运行记录](manifest.json)
 - `../inputs/snapshot/` 保存本次实际使用的周度输入、合同信息、曲线和三模型来源 manifest。
-- 三模型来源提交：`{m['source_commit']}`。原有 manifest 的工作簿和CSV完整性校验已通过。
+- 运行时 Git HEAD 为 `{m['source_commit']}`。工作区三模型产物的具体版本记录在快照中的来源 manifest。
 '''
     (OUT/'REPORT.md').write_text(text,encoding='utf-8')
     print('Report and chart generated:',OUT/'REPORT.md')

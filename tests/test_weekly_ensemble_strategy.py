@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/"backtest"))
 sys.path.insert(0, str(ROOT/"long-short strategy"))
 from strategy_data import SourceError, validate_daily, merge_financial_versions, download_daily
+from pricing_backtest import MODELS, paths_for
 from weekly_strategy_core import (Config, prepare_financial, financial_asof, next_session,
     select_targets, simulate, validate_cashflows, performance, build_ranking, Inputs)
 from weekly_ensemble_strategy import certify_append
@@ -141,14 +142,15 @@ def test_short_coupon_is_a_liability():
 
 def test_redemption_extinguishes_quantity_once():
     d = pd.to_datetime(["2024-01-05","2024-01-08","2024-01-09","2024-01-10"])
-    event = pd.DataFrame([dict(event_id="R",ts_code="A",kind="redemption",record_date="20240108",
-        ex_date="20240109",payment_date="20240110",amount_per_bond=105,verified=True,source="issuer")])
-    b = bars(d,("A",))
+    held_event = dict(event_id="R",ts_code="A",kind="redemption",record_date="20240108",
+        ex_date="20240109",payment_date="20240110",amount_per_bond=105,verified=True,source="issuer")
+    events = pd.DataFrame([held_event, dict(held_event, event_id="S", ts_code="B")])
+    b = bars(d,("A","B"))
     b["close"].loc[d[2]:,"A"]=np.nan
-    nav,trades,held,_ = run(b,{d[0]:{"A":.1}},cashflows=event)
+    nav,trades,held,_ = run(b,{d[0]:{"A":.1}},cashflows=events)
     assert nav.nav.iloc[-1] == pytest.approx(1.005)
     assert held.date.max() == d[1]
-    assert (trades.reason == "verified_redemption").sum() == 1
+    assert trades.loc[trades.reason.eq("verified_redemption"), "code"].tolist() == ["A"]
 
 def test_invalid_cashflow_rejected():
     event = pd.DataFrame([dict(event_id="R",ts_code="A",kind="coupon",record_date="20240110",
@@ -198,8 +200,8 @@ def ranking_data():
                           "list_date":["2020-01-01"]*10, "delist_date":[""]*10},index=codes)
     fin = pd.DataFrame([dict(ts_code=c,ann_date="20240101",end_date="20231231",bps=2,eps=1,
         profit_dedt=2,roe=1,debt_to_assets=70,ocfps=1) for c in codes])
-    obj = SimpleNamespace(price=px, model={m:px+10 for m in ("BS","ZL","LSM")},
-        model_market={m:px.copy() for m in ("BS","ZL","LSM")},features=features,
+    obj = SimpleNamespace(price=px, model={m:px+10 for m in MODELS},
+        model_market={m:px.copy() for m in MODELS},features=features,
         bars={"close":px,"amount":px*10},amount_mean=px*10,amount_count=px*0+20,basic=basic,
         financial=prepare_financial(fin,calendar()),names=pd.DataFrame(),calendar=calendar(),
         risk_snapshot=lambda d:(pd.DataFrame(),pd.NaT))
@@ -207,15 +209,17 @@ def ranking_data():
 
 def test_ranking_mean_units_and_fundamentals():
     data,date,codes=ranking_data()
+    data.model["CCB"].loc[date,codes[0]]=150
     rank=build_ranking(data,date,Config())
     assert rank.eligible.all()
-    assert rank.signal.iloc[0] == pytest.approx(130/120-1)
+    assert rank.signal.iloc[0] == pytest.approx(135/120-1)
     data.features["balance"].loc[date,codes[0]]=29999
     data.financial.loc[data.financial.ts_code.eq(codes[1]),"profit_dedt"]=-1
-    data.model["BS"].loc[date,codes[2]]=np.nan
+    data.model["CCB"].loc[date,codes[2]]=np.nan
     data.model_market["ZL"].loc[date,codes[3]]=121
     result=build_ranking(data,date,Config())
     assert not result.loc[codes[:4],"eligible"].any()
+    assert pd.isna(result.loc[codes[2],"average_price"])
 
 def test_tracking_unknown_events_are_not_safe():
     data,date,codes=ranking_data()
@@ -249,10 +253,10 @@ def test_daily_inputs_require_latest_completed_week(tmp_path, model_date, cutoff
         "start":"2026-10-08", "cutoff":cutoff, "status":"complete"}), encoding="utf-8")
     pd.DataFrame({"cal_date":pd.bdate_range("2026-10-08", "2026-10-23").strftime("%Y%m%d")}).to_csv(inputs/"calendar.csv",index=False)
     model = pd.DataFrame({"A":[100.]},index=pd.to_datetime([model_date]))
-    for name in ("BS_Model_Prices", "ZL_Model_Prices", "LSM_Model_Prices",
-                 "Market_Prices", "ZL_Market_Prices", "LSM_Market_Prices"):
-        model.to_csv(base/f"{name}.csv")
-    for name in ("BS", "ZL", "LSM"):
+    for name in MODELS:
+        files = paths_for(base, name)
+        model.to_csv(files["model"])
+        model.to_csv(files["market"])
         (base/f"{name}_Model_Manifest.json").write_text(json.dumps({"input_cutoff":model_date,"output_sha256":"a"*64}),encoding="utf-8")
     if not valid:
         with pytest.raises(ValueError,match="latest completed market week"):
@@ -387,6 +391,49 @@ def test_late_notice_cannot_be_backfilled():
     merged=merge_notices(old,new,'2026-09-12T10:00:00+08:00')
     assert merged.iloc[0].available_at == ''
     assert merged.iloc[1].available_at.startswith('2026-09-12')
+
+
+def test_redemption_candidate_history_survives_incomplete_refresh(tmp_path, monkeypatch):
+    import strategy_data
+    from strategy_events import FIELDS, update_events
+
+    previous_cutoff, cutoff = '2026-11-16', '2026-11-20'
+    prior_observation = '2026-11-16T19:00:00+08:00'
+    observation = '2026-11-25T11:00:00+08:00'
+    previous = dict.fromkeys(FIELDS.split(','))
+    previous.update(SECURITY_CODE='118064', SECUCODE='118064.SH', NOTICE_DATE_SH='2026-08-04')
+    stable = dict(previous, SECURITY_CODE='123080', SECUCODE='123080.SZ', REDEEM_TYPE='2')
+    replacement = dict(previous, NOTICE_DATE_SH='2026-11-25')
+    path = tmp_path / 'redemption_candidates.csv'
+    pd.DataFrame([previous, stable]).to_csv(path, index=False)
+    manifest = tmp_path / 'event_sources.json'
+    strategy_data.write_json(manifest, dict(cutoff=previous_cutoff, status='complete',
+                                            fetched_at=prior_observation, normalization_revision=2))
+    strategy_data.write_json(tmp_path / 'raw/eastmoney' / f'{cutoff}.json',
+                             dict(records=[replacement, stable], fetched_at=observation))
+    write_json = strategy_data.write_json
+
+    def interrupted(path, payload):
+        if path == manifest:
+            raise OSError('Interrupted before marking snapshot complete')
+        write_json(path, payload)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(strategy_data, 'write_json', interrupted)
+        with pytest.raises(OSError, match='Interrupted'):
+            update_events(tmp_path, cutoff)
+
+    archive = tmp_path / 'redemption_snapshot_changes' / f'{cutoff}.json'
+    first = archive.read_bytes()
+    assert pd.read_csv(path).iloc[0].NOTICE_DATE_SH == '2026-11-25'
+    assert update_events(tmp_path, cutoff)['cutoff'] == cutoff
+    assert archive.read_bytes() == first
+    audit = json.loads(first)
+    assert audit['previous_observed_at'] == prior_observation
+    assert audit['observed_at'] == observation
+    assert [change['ts_code'] for change in audit['changes']] == ['118064.SH']
+    assert audit['changes'][0]['previous']['NOTICE_DATE_SH'] == '2026-08-04'
+    assert audit['changes'][0]['current']['NOTICE_DATE_SH'] == '2026-11-25'
 
 
 def test_unverified_prices_withhold_formal_performance():

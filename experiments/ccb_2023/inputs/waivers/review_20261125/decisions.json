@@ -1,0 +1,20 @@
+{
+  "1221726268": {
+    "status": "superseded_notice",
+    "superseded_by": "1221739601",
+    "outcome": "linked_issuer_correction",
+    "required_text": ["2024年11月15日至2024年12月14日"],
+    "replacement_text": ["更正后", "2024年11月15日至2025年2月14日"],
+    "replacement_end": "2025-02-14",
+    "reason": "贵广转债发行人更正原公告的不赎回期限，两个版本均从2024-11-18纳入估值。"
+  },
+  "1222064992": {
+    "status": "superseded_notice",
+    "superseded_by": "1222072404",
+    "outcome": "linked_issuer_correction",
+    "required_text": ["2024年12月19日至2025年5月18日"],
+    "replacement_text": ["2024年12月19日至2025年6月18日"],
+    "replacement_end": "2025-06-18",
+    "reason": "佳禾转债发行人更正原公告所列末日，两个版本均从2024-12-19纳入估值。"
+  }
+}

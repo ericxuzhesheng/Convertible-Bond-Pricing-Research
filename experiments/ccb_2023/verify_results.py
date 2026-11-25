@@ -19,7 +19,7 @@ def main():
     pd.testing.assert_frame_equal(common.reset_index(drop=True),allrows.loc[mask].reset_index(drop=True))
     assert len(common)==manifest['common_sample'] and len(allrows)==manifest['prices']
     assert common.floor_source.eq('production Tushare').all()
-    assert common.date.nunique()==manifest['weeks']==400
+    assert common.date.nunique()==manifest['common_weeks']
     assert common.date.max()==manifest['cutoff']
     for model in models:
         delta=common[model].to_numpy()-common.market.to_numpy()
@@ -28,6 +28,10 @@ def main():
         assert int(metrics.at[model,'n'])==len(common)
     coverage=pd.read_csv(OUT/'coverage.csv')
     issues=pd.read_csv(OUT/'pricing_issues.csv')
+    assert len(coverage)==manifest['weeks']
+    assert coverage.date.is_unique and coverage.date.is_monotonic_increasing
+    assert coverage.date.iloc[0]==manifest['start'] and coverage.date.iloc[-1]==manifest['cutoff']
+    assert allrows.groupby('date').size().reindex(coverage.date,fill_value=0).tolist()==coverage.priced.tolist()
     assert coverage.priced.sum()==len(allrows)
     assert coverage.quoted.sum()==len(allrows)+len(issues)
     before=pd.read_csv(HERE/'inputs/missing_before.csv')
@@ -42,7 +46,7 @@ def main():
     result=dict(passed=True,common_sample=len(common),all_prices=len(allrows),
         common_weeks=common.date.nunique(),common_bonds=common.code.nunique(),
         source_supplements=len(repairs),supplements_successfully_priced=int(used.sum()),
-        unresolved_field_cells=len(after),issue_observations=len(issues),
+        historical_repair_audit_remaining_field_cells=len(after),issue_observations=len(issues),
         acceptance=['exact common-sample intersection','no duplicate bond-date',
                     'all four MAE/RMSE independently recomputed','coverage and exclusion reconciliation',
                     'source supplement segregation','repair reconciliation','moderate grid tolerance'])

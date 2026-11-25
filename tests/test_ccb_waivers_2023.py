@@ -128,9 +128,54 @@ def test_reviewed_sources_and_unchanged_unknowns():
         assert pd.isna(revised.at[ident,'end'])
 
 
+def test_checked_corrections_resolve_same_session_conflicts():
+    from waiver_terms import ROOT,apply_reviewed_decisions
+
+    original=pd.read_csv(ROOT/'review_20261029/terms_before.csv',dtype=str)
+    revised=apply_reviewed_decisions(original)
+    for code, old, new, when, end in [
+        ('110052.SH','1221726268','1221739601','2024-11-18','2025-02-14'),
+        ('123237.SZ','1222064992','1222072404','2024-12-19','2025-06-18'),
+    ]:
+        events=revised.loc[revised.announcement_id.isin([old,new])].copy()
+        assert events.code.eq(code).all()
+        for column in ['available_date','start','end']:
+            events[column]=pd.to_datetime(events[column])
+        decision=protection_at(events,when,1/12)
+        assert decision[1:]==('explicit_active',new)
+        assert decision[0]==(pd.Timestamp(end)+pd.Timedelta(days=1)-pd.Timestamp(when)).days/365
+
+
 def test_review_rejects_replacement_for_different_bond():
     from waiver_terms import ROOT,apply_reviewed_decisions
     original=pd.read_csv(ROOT/'review_20261029/terms_before.csv',dtype=str)
     original.loc[original.announcement_id.eq('1209210378'),'code']='123027.SZ'
     with pytest.raises(ValueError,match='replacement linkage'):
         apply_reviewed_decisions(original)
+
+
+def test_incremental_search_keeps_unique_notice_ids_and_advances_empty_range(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    import waiver_data
+
+    monkeypatch.setattr(waiver_data, 'ROOT', tmp_path)
+    monkeypatch.setattr(waiver_data.time, 'sleep', lambda _: None)
+    words = ['不赎回','不提前赎回']
+    pd.DataFrame([dict(year=2026,start_date='2026-01-01',end_date='2026-11-13',
+                       query=word,total=1,pages=1) for word in words]).to_csv(
+        tmp_path/'search_coverage.csv',index=False)
+    published = int(pd.Timestamp('2026-11-13T00:00:00+08:00').timestamp()*1000)
+    prior = dict(announcementId='1',secCode='000001',announcementTime=published,
+                 announcementTitle='关于转债不赎回的公告',adjunctUrl='old.pdf')
+    pd.DataFrame([prior]).to_csv(tmp_path/'announcement_index.csv',index=False)
+    new = dict(prior, announcementId='2', announcementTime=published+7*86400000, adjunctUrl='new.pdf')
+    raw = [prior,new]
+    monkeypatch.setattr(waiver_data.requests, 'post', lambda *_, **__: SimpleNamespace(
+        raise_for_status=lambda:None, json=lambda:dict(totalAnnouncement=len(raw),announcements=raw)))
+    appended=waiver_data.fetch_index(end='2026-11-20',after='2026-11-13')
+    assert appended.announcementId.tolist()==['1','2']
+    assert appended.secCode.tolist()==['000001','000001']
+    raw.clear()
+    empty=waiver_data.fetch_index(end='2026-11-27',after='2026-11-20')
+    assert empty.announcementId.tolist()==['1','2']
+    assert pd.read_csv(tmp_path/'search_coverage.csv').end_date.max()=='2026-11-27'

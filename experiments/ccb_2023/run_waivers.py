@@ -17,6 +17,17 @@ MODELS=['CCB_basic','CCB','BS','ZL','LSM']
 
 def main():
     started=time.perf_counter();OUT.mkdir(exist_ok=True)
+    basic=json.loads((HERE/'results/manifest.json').read_text(encoding='utf-8'))
+    cutoff=basic['cutoff']
+    coverage=pd.read_csv(ROOT/'search_coverage.csv',parse_dates=['start_date','end_date'])
+    search_start=coverage.start_date.min()
+    for query in ('不赎回','不提前赎回'):
+        ranges=coverage.loc[coverage['query'].eq(query)].sort_values('start_date')
+        if (ranges.empty or ranges.start_date.iloc[0]!=search_start or
+            ranges.end_date.iloc[-1]<pd.Timestamp(cutoff) or
+            not ranges.start_date.iloc[1:].reset_index(drop=True).eq(
+                ranges.end_date.iloc[:-1].reset_index(drop=True)+pd.Timedelta(days=1)).all()):
+            raise ValueError(f'incomplete CNInfo search windows for {query} through {cutoff}')
     terms=pd.read_csv(ROOT/'terms.csv',dtype={'announcement_id':str})
     for col in ['available_date','start','end']:terms[col]=pd.to_datetime(terms[col])
     frame=pd.read_csv(HERE/'results/CCB_observations.csv')
@@ -71,7 +82,9 @@ def main():
         availability='date-only and after-close notices available next trading session; no backward projection',
         scope='2023 CCB only; no CCBA, no default quarter, no inferred silent non-call',
         source='CNInfo issuer notices; cached original PDFs and extracted text',
-        search='2013 through 2026-10-23; CNInfo queries 不赎回 and 不提前赎回; not certified exhaustive',
+        search=f'{search_start.date()} through {coverage.end_date.max().date()}; CNInfo queries 不赎回 and 不提前赎回; not certified exhaustive',
+        search_start=str(search_start.date()),search_end=str(coverage.end_date.max().date()),
+        start=basic['start'],cutoff=cutoff,weeks=basic['weeks'],
         prices=int(frame.CCB.notna().sum()),common_sample=len(common),common_bonds=common.code.nunique(),
         changed_protection=int(changed.sum()),changed_bonds=frame.loc[changed,'code'].nunique(),
         unresolved_observations=int(unresolved.sum()),term_status_counts=terms.status.value_counts().to_dict(),

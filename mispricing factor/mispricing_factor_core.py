@@ -52,6 +52,8 @@ FACTOR_CORRELATION_LABELS = {
     "bs_deviation": "Mispricing",
     "zl_deviation": "Mispricing",
     "lsm_deviation": "Mispricing",
+    "ccb_deviation": "Mispricing",
+    "mean_deviation": "Mispricing",
 }
 sys.path.insert(0, str(BACKTEST_DIR))
 
@@ -59,6 +61,7 @@ from market_data_contracts import (  # noqa: E402
     DataContractError,
     observed_average_risk_free_rate,
 )
+from pricing_backtest import RESEARCH_MODELS, pricing_panel
 
 # 设置中文字体
 plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei"]
@@ -72,16 +75,13 @@ class MultiFactorBacktest:
         model: "BS"、"ZL" 或 "LSM"，决定读取哪个模型的相对偏差与输出文件名。
         data_dir: 输出目录，默认本脚本所在目录（mispricing factor/）。
         """
-        if model not in ("BS", "ZL", "LSM"):
-            raise ValueError(
-                f"model 必须是 'BS'、'ZL' 或 'LSM'，收到: {model}"
-            )
+        if model not in RESEARCH_MODELS:
+            raise ValueError(f"Unknown pricing model: {model}")
         self.model = model
         self.model_dash = {
             "BS": "B-S",
             "ZL": "Z-L",
-            "LSM": "LSM",
-        }[model]
+        }.get(model, model)
         self.dev_key = f"{model.lower()}_deviation"
         self.data_dir = Path(data_dir) if data_dir else SCRIPT_DIR
         # 输入文件候选目录: 本目录 → backtest/ → long-short strategy/ → 旧外部目录
@@ -168,19 +168,23 @@ class MultiFactorBacktest:
         )
         # 加载模型数据
         print(f"  加载 {self.model}模型数据...")
-        bs_file = self.resolve(f"{self.model}_Model_Summary.xlsx")
+        if self.model == "Mean":
+            models, prices = pricing_panel(BACKTEST_DIR)
+            bs_dev = (models["Mean"] - prices) / prices.where(prices.gt(0))
+        else:
+            bs_file = self.resolve(f"{self.model}_Model_Summary.xlsx")
+            bs_dev = pd.read_excel(bs_file, sheet_name="相对偏差", index_col=0)
+            prices = pd.read_excel(bs_file, sheet_name="市场价格", index_col=0)
 
         # 相对偏差（兼容两种 summary 格式：旧 Wind 导出[首列"返回目录"+标题行]
         # 与管线生成的干净格式[首列即日期索引、无标题行]。统一按首列为日期索引读取，
         # 用 to_datetime+notna 自动丢弃非日期行——避免硬编码 .iloc[1:] 误删首条真实日期。）
-        bs_dev = pd.read_excel(bs_file, sheet_name="相对偏差", index_col=0)
         bs_dev.index = pd.to_datetime(bs_dev.index, errors="coerce")
         bs_dev = bs_dev[bs_dev.index.notna()]
         bs_dev.index.name = "date"
         self.factors[self.dev_key] = bs_dev
 
         # 市场价格
-        prices = pd.read_excel(bs_file, sheet_name="市场价格", index_col=0)
         prices.index = pd.to_datetime(prices.index, errors="coerce")
         prices = prices[prices.index.notna()]
         prices.index.name = "date"

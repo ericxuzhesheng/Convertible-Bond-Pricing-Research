@@ -11,6 +11,39 @@ import requests
 URL = 'https://datacenter-web.eastmoney.com/api/data/v1/get'
 FIELDS = 'SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE_SH,RECORD_DATE_SH,EXECUTE_PRICE_SH,EXECUTE_START_DATESH,DELIST_DATE,REDEEM_TYPE'
 
+def candidate_rows(frame):
+    return frame.loc[frame.NOTICE_DATE_SH.notna(), FIELDS.split(',')].sort_values('SECUCODE')
+
+
+def archive_candidate_changes(root, cutoff, fetched_at, previous, before, after):
+    """Save the provider delta before replacing the current candidate snapshot."""
+    from strategy_data import write_json
+
+    path = root / 'redemption_snapshot_changes' / f'{cutoff}.json'
+    if path.exists():
+        saved = json.loads(path.read_text(encoding='utf-8'))
+        if saved['cutoff'] != cutoff or saved['observed_at'] != fetched_at:
+            raise ValueError(f'Redemption snapshot provenance changed: {path}')
+        return
+
+    def by_code(frame):
+        canonical = frame.copy()
+        for column in ('EXECUTE_PRICE_SH', 'REDEEM_TYPE'):
+            canonical[column] = pd.to_numeric(canonical[column], errors='raise')
+        canonical['SECURITY_CODE'] = canonical.SECURITY_CODE.astype(str)
+        records = json.loads(canonical.to_json(orient='records', double_precision=15))
+        if canonical.SECUCODE.isna().any() or canonical.SECUCODE.duplicated().any():
+            raise ValueError('Missing or duplicate redemption candidate code')
+        return {row['SECUCODE']: row for row in records}
+
+    old, new = by_code(before), by_code(after)
+    changes = [dict(ts_code=code, previous=old.get(code), current=new.get(code))
+               for code in sorted(old.keys() | new.keys()) if old.get(code) != new.get(code)]
+    write_json(path, dict(source=URL, cutoff=cutoff, observed_at=fetched_at,
+                          previous_cutoff=previous.get('cutoff'),
+                          previous_observed_at=previous.get('fetched_at'), changes=changes))
+
+
 def normalize_notices(frame, fetched_at):
     columns = ['ts_code','ann_date','is_call','available_at','source','vintage']
     if frame.empty:
@@ -69,6 +102,13 @@ def update_events(root, cutoff):
     frame=pd.DataFrame(records)
     if frame.SECUCODE.duplicated().any():
         raise SourceError('Duplicate Eastmoney redemption records')
+    candidates = candidate_rows(frame)
+    candidate_path = root / 'redemption_candidates.csv'
+    if previous.get('status') == 'complete' or candidate_path.exists():
+        before = pd.read_csv(candidate_path, dtype=str)
+    else:
+        before = candidates.iloc[:0]
+    archive_candidate_changes(root, cutoff, fetched, previous, before, candidates)
     calls=normalize_notices(frame,fetched)
     output=root/'redemption_notices_v2.csv'
     old=pd.read_csv(output,dtype=str).fillna('') if output.exists() else pd.DataFrame()
@@ -78,7 +118,7 @@ def update_events(root, cutoff):
     rejected['review_status'] = 'announcement_date_alone_not_redemption_evidence'
     write_csv(root/'redemption_notice_review.csv', rejected)
     # Candidate amounts/dates retained for verification, not implicitly authorized as cash flows.
-    write_csv(root/'redemption_candidates.csv',frame.dropna(subset=['NOTICE_DATE_SH']).sort_values('SECUCODE'))
+    write_csv(candidate_path, candidates)
     state={'cutoff':cutoff,'status':'complete','fetched_at':fetched,'source':URL,
            'records':len(frame),'notices':len(calls),'review_candidates':len(rejected),
            'normalization_revision':2,'normalized_at':now_local(),'cashflow_verified':False,

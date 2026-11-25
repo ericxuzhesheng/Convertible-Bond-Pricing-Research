@@ -8,14 +8,14 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/定价模型-BS%20%C2%B7%20ZL%20%C2%B7%20LSM-F2C94C?style=for-the-badge" alt="BS + ZL + LSM">
-  <img src="https://img.shields.io/badge/定价截止-2026--11--13-4CAF50?style=for-the-badge" alt="Pricing through 2026-11-13">
+  <img src="https://img.shields.io/badge/定价模型-BS%20%C2%B7%20ZL%20%C2%B7%20LSM%20%C2%B7%20CCB-F2C94C?style=for-the-badge" alt="BS + ZL + LSM + CCB">
+  <img src="https://img.shields.io/badge/定价截止-2026--11--20-4CAF50?style=for-the-badge" alt="Pricing through 2026-11-20">
   <img src="https://img.shields.io/badge/研究频率-周度定价与策略-9B51E0?style=for-the-badge" alt="Weekly pricing and strategy">
 </p>
 
 <p align="center">
   <a href="summary/key_findings.md"><img src="https://img.shields.io/badge/研究摘要-阅读-2F73C9?style=for-the-badge" alt="研究摘要"></a>
-  <a href="long-short%20strategy/weekly_value_results_pricing_v2_2026/README.md"><img src="https://img.shields.io/badge/2026周报-查看-4CAF50?style=for-the-badge" alt="2026周报"></a>
+  <a href="long-short%20strategy/weekly_value_results_pricing_four_2026/README.md"><img src="https://img.shields.io/badge/2026周报-查看-4CAF50?style=for-the-badge" alt="2026周报"></a>
   <a href="report/README.md"><img src="https://img.shields.io/badge/研报索引-PDF-E84D3D?style=for-the-badge" alt="研报索引"></a>
 </p>
 
@@ -29,34 +29,54 @@
 
 ## 项目概述
 
-本项目比较中国可转债的 Black-Scholes（BS）、条款停止蒙特卡洛（ZL）和最小二乘蒙特卡洛（LSM）定价，并分别检验定价偏差、因子预测能力和组合表现。定价更贴近市场报价，并不直接意味着策略收益更高。
+本项目使用 Black-Scholes（BS）、条款停止蒙特卡洛（ZL）、最小二乘蒙特卡洛（LSM）和含不赎回保护期的 CCB 为中国可转债定价。四模型算术平均是因子检验和组合研究的主要估值信号。
 
 ## 定价方法
 
-文献中的 CCB 在给定不赎回保护期下进行解析定价。本项目已完成独立的[CCB 2023实验](experiments/ccb_2023/README.md)，使用实际利率曲线并纳入可核实的不赎回承诺；CCBA的发行人行为概率加权尚未实施。
+四个模型各自读取估值日观测到的转股价值、正股波动率和国债利率，以及合同票息、到期兑付金额和转股起止日。信用利差用合同现金流与观测债底校准。现金支付按国债利率代理加信用利差折现，转股取得的股票按国债利率代理折现。波动率采用最多 250 个、至少 60 个复权收盘价估算。缺失或不一致的输入按债券和估值日记录。
 
-三个模型独立读取真实观测输入，统一使用合同票息、到期支付、转股日期和条款终止规则。现金支付考虑信用折现，转股支付使用国债利率代理。缺失或不一致输入保留排除原因。
+### Black–Scholes（BS）
 
-- **BS** 使用真实转股到期日和剩余合同现金价值计算欧式转股基准，不显式处理发行人赎回与持有人回售。
-- **ZL** 模拟真实条款计数、转股边界与存续现金流。触发后赎回及 30 个模拟交易观察日的通知期是明确的政策假设；不编造未来下修或未核实的不赎回承诺。
-- **LSM** 通过继续价值回归加入自愿提前转股与回售选择，使用 8,192 条训练路径和另 8,192 条独立估值路径、对偶抽样及 192 个基础行权区间，并加入合同边界。不读取 ZL 价格，也不使用 ZL 估值下限。
+BS 给出欧式转股的解析估值。模型在风险中性对数正态假设下计算转股价值到实际最后转股日的分布。持有人在这一天比较转股所得和继续持有剩余合同现金流的价值，后续到期兑付款先折现到该决策日。最后转股日之前的票息单独折现。
 
-### 独立CCB 2023实验（2026-10-29）
+转股价值和正股波动率是期权部分的主要驱动。模型只在最后转股日评估转股选择，省略发行人提前赎回和持有人回售，用于观察权益敞口对转债估值的影响。行权门槛取自合同现金流，已计入到期兑付款的末期票息只算一次。
 
-覆盖2019-01-04至2026-10-23。最新公告复核后，共有700份明确期限公告；原194份待核文件中，7份补出期限、3份确认为信息性文件、2份关联更新版，182份仍不猜填。恢复284个券日，CCB与已有BS/ZL/LSM的共同样本增至**148,704个券日、974只债券、400周**。
+### 条款停止蒙特卡洛（ZL）
 
-该共同样本上，加入明确承诺的CCB **MAE为11.3459元、RMSE为30.8193元**。18项公告测试通过，112个网格加密样本最大差异0.0068元，低于0.05元数值容差。原共同样本的价格保持不变，本次改善的是覆盖范围。见[同样本比较报告](experiments/ccb_2023/results_waivers_2023/REPORT.md)和[逐项公告复核](experiments/ccb_2023/results_waivers_2023/REVIEW_20261029.md)。CCB保留在独立研究目录，未接入生产策略；下方三模型生产指标仍使用各自原定样本。
+ZL 在风险中性假设下模拟 10,000 条转股价值路径，并用估值日前已观测到的条款计数初始化。进入转股期后，模型在合同滚动窗口内累计达到赎回阈值的观察日。价格触发型回售则按合同规定的适用期间和连续低于回售阈值的天数判断。
+
+估值假定发行人在达到触发条件后赎回，设置 30 个模拟交易观察日的通知期，并假定持有人在满足条件时回售。模型保留实际最后转股日的选择权，合约终止后停止计入后续票息。这个价格反映给定条款和行权规则下的现金流价值，未来酌情下修和未核实的不赎回承诺未纳入该规则。
+
+### 最小二乘蒙特卡洛（LSM）
+
+LSM 在合同路径规则下评估持有人何时主动转股、行使已满足条件的回售权，或继续持有。模型从到期向前回溯，用转股价值及其平方、赎回和回售计数、赎回通知剩余时间回归未来折现现金流，再将估计的继续持有价值与各项可行的即时行权价值比较。
+
+生产设定以 8,192 条对偶训练路径拟合行权规则，再用另 8,192 条独立估值路径计算价格。192 个基础行权区间之外还加入合同边界和票息观测点。估值由拟合的行权规则和本券现金流得出。报告中的蒙特卡洛标准误衡量给定行权规则后的抽样不确定性。
+
+### 含不赎回保护期的可转债模型（CCB）
+
+CCB 先确定保护期，取距转股开始日的剩余期限和一个月下限中的较大值。估值日收盘时已经公开、能够确定有效期限的不赎回承诺，可以延长保护期。只有日期或在盘后发布的公告从下一交易日纳入，最新公告期限仍待核实时，该券日的 CCB 估值留空。
+
+保护期结束后，以合同赎回价格阈值作为连续监控的障碍。平价触碰阈值时停止后续现金流并转股。模型使用真实国债期限曲线、合同现金流和观察债底，通过有限差分求解价值，周更对新增样本做网格加密检查。估值沿用 2023 版 CCB 的经济设定，省略持有人回售和未来酌情下修。
+
+### 四模型均价
+
+BS、ZL、LSM、CCB 各占 25%。同一券日需有四个正且有限的估值，并与同一市场报价对齐，才能计算均价。共同回测从 2019 年首个四模型周度截面起算。
+
+[定价方法与数值验证](backtest/PRICING_METHODS.md)
 
 <!-- pricing-metrics-zh:start -->
 ## 定价结果
 
-三个模型使用相同的 **152,930 个有效券日、403 个观察周**。MSE 单位为元²，RMSE、MAE 和平均偏差为元，MAPE 为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **97.35%**，最新周 **315/316** 只。指标衡量模型与市场报价的偏离。
+同样本比较覆盖 **150,005 个有效券日、404 个观察周**，均价为四个模型价格的算术平均。MSE 单位为元²，RMSE、MAE 和平均偏差为元，MAPE 为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **93.54%**，最新周 **312/314** 只。指标衡量模型与市场报价的偏离。
 
 | 模型 | 样本数 | MSE | RMSE | MAE | MAPE | 平均偏差 | R² |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| BS | 152,930 | 972.40 | 31.18 | 13.56 | 9.27% | +1.39 | 0.816 |
-| ZL | 152,930 | 999.24 | 31.61 | 12.41 | 7.96% | -9.45 | 0.811 |
-| LSM | 152,930 | 970.17 | 31.15 | 11.34 | 7.15% | -6.86 | 0.817 |
+| BS | 150,005 | 935.68 | 30.59 | 13.19 | 9.13% | +1.73 | 0.821 |
+| ZL | 150,005 | 957.75 | 30.95 | 12.05 | 7.84% | -9.06 | 0.817 |
+| LSM | 150,005 | 929.56 | 30.49 | 10.97 | 7.02% | -6.44 | 0.822 |
+| CCB | 150,005 | 949.23 | 30.81 | 11.39 | 7.28% | -8.46 | 0.818 |
+| Mean | 150,005 | 908.34 | 30.14 | 10.89 | 7.07% | -5.56 | 0.826 |
 <!-- pricing-metrics-zh:end -->
 
 [指标数据](backtest/Pricing_Metrics.csv) · [当前研究来源](backtest/Research_Migration.json) · [历史重建验证](backtest/Pricing_Validation.json)
@@ -67,33 +87,47 @@
 
 | 模型 | 因子 | 持有期数 | IC | Rank IC | ICIR | Rank ICIR | IC 为正比例 |
 |---|---|---|---|---|---|---|---|
-| BS | 定价偏差 | 94 | 0.082 | 0.047 | 0.50 | 0.29 | 66.0% |
-| BS | 流动性 | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 46.8% |
-| BS | 动量 | 94 | 0.018 | -0.008 | 0.08 | -0.05 | 59.6% |
-| BS | 量价相关性 | 94 | -0.004 | -0.059 | -0.03 | -0.37 | 46.8% |
-| BS | 估值 | 94 | 0.055 | 0.058 | 0.27 | 0.34 | 62.8% |
-| BS | 波动率 | 94 | -0.026 | -0.074 | -0.10 | -0.28 | 45.7% |
-| ZL | 流动性 | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 46.8% |
-| ZL | 动量 | 94 | 0.018 | -0.008 | 0.08 | -0.05 | 59.6% |
-| ZL | 量价相关性 | 94 | -0.004 | -0.059 | -0.03 | -0.37 | 46.8% |
-| ZL | 估值 | 94 | 0.055 | 0.058 | 0.27 | 0.34 | 62.8% |
-| ZL | 波动率 | 94 | -0.026 | -0.074 | -0.10 | -0.28 | 45.7% |
-| ZL | 定价偏差 | 94 | 0.098 | 0.088 | 0.49 | 0.51 | 73.4% |
-| LSM | 流动性 | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 46.8% |
-| LSM | 定价偏差 | 94 | 0.098 | 0.106 | 0.46 | 0.56 | 75.5% |
-| LSM | 动量 | 94 | 0.018 | -0.008 | 0.08 | -0.05 | 59.6% |
-| LSM | 量价相关性 | 94 | -0.004 | -0.059 | -0.03 | -0.37 | 46.8% |
-| LSM | 估值 | 94 | 0.055 | 0.058 | 0.27 | 0.34 | 62.8% |
-| LSM | 波动率 | 94 | -0.026 | -0.074 | -0.10 | -0.28 | 45.7% |
+| BS | 定价偏差 | 94 | 0.085 | 0.047 | 0.52 | 0.29 | 67.0% |
+| BS | 流动性 | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
+| BS | 动量 | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
+| BS | 量价相关性 | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
+| BS | 估值 | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
+| BS | 波动率 | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
+| ZL | 流动性 | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
+| ZL | 动量 | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
+| ZL | 量价相关性 | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
+| ZL | 估值 | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
+| ZL | 波动率 | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
+| ZL | 定价偏差 | 94 | 0.103 | 0.092 | 0.52 | 0.54 | 74.5% |
+| LSM | 流动性 | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
+| LSM | 定价偏差 | 94 | 0.104 | 0.111 | 0.48 | 0.59 | 76.6% |
+| LSM | 动量 | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
+| LSM | 量价相关性 | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
+| LSM | 估值 | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
+| LSM | 波动率 | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
+| CCB | 定价偏差 | 94 | 0.112 | 0.115 | 0.51 | 0.58 | 72.3% |
+| CCB | 流动性 | 94 | -0.036 | -0.078 | -0.16 | -0.42 | 46.8% |
+| CCB | 动量 | 94 | 0.030 | -0.005 | 0.14 | -0.03 | 64.9% |
+| CCB | 量价相关性 | 94 | -0.010 | -0.063 | -0.06 | -0.39 | 45.7% |
+| CCB | 估值 | 94 | 0.050 | 0.058 | 0.24 | 0.34 | 56.4% |
+| CCB | 波动率 | 94 | -0.028 | -0.080 | -0.10 | -0.30 | 50.0% |
+| Mean | 流动性 | 94 | -0.036 | -0.078 | -0.16 | -0.42 | 46.8% |
+| Mean | 均价偏差 | 94 | 0.108 | 0.094 | 0.54 | 0.55 | 73.4% |
+| Mean | 动量 | 94 | 0.030 | -0.005 | 0.14 | -0.03 | 64.9% |
+| Mean | 量价相关性 | 94 | -0.010 | -0.063 | -0.06 | -0.39 | 45.7% |
+| Mean | 估值 | 94 | 0.050 | 0.058 | 0.24 | 0.34 | 56.4% |
+| Mean | 波动率 | 94 | -0.028 | -0.080 | -0.10 | -0.30 | 50.0% |
 
 ## 组合规则与结果
 
-周度均价策略使用三模型理论价的算术平均，在风险合格池中最多选取前 20%，要求扣除往返成本后的估值余量至少为 2%。单边综合摩擦 5bp，单券最多 10%，未使用资金保留现金；下一交易日开盘重新检查冻结估值给出的买入上限。每日核算实际模拟成交、费用、按年化 3% 假设计提的借券成本，以及有记录的陈旧或无法解释估值。
+周度策略按四模型均价相对当日收盘价的估值余量排名，在风险合格池中最多选取前 20%，要求扣除往返成本后的估值余量至少为 2%。单边综合摩擦 5bp，单券最多 10%，未使用资金保留现金。下一交易日开盘重新检查冻结估值给出的买入上限。账户按日核算模拟成交、费用、年化 3% 的假设借券成本和有记录的陈旧估值。
+
+组合日度核算截至 **2026-11-25**。
 
 | 组合 | 年化研究收益 | 夏普 | 最大回撤 |
 |---|---|---|---|
-| long_only | 16.58% | 1.26 | -16.45% |
-| long_short | 13.01% | 1.34 | -11.91% |
+| long_only | 15.97% | 1.25 | -17.57% |
+| long_short | 13.14% | 1.34 | -12.09% |
 
 净值是观测价格与已核验现金流的研究估计。历史付息、原始财务版本和券源仍未全部核验，因此不能称为完整总收益或事前实盘记录。事后重算信号不会覆盖原有交易前冻结证据。
 
@@ -101,9 +135,11 @@
 
 | 模型 | 年化超额收益 | 夏普 | 最大回撤 |
 |---|---|---|---|
-| BS | 11.28% | 0.76 | -29.72% |
-| ZL | 10.21% | 0.73 | -27.59% |
-| LSM | 10.37% | 0.75 | -28.24% |
+| BS | 10.48% | 0.66 | -30.11% |
+| ZL | 9.74% | 0.65 | -28.66% |
+| LSM | 9.86% | 0.66 | -28.26% |
+| CCB | 10.72% | 0.7 | -29.05% |
+| Mean | 10.52% | 0.69 | -28.69% |
 
 ## 关键图表
 
@@ -121,6 +157,10 @@
 
 ![LSM model and market prices](backtest/Fig1_LSM_Price_Time_Series.png)
 
+![CCB model and market prices](backtest/Fig1_CCB_Price_Time_Series.png)
+
+![Mean model and market prices](backtest/Fig1_Mean_Price_Time_Series.png)
+
 ![Deviation_Distribution](backtest/Fig_Pricing_Deviation_Distribution.png)
 
 ![Annual_Deviation](backtest/Fig_Pricing_Annual_Deviation.png)
@@ -135,6 +175,10 @@
 
 ![LSM factor portfolios](long-short%20strategy/LSM_model_performance.png)
 
+![CCB factor portfolios](long-short%20strategy/CCB_model_performance.png)
+
+![Mean factor portfolios](long-short%20strategy/Mean_model_performance.png)
+
 ### 因子相关性与 IC
 
 ![BS Pearson and Spearman correlation](mispricing%20factor/BS_factor_correlation.png)
@@ -143,11 +187,17 @@
 
 ![LSM Pearson and Spearman correlation](mispricing%20factor/LSM_factor_correlation.png)
 
+![CCB Pearson and Spearman correlation](mispricing%20factor/CCB_factor_correlation.png)
+
+![Mean Pearson and Spearman correlation](mispricing%20factor/Mean_factor_correlation.png)
+
 ![Factor IC and Rank IC](mispricing%20factor/factor_ic_comparison.png)
 
 ## 更新与复现
 
-每次周更新依次执行行情输入、三模型独立定价、观测因子、IC、策略核算、年度逐周报告、图表和 README，任一步失败即停止发布。周报在暂存目录生成并校验后，与其他结果一起提交和推送，新增周报也纳入提交。定价只追加已验证边界之后的交易周，因子与组合结果按同一套定价输入重新计算。输入指纹和产物 Manifest 会识别相同截止日下的数据或定价变更，替换前的结果由 Git 保留。
+历年研究周报 [2019](long-short%20strategy/weekly_value_results_pricing_four_2019/README.md) · [2020](long-short%20strategy/weekly_value_results_pricing_four_2020/README.md) · [2021](long-short%20strategy/weekly_value_results_pricing_four_2021/README.md) · [2022](long-short%20strategy/weekly_value_results_pricing_four_2022/README.md) · [2023](long-short%20strategy/weekly_value_results_pricing_four_2023/README.md) · [2024](long-short%20strategy/weekly_value_results_pricing_four_2024/README.md) · [2025](long-short%20strategy/weekly_value_results_pricing_four_2025/README.md) · [2026](long-short%20strategy/weekly_value_results_pricing_four_2026/README.md)
+
+每次周更新依次执行行情输入、四模型独立定价、观测因子、IC、策略核算、年度逐周报告、图表和 README。定价只追加已验证边界之后的交易周。CCB 先增量检索发行人公告，再为新增交易周估值，因子与组合研究按同一套定价结果重新计算。任一步失败即停止发布。
 
 ```powershell
 python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote
@@ -181,34 +231,54 @@ python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --pr
 
 ## Overview
 
-This project compares Black-Scholes (BS), clause-stopping Monte Carlo (ZL), and Least-Squares Monte Carlo (LSM) for Chinese convertible bonds. Pricing deviations, factor predictiveness and investable portfolio behaviour are evaluated separately.
+This project prices Chinese convertible bonds with Black-Scholes (BS), clause-stopping Monte Carlo (ZL), Least-Squares Monte Carlo (LSM) and CCB with issuer call protection. The four-model arithmetic mean is the main valuation signal for the factor and portfolio research.
 
 ## Pricing methods
 
-In the referenced research, CCB provides analytical pricing for a specified call-protection period. The independent [CCB 2023 experiment](experiments/ccb_2023/README.md) now uses observed yield curves and verified non-call commitments. CCBA's issuer-behaviour probability weighting has not been implemented.
+All four models independently read observed conversion value, volatility and government yields, along with the bond's coupon schedule, redemption amount and conversion dates. Each calibrates a nonnegative credit spread to the observed straight-bond value using the contractual cash flows. Cash payments are discounted with that spread and the government-rate proxy. Shares received on conversion are discounted at the government-rate proxy alone. Volatility uses up to 250 adjusted stock closes, with at least 60 required. Missing or inconsistent inputs are recorded by bond and date.
 
-All models read observed inputs independently. Contractual coupons, maturity payments, conversion dates and termination rules use the same conventions. Cash payments receive credit discounting; share conversion uses the government-rate proxy. Missing or inconsistent inputs remain excluded with recorded reasons.
+### Black–Scholes (BS)
 
-- **BS** values European conversion with actual conversion expiry and contractual cash value. Issuer call and holder put options are outside this baseline.
-- **ZL** simulates observed clause counters, conversion boundaries and cash flows. Calling after a qualifying trigger with a 30-observation notice period is a disclosed policy assumption. Future discretionary resets and unverified waivers are not invented.
-- **LSM** adds voluntary early conversion and optional puts using continuation regression. It uses 8,192 training paths and another 8,192 independent valuation paths, antithetic sampling and 192 base exercise intervals with contractual boundaries. It does not read ZL prices or impose a ZL floor.
+BS is the closed-form European conversion benchmark. It carries the observed conversion value to the last permitted conversion date under a risk-neutral lognormal process. On that date the holder chooses between converting into shares and retaining the remaining contractual cash flows. The model values those cash flows at the decision date, including any later redemption payment. Coupons paid before the last conversion date are discounted separately.
 
-### Independent CCB 2023 experiment (2026-10-29)
+Conversion value and stock volatility drive the option component. The model's single exercise date and omission of issuer calls and holder puts make it a benchmark for the equity exposure of the bond. The valuation uses the actual contractual cash alternative as the exercise threshold, and the final coupon already included in the redemption amount is counted once.
 
-The experiment covers 2019-01-04 through 2026-10-23 and now includes 700 notices with explicit protection periods. Reviewing the previous 194-item queue resolved seven periods, classified three informational notices and linked two superseded drafts to their replacements; 182 periods remain unfilled. This restores 284 bond-date observations and expands the common sample with saved BS/ZL/LSM prices to **148,704 observations, 974 bonds and 400 weeks**.
+### Clause-stopping Monte Carlo (ZL)
 
-On that common sample, CCB with explicit commitments has **MAE 11.3459 yuan and RMSE 30.8193 yuan**. All 18 announcement tests pass; 112 refined-grid checks have a maximum difference of 0.0068 yuan, below the 0.05-yuan numerical tolerance. Prices on the previous common sample are unchanged: this review increases coverage. See the [comparison report](experiments/ccb_2023/results_waivers_2023/REPORT.md) and [notice audit](experiments/ccb_2023/results_waivers_2023/REVIEW_20261029.md). CCB remains independent of production strategies; the three-model production metrics below retain their original sample.
+ZL simulates 10,000 risk-neutral paths for conversion value. Each path starts from the call and put counters observed on the valuation date. A call can qualify once conversion opens and the contractual rolling count reaches its threshold. A price-triggered put requires the applicable contract window and consecutive observations below the put threshold.
+
+The issuer is assumed to call after the qualifying trigger, with a notice period of 30 simulated trading observations. The holder is assumed to take a qualifying put. The model evaluates conversion through the last permitted conversion date and stops future coupons when the contract terminates. The result is a valuation under a specified exercise policy. Future discretionary conversion-price resets and unverified non-call commitments fall outside that policy.
+
+### Least-Squares Monte Carlo (LSM)
+
+LSM uses the contractual path rules and estimates whether a holder should convert early, exercise an available put or continue holding. Working backward through exercise dates, it regresses future discounted cash flows on conversion value, its square, the call and put counters, and the time left in any call notice. It compares that continuation estimate with the value of each permitted immediate action.
+
+The production model uses 8,192 antithetic training paths to fit the policy and another 8,192 independent valuation paths to price it. Its 192 base exercise intervals are supplemented with contractual boundaries and coupon observations. Each valuation comes from this fitted policy and the bond's cash flows. Reported Monte Carlo standard errors measure sampling uncertainty conditional on that policy.
+
+### CCB with issuer call protection
+
+CCB starts with a call-protection period based on the remaining time before conversion opens and a one-month minimum. When a dated issuer commitment to refrain from calling was public by the valuation close, the remaining commitment period can extend that protection. Date-only and after-close disclosures enter on the next trading session. A latest decision whose period remains unresolved leaves the corresponding CCB price missing.
+
+Once protection ends, the observed contractual call threshold becomes a continuously monitored barrier. Crossing it ends the cash-flow stream and delivers shares. The model uses the observed government yield curve and contractual cash flows in a finite-difference solution, with grid refinement checks before publication. Its holder-put and future reset assumptions follow the 2023 model; the result omits both features.
+
+### Four-model mean
+
+The mean weights BS, ZL, LSM and CCB at 25% each. A bond-date requires four positive finite prices and an identical observed market quote. The four-model comparison and strategy history begin at the first shared weekly valuation in 2019.
+
+[Detailed pricing methods and numerical checks](backtest/PRICING_METHODS.md)
 
 <!-- pricing-metrics-en:start -->
 ## Pricing results
 
-All models use the same **152,930 valid bond-date cells over 403 observed weeks**. MSE is in yuan²; RMSE, MAE and bias are in yuan. Bias is model minus market price; R² uses the market-price mean as its constant baseline. Minimum weekly common coverage is **97.35%**, with **315/316** bonds in the latest week. These are market-price deviation diagnostics.
+All models use the same **150,005 valid bond-date cells over 404 observed weeks**. MSE is in yuan²; RMSE, MAE and bias are in yuan. Bias is model minus market price; R² uses the market-price mean as its constant baseline. Minimum weekly common coverage is **93.54%**, with **312/314** bonds in the latest week. These are market-price deviation diagnostics.
 
 | Model | N | MSE | RMSE | MAE | MAPE | Bias | R² |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| BS | 152,930 | 972.40 | 31.18 | 13.56 | 9.27% | +1.39 | 0.816 |
-| ZL | 152,930 | 999.24 | 31.61 | 12.41 | 7.96% | -9.45 | 0.811 |
-| LSM | 152,930 | 970.17 | 31.15 | 11.34 | 7.15% | -6.86 | 0.817 |
+| BS | 150,005 | 935.68 | 30.59 | 13.19 | 9.13% | +1.73 | 0.821 |
+| ZL | 150,005 | 957.75 | 30.95 | 12.05 | 7.84% | -9.06 | 0.817 |
+| LSM | 150,005 | 929.56 | 30.49 | 10.97 | 7.02% | -6.44 | 0.822 |
+| CCB | 150,005 | 949.23 | 30.81 | 11.39 | 7.28% | -8.46 | 0.818 |
+| Mean | 150,005 | 908.34 | 30.14 | 10.89 | 7.07% | -5.56 | 0.826 |
 <!-- pricing-metrics-en:end -->
 
 [Pricing metrics](backtest/Pricing_Metrics.csv) · [Current research provenance](backtest/Research_Migration.json) · [Archived rebuild validation](backtest/Pricing_Validation.json)
@@ -219,33 +289,47 @@ Five observed factors accompany each model's valuation gap: liquidity, volatilit
 
 | Model | Factor | Periods | IC | Rank IC | ICIR | Rank ICIR | Positive IC |
 |---|---|---|---|---|---|---|---|
-| BS | Mispricing | 94 | 0.082 | 0.047 | 0.50 | 0.29 | 66.0% |
-| BS | Liquidity | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 46.8% |
-| BS | Momentum | 94 | 0.018 | -0.008 | 0.08 | -0.05 | 59.6% |
-| BS | Price-volume | 94 | -0.004 | -0.059 | -0.03 | -0.37 | 46.8% |
-| BS | Valuation | 94 | 0.055 | 0.058 | 0.27 | 0.34 | 62.8% |
-| BS | Volatility | 94 | -0.026 | -0.074 | -0.10 | -0.28 | 45.7% |
-| ZL | Liquidity | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 46.8% |
-| ZL | Momentum | 94 | 0.018 | -0.008 | 0.08 | -0.05 | 59.6% |
-| ZL | Price-volume | 94 | -0.004 | -0.059 | -0.03 | -0.37 | 46.8% |
-| ZL | Valuation | 94 | 0.055 | 0.058 | 0.27 | 0.34 | 62.8% |
-| ZL | Volatility | 94 | -0.026 | -0.074 | -0.10 | -0.28 | 45.7% |
-| ZL | Mispricing | 94 | 0.098 | 0.088 | 0.49 | 0.51 | 73.4% |
-| LSM | Liquidity | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 46.8% |
-| LSM | Mispricing | 94 | 0.098 | 0.106 | 0.46 | 0.56 | 75.5% |
-| LSM | Momentum | 94 | 0.018 | -0.008 | 0.08 | -0.05 | 59.6% |
-| LSM | Price-volume | 94 | -0.004 | -0.059 | -0.03 | -0.37 | 46.8% |
-| LSM | Valuation | 94 | 0.055 | 0.058 | 0.27 | 0.34 | 62.8% |
-| LSM | Volatility | 94 | -0.026 | -0.074 | -0.10 | -0.28 | 45.7% |
+| BS | Mispricing | 94 | 0.085 | 0.047 | 0.52 | 0.29 | 67.0% |
+| BS | Liquidity | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
+| BS | Momentum | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
+| BS | Price-volume | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
+| BS | Valuation | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
+| BS | Volatility | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
+| ZL | Liquidity | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
+| ZL | Momentum | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
+| ZL | Price-volume | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
+| ZL | Valuation | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
+| ZL | Volatility | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
+| ZL | Mispricing | 94 | 0.103 | 0.092 | 0.52 | 0.54 | 74.5% |
+| LSM | Liquidity | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
+| LSM | Mispricing | 94 | 0.104 | 0.111 | 0.48 | 0.59 | 76.6% |
+| LSM | Momentum | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
+| LSM | Price-volume | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
+| LSM | Valuation | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
+| LSM | Volatility | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
+| CCB | Mispricing | 94 | 0.112 | 0.115 | 0.51 | 0.58 | 72.3% |
+| CCB | Liquidity | 94 | -0.036 | -0.078 | -0.16 | -0.42 | 46.8% |
+| CCB | Momentum | 94 | 0.030 | -0.005 | 0.14 | -0.03 | 64.9% |
+| CCB | Price-volume | 94 | -0.010 | -0.063 | -0.06 | -0.39 | 45.7% |
+| CCB | Valuation | 94 | 0.050 | 0.058 | 0.24 | 0.34 | 56.4% |
+| CCB | Volatility | 94 | -0.028 | -0.080 | -0.10 | -0.30 | 50.0% |
+| Mean | Liquidity | 94 | -0.036 | -0.078 | -0.16 | -0.42 | 46.8% |
+| Mean | Mean-price deviation | 94 | 0.108 | 0.094 | 0.54 | 0.55 | 73.4% |
+| Mean | Momentum | 94 | 0.030 | -0.005 | 0.14 | -0.03 | 64.9% |
+| Mean | Price-volume | 94 | -0.010 | -0.063 | -0.06 | -0.39 | 45.7% |
+| Mean | Valuation | 94 | 0.050 | 0.058 | 0.24 | 0.34 | 56.4% |
+| Mean | Volatility | 94 | -0.028 | -0.080 | -0.10 | -0.30 | 50.0% |
 
 ## Portfolio rules and results
 
-The weekly value strategy averages the three model prices, selects at most the highest eligible quintile and requires a 2% valuation margin after round-trip friction. One-way friction is 5bp; each long is capped at 10%, with unused capital in cash. Frozen valuation limits are checked again at the next session's open. Daily accounting includes observed executions, transaction costs, a 3% annual short-borrow assumption and explicitly recorded stale or unexplained marks.
+The weekly value strategy ranks the four-model mean relative to the same-day close. It selects at most the highest eligible quintile and requires a 2% valuation margin after round-trip friction. One-way friction is 5bp. Each long is capped at 10%, with unused capital in cash. Frozen valuation limits are checked again at the next session's open. Daily accounting includes observed executions, transaction costs, a 3% annual short-borrow assumption and explicitly recorded stale or unexplained marks.
+
+Daily portfolio accounting through **2026-11-25**.
 
 | Portfolio | Annualized research return | Sharpe | Max drawdown |
 |---|---|---|---|
-| long_only | 16.58% | 1.26 | -16.45% |
-| long_short | 13.01% | 1.34 | -11.91% |
+| long_only | 15.97% | 1.25 | -17.57% |
+| long_short | 13.14% | 1.34 | -12.09% |
 
 These are research estimates from observed prices and verified cash flows. Complete historical coupons, original financial vintages and short availability remain unverified, so the curves are not certified total returns or prospective live records. Original frozen tracking evidence is never replaced by a retrospectively recalculated signal.
 
@@ -253,9 +337,11 @@ The monthly six-factor portfolios rank equal-weight standardized factors and hol
 
 | Model | Annualized excess return | Sharpe | Max drawdown |
 |---|---|---|---|
-| BS | 11.28% | 0.76 | -29.72% |
-| ZL | 10.21% | 0.73 | -27.59% |
-| LSM | 10.37% | 0.75 | -28.24% |
+| BS | 10.48% | 0.66 | -30.11% |
+| ZL | 9.74% | 0.65 | -28.66% |
+| LSM | 9.86% | 0.66 | -28.26% |
+| CCB | 10.72% | 0.7 | -29.05% |
+| Mean | 10.52% | 0.69 | -28.69% |
 
 ## Key figures
 
@@ -273,6 +359,10 @@ Long-only, theoretical long-short, 000832.CSI and 511380.SH each start at 1 on t
 
 ![LSM model and market prices](backtest/Fig1_LSM_Price_Time_Series.png)
 
+![CCB model and market prices](backtest/Fig1_CCB_Price_Time_Series.png)
+
+![Mean model and market prices](backtest/Fig1_Mean_Price_Time_Series.png)
+
 ![Deviation_Distribution](backtest/Fig_Pricing_Deviation_Distribution.png)
 
 ![Annual_Deviation](backtest/Fig_Pricing_Annual_Deviation.png)
@@ -287,6 +377,10 @@ Long-only, theoretical long-short, 000832.CSI and 511380.SH each start at 1 on t
 
 ![LSM factor portfolios](long-short%20strategy/LSM_model_performance.png)
 
+![CCB factor portfolios](long-short%20strategy/CCB_model_performance.png)
+
+![Mean factor portfolios](long-short%20strategy/Mean_model_performance.png)
+
 ### Factor correlation and IC
 
 ![BS Pearson and Spearman correlation](mispricing%20factor/BS_factor_correlation.png)
@@ -295,11 +389,17 @@ Long-only, theoretical long-short, 000832.CSI and 511380.SH each start at 1 on t
 
 ![LSM Pearson and Spearman correlation](mispricing%20factor/LSM_factor_correlation.png)
 
+![CCB Pearson and Spearman correlation](mispricing%20factor/CCB_factor_correlation.png)
+
+![Mean Pearson and Spearman correlation](mispricing%20factor/Mean_factor_correlation.png)
+
 ![Factor IC and Rank IC](mispricing%20factor/factor_ic_comparison.png)
 
 ## Updates and reproducibility
 
-Every weekly update runs market inputs, independent BS/ZL/LSM pricing, observed factors, IC, strategy accounting, annual weekly reports, figures and this README before publication. Annual reports are generated and checked in staging, then committed and pushed together, including newly created weeks. Any failed stage stops publication. Pricing appends only verified new weeks; factor and portfolio outputs are recalculated against the same pricing baseline. Input fingerprints and artifact manifests detect changed data and model prices even when the cutoff is unchanged. Git preserves replaced results.
+Weekly research archives [2019](long-short%20strategy/weekly_value_results_pricing_four_2019/README.md) · [2020](long-short%20strategy/weekly_value_results_pricing_four_2020/README.md) · [2021](long-short%20strategy/weekly_value_results_pricing_four_2021/README.md) · [2022](long-short%20strategy/weekly_value_results_pricing_four_2022/README.md) · [2023](long-short%20strategy/weekly_value_results_pricing_four_2023/README.md) · [2024](long-short%20strategy/weekly_value_results_pricing_four_2024/README.md) · [2025](long-short%20strategy/weekly_value_results_pricing_four_2025/README.md) · [2026](long-short%20strategy/weekly_value_results_pricing_four_2026/README.md)
+
+Every weekly update runs market inputs, independent BS/ZL/LSM/CCB pricing, observed factors, IC, strategy accounting, annual weekly reports, figures and this README before publication. Pricing appends verified new weeks. CCB searches for new issuer notices before valuing new weeks, and factor and portfolio research are recalculated against the resulting four-model baseline. Any failed stage stops publication.
 
 ```powershell
 python backtest/rebuild_research_outputs.py --full-history --refresh-inputs --promote

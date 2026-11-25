@@ -26,6 +26,15 @@ MODELS=['CCB','BS','ZL','LSM']
 
 def load_data():
     d=PricingInputs(BASE)
+    historical=pd.read_csv(HERE/'inputs/chinabond_yields_2017_2018.csv',
+        index_col='date',parse_dates=True,float_precision='round_trip')
+    historical.columns=historical.columns.astype(float)
+    if (historical.empty or historical.index.has_duplicates or
+        historical.index.max()>=d.curve.index.min() or
+        not historical.columns.equals(d.curve.columns) or
+        not np.isfinite(historical.to_numpy()).all()):
+        raise DataContractError('invalid or overlapping historical ChinaBond curve')
+    d.curve=pd.concat([historical,d.curve]).sort_index()
     repairs=pd.read_csv(HERE/'inputs/repairs.csv')
     for row in repairs.itertuples():
         day=pd.Timestamp(row.date)
@@ -87,7 +96,7 @@ def main(workers=4):
     baseline={m:validate_outputs(m,BASE) for m in MODELS[1:]}
     d,repairs=load_data()
     cutoff=min(pd.Timestamp(x['input_cutoff']) for x in baseline.values())
-    dates=d.dates(end=cutoff)
+    dates=d.dates(start=d.market.index.min(),end=cutoff)
     prices={m:pd.read_csv(BASE/f'{m}_Model_Prices.csv',index_col=0,parse_dates=True,float_precision='round_trip') for m in MODELS[1:]}
     market_tables={m:pd.read_csv(BASE/('Market_Prices.csv' if m=='BS' else f'{m}_Market_Prices.csv'),index_col=0,parse_dates=True,float_precision='round_trip') for m in MODELS[1:]}
     repair_map={(pd.Timestamp(r.date),r.code,r.field):r.source for r in repairs.itertuples()}
@@ -137,10 +146,6 @@ def main(workers=4):
             if (i+1)%25==0 or i+1==len(dates):
                 print(f'CCB {i+1}/{len(dates)} weeks; {len(records)} prices; {time.perf_counter()-start:.1f}s',flush=True)
     frame=pd.DataFrame(records)
-    frame.to_csv(out/'CCB_observations.csv',index=False)
-    pd.DataFrame(issues).to_csv(out/'pricing_issues.csv',index=False)
-    pd.DataFrame(coverage).to_csv(out/'coverage.csv',index=False)
-    common,total=compare(frame,out)
     # Independent grid refinement on extrema and interior observations in each
     # year; retain the exact cases and differences, not just a pass flag.
     selected=[]
@@ -155,17 +160,24 @@ def main(workers=4):
         row=frame.loc[idx];day=pd.Timestamp(row.date);c=d.contract(row.code,day)
         fine=price_curve_ccb(c,protection=row.protection,barrier=row.barrier,dx=.01,max_dt=1/192)
         checks.append(dict(date=row.date,code=row.code,production=row.CCB,fine=fine,difference=fine-row.CCB))
-    check=pd.DataFrame(checks);check.to_csv(out/'observed_grid_convergence.csv',index=False)
+    check=pd.DataFrame(checks)
     if check.difference.abs().max()>.05:
         raise ArithmeticError('observed grid refinement exceeds 0.05 yuan; refine before publication')
+    frame.to_csv(out/'CCB_observations.csv',index=False)
+    pd.DataFrame(issues).to_csv(out/'pricing_issues.csv',index=False)
+    pd.DataFrame(coverage).to_csv(out/'coverage.csv',index=False)
+    check.to_csv(out/'observed_grid_convergence.csv',index=False)
+    common,total=compare(frame,out)
     # Reproducible selected weekly input snapshots; no full daily cache copies.
     snap=HERE/'inputs/snapshot';snap.mkdir(exist_ok=True)
     for key,f in d.frames.items():f.reindex(index=dates).to_csv(snap/f'{key}.csv')
     d.basic.to_csv(snap/'basic.csv');d.clauses.to_csv(snap/'clauses.csv');d.curve.loc[:cutoff].to_csv(snap/'yield_curve.csv')
     for model,m in baseline.items():
         (snap/f'{model}_source_manifest.json').write_text(json.dumps(m,indent=2),encoding='utf-8')
-    manifest=dict(method='CCB-2023-observed-curve-pde-v1',cutoff=str(cutoff.date()),weeks=len(dates),
-        prices=len(frame),common_sample=len(common),common_bonds=common.code.nunique(),
+    manifest=dict(method='CCB-2023-observed-curve-pde-v1',start=str(dates[0].date()),
+        cutoff=str(cutoff.date()),weeks=len(dates),prices=len(frame),common_sample=len(common),
+        common_bonds=common.code.nunique(),common_weeks=common.date.nunique(),
+        historical_curve='inputs/chinabond_yields_2017_2018.csv',
         implementation='Crank-Nicolson; Rannacher event smoothing; log-price mesh',
         dx=.02,max_time_step=1/96,workers=workers,elapsed_seconds=time.perf_counter()-start,
         precision='moderate',observed_grid_tolerance_yuan=.05,

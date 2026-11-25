@@ -1,0 +1,149 @@
+{
+  "source": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+  "cutoff": "2026-11-20",
+  "observed_at": "2026-11-25T11:43:40.135214+08:00",
+  "previous_cutoff": "2026-11-16",
+  "previous_observed_at": "2026-11-16T19:11:05.165461+08:00",
+  "changes": [
+    {
+      "ts_code": "118064.SH",
+      "previous": {
+        "SECURITY_CODE": "118064",
+        "SECUCODE": "118064.SH",
+        "SECURITY_NAME_ABBR": "联瑞转债",
+        "NOTICE_DATE_SH": "2026-08-04 00:00:00",
+        "RECORD_DATE_SH": null,
+        "EXECUTE_PRICE_SH": null,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": null
+      },
+      "current": {
+        "SECURITY_CODE": "118064",
+        "SECUCODE": "118064.SH",
+        "SECURITY_NAME_ABBR": "联瑞转债",
+        "NOTICE_DATE_SH": "2026-11-25 00:00:00",
+        "RECORD_DATE_SH": null,
+        "EXECUTE_PRICE_SH": null,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": null
+      }
+    },
+    {
+      "ts_code": "123080.SZ",
+      "previous": {
+        "SECURITY_CODE": "123080",
+        "SECUCODE": "123080.SZ",
+        "SECURITY_NAME_ABBR": "海波转债",
+        "NOTICE_DATE_SH": "2026-10-28 00:00:00",
+        "RECORD_DATE_SH": "2026-12-01 00:00:00",
+        "EXECUTE_PRICE_SH": 120.0,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": 2.0
+      },
+      "current": {
+        "SECURITY_CODE": "123080",
+        "SECUCODE": "123080.SZ",
+        "SECURITY_NAME_ABBR": "海波转债",
+        "NOTICE_DATE_SH": "2026-10-28 00:00:00",
+        "RECORD_DATE_SH": "2026-12-01 00:00:00",
+        "EXECUTE_PRICE_SH": 120.0,
+        "EXECUTE_START_DATESH": "2026-12-02 00:00:00",
+        "DELIST_DATE": "2026-12-02 00:00:00",
+        "REDEEM_TYPE": 2.0
+      }
+    },
+    {
+      "ts_code": "123090.SZ",
+      "previous": null,
+      "current": {
+        "SECURITY_CODE": "123090",
+        "SECUCODE": "123090.SZ",
+        "SECURITY_NAME_ABBR": "三诺转债",
+        "NOTICE_DATE_SH": "2026-11-17 00:00:00",
+        "RECORD_DATE_SH": "2026-12-18 00:00:00",
+        "EXECUTE_PRICE_SH": 112.0,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": 2.0
+      }
+    },
+    {
+      "ts_code": "123091.SZ",
+      "previous": {
+        "SECURITY_CODE": "123091",
+        "SECUCODE": "123091.SZ",
+        "SECURITY_NAME_ABBR": "长海转债",
+        "NOTICE_DATE_SH": "2026-05-27 00:00:00",
+        "RECORD_DATE_SH": null,
+        "EXECUTE_PRICE_SH": null,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": null
+      },
+      "current": {
+        "SECURITY_CODE": "123091",
+        "SECUCODE": "123091.SZ",
+        "SECURITY_NAME_ABBR": "长海转债",
+        "NOTICE_DATE_SH": "2026-11-18 00:00:00",
+        "RECORD_DATE_SH": "2026-12-22 00:00:00",
+        "EXECUTE_PRICE_SH": 111.0,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": 2.0
+      }
+    },
+    {
+      "ts_code": "123092.SZ",
+      "previous": {
+        "SECURITY_CODE": "123092",
+        "SECUCODE": "123092.SZ",
+        "SECURITY_NAME_ABBR": "天壕转债",
+        "NOTICE_DATE_SH": "2024-01-22 00:00:00",
+        "RECORD_DATE_SH": null,
+        "EXECUTE_PRICE_SH": null,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": null
+      },
+      "current": {
+        "SECURITY_CODE": "123092",
+        "SECUCODE": "123092.SZ",
+        "SECURITY_NAME_ABBR": "天壕转债",
+        "NOTICE_DATE_SH": "2026-11-19 00:00:00",
+        "RECORD_DATE_SH": "2026-12-23 00:00:00",
+        "EXECUTE_PRICE_SH": 115.0,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": 2.0
+      }
+    },
+    {
+      "ts_code": "123255.SZ",
+      "previous": {
+        "SECURITY_CODE": "123255",
+        "SECUCODE": "123255.SZ",
+        "SECURITY_NAME_ABBR": "鼎龙转债",
+        "NOTICE_DATE_SH": "2026-04-29 00:00:00",
+        "RECORD_DATE_SH": null,
+        "EXECUTE_PRICE_SH": null,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": null
+      },
+      "current": {
+        "SECURITY_CODE": "123255",
+        "SECUCODE": "123255.SZ",
+        "SECURITY_NAME_ABBR": "鼎龙转债",
+        "NOTICE_DATE_SH": "2026-11-19 00:00:00",
+        "RECORD_DATE_SH": null,
+        "EXECUTE_PRICE_SH": null,
+        "EXECUTE_START_DATESH": null,
+        "DELIST_DATE": null,
+        "REDEEM_TYPE": null
+      }
+    }
+  ]
+}

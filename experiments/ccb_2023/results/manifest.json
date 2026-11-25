@@ -1,15 +1,20 @@
 {
   "method": "CCB-2023-observed-curve-pde-v1",
-  "cutoff": "2026-10-23",
-  "weeks": 400,
-  "prices": 152003,
-  "common_sample": 151991,
-  "common_bonds": 974,
+  "start": "2017-01-06",
+  "cutoff": "2026-11-20",
+  "weeks": 506,
+  "prices": 157961,
+  "common_sample": 153242,
+  "common_bonds": 982,
+  "common_weeks": 404,
+  "historical_curve": "inputs/chinabond_yields_2017_2018.csv",
   "implementation": "Crank-Nicolson; Rannacher event smoothing; log-price mesh",
   "dx": 0.02,
   "max_time_step": 0.010416666666666666,
   "workers": 4,
-  "elapsed_seconds": 163.40833499992732,
+  "elapsed_seconds": 160.1307172000088,
+  "precision": "moderate",
+  "observed_grid_tolerance_yuan": 0.05,
   "protection": "max(actual conversion start remaining ACT/365, 1/12 year)",
   "rate": "observed government tenor curve, log1p effective yields, linear continuous-zero interpolation",
   "credit": "flat nonnegative spread calibrated only to observed pure-bond value",
@@ -33,16 +38,14 @@
     "max_grid_difference": 0.007271178551690127,
     "max_mc_z": 1.2993480565398745
   },
-  "observed_grid_cases": 159,
+  "observed_grid_cases": 197,
   "max_observed_grid_difference": 0.02371535317507778,
   "repair_count": 16,
   "baseline_cutoffs": {
-    "BS": "2026-10-23",
-    "ZL": "2026-10-23",
-    "LSM": "2026-10-23"
+    "BS": "2026-11-20",
+    "ZL": "2026-11-20",
+    "LSM": "2026-11-20"
   },
   "baseline_integrity": "existing validate_outputs verified workbook and all CSV artifact hashes",
-  "source_commit": "835a3baa544b061ee9dca7b28dda37a8e0284bca",
-  "precision": "moderate",
-  "observed_grid_tolerance_yuan": 0.05
+  "source_commit": "abb13950912ea49bdfd676597f4d064b1b9fb809"
 }

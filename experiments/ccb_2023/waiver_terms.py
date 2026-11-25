@@ -129,8 +129,7 @@ def available_date(timestamp,calendar):
     known_intraday=t!=day
     same_close=known_intraday and t<=day+pd.Timedelta(hours=15)
     if day<calendar.min():
-        # Pre-study notices retain their historical ordering. Their exact next
-        # trading session is immaterial to valuations beginning in 2019.
+        # For notices before the first observed session, retain their ordering.
         return day+pd.Timedelta(days=1),'prestudy_next_calendar_day'
     side='left' if same_close else 'right'
     idx=calendar.searchsorted(day,side=side)
@@ -145,6 +144,9 @@ def build_terms():
     code_map={c[:6]:c for c in basic.index}
     calendar=pd.read_csv(BASE/'strategy_inputs/calendar.csv',dtype={'cal_date':str})
     calendar=pd.DatetimeIndex(pd.to_datetime(calendar.loc[calendar.is_open.eq(1),'cal_date'],format='%Y%m%d')).sort_values()
+    early_market=pd.read_csv(BASE/'cb_price_cache.csv',index_col=0,parse_dates=True)
+    early_market=early_market.loc[early_market.index<calendar.min()]
+    calendar=calendar.union(early_market.index[early_market.gt(0).any(axis=1)])
     records=[]
     for row in index.to_dict('records'):
         ident=row['announcementId']
@@ -186,11 +188,17 @@ def build_terms():
 
 def apply_reviewed_decisions(terms):
     """Apply narrowly reviewed source decisions, with as-of source guards."""
-    folder=ROOT/'review_20261029'
+    for folder in sorted(ROOT.glob('review_*')):
+        if (folder/'decisions.json').is_file():
+            terms=apply_review(terms,folder)
+    return terms
+
+
+def apply_review(terms,folder):
     path=folder/'decisions.json'
-    if not path.exists():return terms
     decisions=json.loads(path.read_text(encoding='utf-8'))
-    supporting={r['announcement_id']:r for r in json.loads((folder/'supporting_sources.json').read_text(encoding='utf-8'))}
+    support=folder/'supporting_sources.json'
+    supporting={r['announcement_id']:r for r in json.loads(support.read_text(encoding='utf-8'))} if support.is_file() else {}
     result=terms.copy()
     for ident,review in decisions.items():
         matches=result.index[result.announcement_id.eq(ident)]
@@ -211,11 +219,16 @@ def apply_reviewed_decisions(terms):
             linked=result.loc[result.announcement_id.eq(replacement)]
             if len(linked)!=1 or linked.iloc[0].code!=row.code or linked.iloc[0].status!='explicit':
                 raise ValueError('invalid replacement linkage')
+            replacement_text=normalize((ROOT/'text'/f'{replacement}.txt').read_text(encoding='utf-8'))
+            if not all(quote in replacement_text for quote in review.get('replacement_text',[])):
+                raise ValueError('reviewed replacement text no longer matches: '+replacement)
+            if 'replacement_end' in review and linked.iloc[0].end!=review['replacement_end']:
+                raise ValueError('reviewed replacement date no longer matches: '+replacement)
         result.at[idx,'status']=review['status']
         result.at[idx,'start']=row.announcement_at[:10] if review['status']=='explicit' else ''
         result.at[idx,'end']=review.get('end','')
         result.at[idx,'superseded_by']=replacement
-        result.at[idx,'rule']='source_review_20261029_'+review['outcome']
+        result.at[idx,'rule']=f'source_{folder.name}_'+review['outcome']
         result.at[idx,'evidence']='；'.join(review['required_text'])+'；'+review['reason']
         result.at[idx,'supporting_sources']=';'.join(links)
     return result

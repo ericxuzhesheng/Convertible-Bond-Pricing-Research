@@ -163,13 +163,12 @@ def test_cpu_workflow_runs_all_weekly_stages_before_publish() -> None:
     assert "git push origin" in workflow
 
 
-def test_cpu_workflow_has_weekly_remote_schedule() -> None:
+def test_cpu_workflow_is_available_as_a_manual_fallback() -> None:
     workflow = (
         REPO_ROOT / ".github" / "workflows" / "weekly-incremental-cpu.yml"
     ).read_text(encoding="utf-8")
 
-    assert "schedule:" in workflow
-    assert 'cron: "30 9 * * 5"' in workflow
+    assert "\n  schedule:" not in workflow
     assert "workflow_dispatch:" in workflow
     assert "\n  push:" not in workflow
     assert "TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}" in workflow

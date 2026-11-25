@@ -7,9 +7,10 @@ import regenerate_plots
 
 def test_pricing_only_refresh_does_not_touch_legacy_research(monkeypatch):
     calls=[]
-    names=['plot_bs_timeseries','plot_zl_timeseries','plot_lsm_timeseries','plot_pricing_diagnostics',
+    monkeypatch.setattr(regenerate_plots, 'pricing_panel', lambda: ({}, None))
+    names=['plot_common_price_series','plot_pricing_diagnostics',
         'plot_strategy_performance','plot_factor_correlation','plot_factor_ic_comparison']
     for name in names:
-        monkeypatch.setattr(regenerate_plots,name,lambda name=name:calls.append(name))
+        monkeypatch.setattr(regenerate_plots,name,lambda *args,name=name:calls.append(name))
     regenerate_plots.main(['--pricing-only'])
-    assert calls==names[:4]
+    assert calls==names[:2]

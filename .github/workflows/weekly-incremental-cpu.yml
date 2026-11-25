@@ -48,6 +48,7 @@ jobs:
           requests==2.32.5
           tqdm==4.67.1
           openpyxl==3.1.5
+          pypdf
           pytest
 
       - name: Install Chinese fonts for pricing figures
@@ -94,6 +95,9 @@ jobs:
       - name: Update LSM weekly results incrementally
         run: python -u backtest/LSM_backtest.py --weekly
 
+      - name: Update CCB weekly results and issuer notices incrementally
+        run: python -u backtest/ccb_weekly.py
+
       - name: Resolve the latest completed weekly market date
         shell: bash
         run: |
@@ -114,11 +118,13 @@ jobs:
       - name: Validate the incremental cloud outputs
         run: >-
           python -c "import sys; sys.path.insert(0, 'backtest');
-          from pricing_backtest import validate_outputs;
+          from pricing_backtest import LEGACY_MODELS, validate_outputs;
           from pricing_inputs import PricingInputs;
+          from ccb_weekly import CCBInputs;
           from pathlib import Path;
           data=PricingInputs(Path('backtest'));
-          manifests=[validate_outputs(m, Path('backtest'),data) for m in ('BS','ZL','LSM')];
+          manifests=[validate_outputs(m, Path('backtest'),data) for m in LEGACY_MODELS];
+          manifests.append(validate_outputs('CCB', Path('backtest'), CCBInputs(Path('backtest'))));
           assert len({m['input_cutoff'] for m in manifests}) == 1"
 
       - name: Upload weekly outputs for recovery
@@ -145,6 +151,9 @@ jobs:
             backtest/LSM_Model_*.csv
             backtest/LSM_Model_Summary.xlsx
             backtest/LSM_Model_Manifest.json
+            backtest/CCB_*.csv
+            backtest/CCB_Model_Summary.xlsx
+            backtest/CCB_Model_Manifest.json
             backtest/*_Monte_Carlo_SE.csv
             backtest/*_Implied_Credit_Spread.csv
             backtest/*_Pricing_Coverage.csv
@@ -161,7 +170,8 @@ jobs:
             backtest/strategy_inputs/
             long-short strategy/weekly_results/
             long-short strategy/weekly_value_results/
-            long-short strategy/weekly_value_results_pricing_v2_*/
+            long-short strategy/weekly_value_results_pricing_four_*/
+            experiments/ccb_2023/inputs/waivers/
 
       - name: Commit and publish the complete weekly update
         shell: bash
@@ -171,7 +181,7 @@ jobs:
           git add -u
           git add backtest/strategy_inputs "long-short strategy/weekly_results" "long-short strategy/weekly_value_results"
           git add backtest/Research_Migration.json
-          git add -- ':(glob)long-short strategy/weekly_value_results_pricing_v2_*/**'
+          git add -- ':(glob)long-short strategy/weekly_value_results_pricing_four_*/**' +            ':(glob)experiments/ccb_2023/inputs/waivers/index/*.json' +            ':(glob)experiments/ccb_2023/inputs/waivers/pdf/*.pdf' +            ':(glob)experiments/ccb_2023/inputs/waivers/text/*.txt'
           if git diff --cached --quiet; then
             echo "No weekly changes to publish."
           else

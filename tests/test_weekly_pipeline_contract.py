@@ -38,6 +38,8 @@ def test_research_output_rebuild_runs_all_downstream_stages(
         "B-S_mispricing_factor.py",
         "Z-L_mispricing_factor.py",
         "LSM_mispricing_factor.py",
+        "CCB_mispricing_factor.py",
+        "Mean_mispricing_factor.py",
         "strategy_data.py",
         "weekly_value_strategy.py",
         "regenerate_plots.py",
@@ -71,6 +73,7 @@ def test_weekly_batch_fails_closed_before_git_publish() -> None:
 
     assert 'rebuild_research_outputs.py" --full-history --refresh-inputs --promote' in source
     assert source.count("goto :fail") >= 3
+    assert source.index('ccb_weekly.py" >>') < source.index('rebuild_research_outputs.py')
 
 
 def test_weekly_batch_runs_only_after_the_verified_incremental_cutoff() -> None:

@@ -28,7 +28,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
-from pricing_diagnostics import plot_pricing_diagnostics
+from pricing_diagnostics import common_sample, plot_pricing_diagnostics
+from pricing_backtest import RESEARCH_MODELS, pricing_panel
 
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
@@ -61,6 +62,8 @@ FACTOR_CORRELATION_LABELS = {
     "bs_deviation": "Mispricing",
     "zl_deviation": "Mispricing",
     "lsm_deviation": "Mispricing",
+    "ccb_deviation": "Mispricing",
+    "mean_deviation": "Mispricing",
 }
 
 # XLSX sheet 名称（理论价格 / 市场价格 / 绝对偏差 / 相对偏差）
@@ -446,6 +449,10 @@ def plot_strategy_performance() -> None:
         dev_col="lsm_deviation_nav",
         out_path=os.path.join(LS_DIR, "LSM_model_performance.png"),
     )
+    for model in ("CCB", "Mean"):
+        _plot_one_strategy(os.path.join(MF_DIR, f"{model}_alpha_strategy_results.csv"),
+                          model, f"{model.lower()}_deviation_nav",
+                          os.path.join(LS_DIR, f"{model}_model_performance.png"))
 
 
 # ── 因子相关性热力图 ───────────────────────────────────────────────────────────
@@ -633,7 +640,7 @@ def plot_factor_correlation() -> None:
 def plot_factor_ic_comparison() -> None:
     """Plot mean Pearson IC and Spearman Rank IC for all model factors."""
     summaries = {}
-    for model in ("BS", "ZL", "LSM"):
+    for model in RESEARCH_MODELS:
         path = os.path.join(MF_DIR, f"{model}_factor_ic_summary.csv")
         if not os.path.exists(path):
             print(f"  [skip] missing factor IC summary: {path}")
@@ -660,8 +667,8 @@ def plot_factor_ic_comparison() -> None:
     ]
     fig, axes = plt.subplots(
         1,
-        3,
-        figsize=(15, 7),
+        len(summaries),
+        figsize=(19, 7),
         sharex=True,
         constrained_layout=True,
     )
@@ -689,7 +696,8 @@ def plot_factor_ic_comparison() -> None:
             label="Mean Rank IC",
         )
         ax.axvline(0, color="#333333", linewidth=0.8)
-        ax.set_yticks(y, [display_names[value] for value in summary["factor"]])
+        ax.set_yticks(y, ["Mispricing" if value.endswith("_deviation") else display_names[value]
+                          for value in summary["factor"]])
         ax.invert_yaxis()
         ax.set_title(model)
         ax.grid(axis="x", color="#D9DDE3", linewidth=0.6, alpha=0.8)
@@ -708,6 +716,25 @@ def plot_factor_ic_comparison() -> None:
 
 # ── 入口 ──────────────────────────────────────────────────────────────────────
 
+def plot_common_price_series(models, market):
+    valid = common_sample(models, market)
+    quoted = market.where(valid)
+    for model, price in models.items():
+        price = price.where(valid)
+        relative = (price-quoted)/quoted
+        daily = build_matched_plot_series(model=price, market=quoted, relative_deviation=relative)
+        weekly = build_reliable_weekly_plot_series(daily, min_sample_count=20)
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.plot(weekly.index, weekly["model"], label=model, color="#286da8")
+        ax.plot(weekly.index, weekly["market"], label="市场价格", color="#343a40", linestyle="--")
+        ax.set(title=f"{model} 与市场价格（四模型共同样本）", ylabel="转债平均价格（元）", xlabel="年份")
+        right = ax.twinx()
+        right.fill_between(weekly.index, weekly["relative_deviation_pct"], 0, color="#9867a5", alpha=.22)
+        right.set_ylabel("平均相对偏差（%）")
+        ax.legend()
+        _save(os.path.join(SCRIPT_DIR, f"Fig1_{model}_Price_Time_Series.png"))
+
+
 def main(argv=None) -> None:
     import argparse
     parser=argparse.ArgumentParser(description=__doc__)
@@ -717,9 +744,7 @@ def main(argv=None) -> None:
     print("regenerate_plots.py — " + ("仅更新定价图表" if args.pricing_only else "重生成 README 全部图表"))
     print("=" * 60)
 
-    plot_bs_timeseries()
-    plot_zl_timeseries()
-    plot_lsm_timeseries()
+    plot_common_price_series(*pricing_panel())
     plot_pricing_diagnostics()
     if not args.pricing_only:
         plot_weekly_strategy_nav()

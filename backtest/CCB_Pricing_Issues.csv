@@ -1,0 +1,3738 @@
+date,code,reason
+2019-02-15,113010.SH,missing or invalid observed inputs: floor
+2019-02-22,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-01,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-08,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-15,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-22,110032.SH,missing or invalid observed inputs: floor
+2019-03-22,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-03-29,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-04,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-12,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-12,128040.SZ,missing or invalid observed inputs: volatility
+2019-04-19,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-19,128040.SZ,missing or invalid observed inputs: volatility
+2019-04-19,128043.SZ,missing or invalid observed inputs: volatility
+2019-04-26,113512.SH,missing or invalid observed inputs: floor
+2019-04-26,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-04-30,113506.SH,missing or invalid observed inputs: floor
+2019-04-30,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-05-10,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-05-17,113018.SH,missing or invalid observed inputs: floor
+2019-05-17,123006.SZ,missing or invalid observed inputs: floor
+2019-05-17,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-05-24,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-05-31,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-06-06,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-06-14,110056.SH,missing or invalid observed inputs: volatility
+2019-06-14,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-06-21,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-06-28,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-05,113513.SH,outside listed lifecycle
+2019-07-05,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-12,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-19,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-26,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-07-26,128054.SZ,missing or invalid observed inputs: volatility
+2019-08-02,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-08-09,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-08-16,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-08-23,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-08-23,128024.SZ,missing or invalid observed inputs: floor
+2019-08-30,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-09-06,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-09-12,110049.SH,observed bond value exceeds the contractual risk-free value
+2019-09-12,127010.SZ,observed bond value exceeds the contractual risk-free value
+2019-09-20,127010.SZ,missing or invalid observed inputs: floor
+2019-10-11,110049.SH,observed bond value exceeds the contractual risk-free value
+2019-10-18,123001.SZ,missing or invalid observed inputs: floor
+2019-10-18,127009.SZ,missing or invalid observed inputs: floor
+2019-10-25,128027.SZ,missing or invalid observed inputs: floor
+2019-11-01,128047.SZ,missing or invalid observed inputs: floor
+2019-11-08,128037.SZ,missing or invalid observed inputs: volatility
+2019-12-13,110049.SH,observed bond value exceeds the contractual risk-free value
+2020-02-14,123003.SZ,missing or invalid observed inputs: floor
+2020-02-14,128020.SZ,missing or invalid observed inputs: floor
+2020-02-21,128020.SZ,missing or invalid observed inputs: floor
+2020-02-28,113522.SH,outside listed lifecycle
+2020-03-13,123016.SZ,missing or invalid observed inputs: floor
+2020-03-20,123009.SZ,missing or invalid observed inputs: floor
+2020-03-20,128060.SZ,missing or invalid observed inputs: floor
+2020-03-20,128061.SZ,missing or invalid observed inputs: floor
+2020-07-17,123043.SZ,missing or invalid observed inputs: volatility
+2020-09-11,123052.SZ,missing or invalid observed inputs: volatility
+2021-02-19,113524.SH,missing or invalid observed inputs: volatility
+2021-03-26,127025.SZ,missing or invalid observed inputs: volatility
+2021-05-07,127030.SZ,missing or invalid observed inputs: volatility
+2021-06-25,128022.SZ,missing or invalid observed inputs: volatility
+2021-12-03,127025.SZ,missing or invalid observed inputs: volatility
+2021-12-10,127025.SZ,missing or invalid observed inputs: volatility
+2022-04-08,113043.SH,missing or invalid observed inputs: volatility
+2022-04-22,127027.SZ,missing or invalid observed inputs: volatility
+2022-05-20,127028.SZ,missing or invalid observed inputs: volatility
+2022-10-21,110088.SH,observed bond value exceeds the contractual risk-free value
+2022-10-28,124017.SZ,contractual cash-flow fields are unavailable
+2022-11-04,110088.SH,observed bond value exceeds the contractual risk-free value
+2022-11-04,124017.SZ,contractual cash-flow fields are unavailable
+2022-11-11,110088.SH,observed bond value exceeds the contractual risk-free value
+2022-11-11,124017.SZ,contractual cash-flow fields are unavailable
+2022-11-18,124017.SZ,contractual cash-flow fields are unavailable
+2022-11-25,113051.SH,missing or invalid observed inputs: volatility
+2022-11-25,124017.SZ,contractual cash-flow fields are unavailable
+2023-01-06,123161.SZ,missing or invalid observed inputs: volatility
+2023-04-21,123004.SZ,missing or invalid observed inputs: volatility
+2023-05-05,123015.SZ,missing or invalid observed inputs: volatility
+2023-05-12,123015.SZ,missing or invalid observed inputs: volatility
+2023-05-12,123122.SZ,missing or invalid observed inputs: volatility
+2023-05-19,123015.SZ,missing or invalid observed inputs: volatility
+2023-05-26,123015.SZ,missing or invalid observed inputs: volatility
+2023-06-02,123015.SZ,missing or invalid observed inputs: volatility
+2023-06-02,128100.SZ,missing or invalid observed inputs: volatility
+2023-06-09,123015.SZ,missing or invalid observed inputs: volatility
+2023-06-09,128100.SZ,missing or invalid observed inputs: volatility
+2023-06-16,123015.SZ,missing or invalid observed inputs: volatility
+2023-06-16,128100.SZ,missing or invalid observed inputs: volatility
+2023-06-21,123015.SZ,missing or invalid observed inputs: volatility
+2023-06-21,128100.SZ,missing or invalid observed inputs: volatility
+2023-06-30,123015.SZ,missing or invalid observed inputs: volatility
+2023-06-30,123170.SZ,missing or invalid observed inputs: volatility
+2023-06-30,128100.SZ,missing or invalid observed inputs: volatility
+2023-07-07,123015.SZ,missing or invalid observed inputs: volatility
+2023-07-07,128100.SZ,missing or invalid observed inputs: volatility
+2023-07-14,128100.SZ,missing or invalid observed inputs: volatility
+2023-07-21,128100.SZ,missing or invalid observed inputs: volatility
+2023-07-28,128100.SZ,missing or invalid observed inputs: volatility
+2023-08-04,128100.SZ,missing or invalid observed inputs: volatility
+2023-08-25,128114.SZ,missing or invalid observed inputs: floor
+2023-09-01,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-09-01,128114.SZ,missing or invalid observed inputs: floor
+2023-09-08,128114.SZ,missing or invalid observed inputs: floor
+2023-09-15,128114.SZ,missing or invalid observed inputs: floor
+2023-09-22,128114.SZ,missing or invalid observed inputs: floor
+2023-09-28,128114.SZ,missing or invalid observed inputs: floor
+2023-10-13,128114.SZ,missing or invalid observed inputs: floor
+2023-10-20,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-10-20,128114.SZ,missing or invalid observed inputs: floor
+2023-11-10,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-11-17,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-11-17,113057.SH,observed bond value exceeds the contractual risk-free value
+2023-11-24,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-11-24,113057.SH,observed bond value exceeds the contractual risk-free value
+2023-11-24,123002.SZ,missing or invalid observed inputs: floor
+2023-12-01,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-12-01,113057.SH,observed bond value exceeds the contractual risk-free value
+2023-12-08,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-12-15,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-12-22,110088.SH,observed bond value exceeds the contractual risk-free value
+2023-12-29,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-01-05,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-01-12,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-01-19,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-01-26,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-02-02,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-02-08,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-02-23,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-03-01,127058.SZ,observed bond value exceeds the contractual risk-free value
+2024-03-08,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-08,127058.SZ,observed bond value exceeds the contractual risk-free value
+2024-03-15,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-22,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-29,110088.SH,observed bond value exceeds the contractual risk-free value
+2024-03-29,124024.SZ,missing or invalid observed inputs: floor
+2024-04-03,124024.SZ,missing or invalid observed inputs: floor
+2024-04-12,124024.SZ,missing or invalid observed inputs: floor
+2024-04-19,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-04-19,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-04-19,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-04-26,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-04-26,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-04-26,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-04-26,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-04-26,124024.SZ,missing or invalid observed inputs: floor
+2024-04-30,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-04-30,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-04-30,124024.SZ,missing or invalid observed inputs: floor
+2024-05-10,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-05-10,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-05-10,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-05-10,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-05-10,118019.SH,observed bond value exceeds the contractual risk-free value
+2024-05-17,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-05-17,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,118019.SH,observed bond value exceeds the contractual risk-free value
+2024-05-24,123099.SZ,missing or invalid observed inputs: volatility
+2024-05-24,124024.SZ,missing or invalid observed inputs: floor
+2024-05-31,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-05-31,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-05-31,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-07,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-06-07,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-07,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-07,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-14,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-06-14,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-14,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-14,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-14,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-21,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-06-21,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-21,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-21,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-21,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-28,110091.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-06-28,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-28,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-06-28,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-07-05,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-05,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-07-12,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-12,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-07-19,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-19,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,110072.SH,missing or invalid observed inputs: volatility
+2024-07-26,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-07-26,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-07-26,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,110072.SH,missing or invalid observed inputs: volatility
+2024-08-02,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,113687.SH,observed bond value exceeds the contractual risk-free value
+2024-08-02,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-02,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,110072.SH,missing or invalid observed inputs: volatility
+2024-08-09,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,113687.SH,observed bond value exceeds the contractual risk-free value
+2024-08-09,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-09,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,110072.SH,missing or invalid observed inputs: volatility
+2024-08-16,110083.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113055.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113060.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113068.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,113687.SH,observed bond value exceeds the contractual risk-free value
+2024-08-16,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,123240.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,127086.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-16,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-23,110072.SH,missing or invalid observed inputs: volatility
+2024-08-23,113061.SH,observed bond value exceeds the contractual risk-free value
+2024-08-23,113065.SH,observed bond value exceeds the contractual risk-free value
+2024-08-23,113683.SH,observed bond value exceeds the contractual risk-free value
+2024-08-23,123208.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-23,127091.SZ,observed bond value exceeds the contractual risk-free value
+2024-08-23,127100.SZ,observed bond value exceeds the contractual risk-free value
+2024-10-11,113596.SH,missing or invalid observed inputs: volatility
+2024-11-29,113609.SH,missing or invalid observed inputs: volatility
+2025-02-07,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-02-07,118029.SH,missing or invalid observed inputs: volatility
+2025-02-14,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-02-14,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-02-21,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-02-21,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-03-21,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-03,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-11,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-18,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-25,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-04-30,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-09,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-16,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-16,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-05-23,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-23,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-05-30,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-05-30,113677.SH,missing or invalid observed inputs: volatility
+2025-05-30,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-06,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-06-06,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-13,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-06-13,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-13,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-20,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-06-20,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-27,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-06-27,113575.SH,missing or invalid observed inputs: volatility
+2025-06-27,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-06-27,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-04,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-07-04,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-07-04,113575.SH,missing or invalid observed inputs: volatility
+2025-07-04,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-04,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-11,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-07-11,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-07-11,113575.SH,missing or invalid observed inputs: volatility
+2025-07-11,123254.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-11,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-11,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-18,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-07-18,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-07-18,113575.SH,missing or invalid observed inputs: volatility
+2025-07-18,123254.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-18,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-18,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-25,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-07-25,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-07-25,113575.SH,missing or invalid observed inputs: volatility
+2025-07-25,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-07-25,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-01,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-08-01,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-08-01,113575.SH,missing or invalid observed inputs: volatility
+2025-08-01,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-01,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-08,113065.SH,observed bond value exceeds the contractual risk-free value
+2025-08-08,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-08-08,113575.SH,missing or invalid observed inputs: volatility
+2025-08-08,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-08,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-15,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-08-15,113575.SH,missing or invalid observed inputs: volatility
+2025-08-15,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-15,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-22,113068.SH,observed bond value exceeds the contractual risk-free value
+2025-08-22,113646.SH,missing or invalid observed inputs: volatility
+2025-08-22,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-22,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-29,113681.SH,missing or invalid observed inputs: volatility
+2025-08-29,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-08-29,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-05,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-05,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-05,128044.SZ,no remaining contractual cash flows
+2025-09-12,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-12,128044.SZ,no remaining contractual cash flows
+2025-09-19,127033.SZ,missing or invalid observed inputs: floor
+2025-09-19,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-19,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-09-19,128044.SZ,no remaining contractual cash flows
+2025-09-26,128044.SZ,no remaining contractual cash flows
+2025-09-30,128044.SZ,no remaining contractual cash flows
+2025-10-10,110081.SH,missing or invalid observed inputs: volatility
+2025-10-10,127107.SZ,observed bond value exceeds the contractual risk-free value
+2025-10-10,128044.SZ,no remaining contractual cash flows
+2025-10-17,128044.SZ,no remaining contractual cash flows
+2025-10-24,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-10-24,128044.SZ,no remaining contractual cash flows
+2025-10-31,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-10-31,128044.SZ,no remaining contractual cash flows
+2025-11-07,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-11-07,128044.SZ,no remaining contractual cash flows
+2025-11-14,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-11-14,128044.SZ,no remaining contractual cash flows
+2025-11-21,127086.SZ,observed bond value exceeds the contractual risk-free value
+2025-11-21,128044.SZ,no remaining contractual cash flows
+2025-11-28,128044.SZ,no remaining contractual cash flows
+2025-12-05,128044.SZ,no remaining contractual cash flows
+2025-12-12,128044.SZ,no remaining contractual cash flows
+2025-12-19,128044.SZ,no remaining contractual cash flows
+2025-12-26,128044.SZ,no remaining contractual cash flows
+2025-12-31,128044.SZ,no remaining contractual cash flows
+2026-01-09,127038.SZ,missing or invalid observed inputs: volatility
+2026-01-09,128044.SZ,no remaining contractual cash flows
+2026-01-16,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-01-16,128044.SZ,no remaining contractual cash flows
+2026-01-23,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-01-23,128044.SZ,no remaining contractual cash flows
+2026-01-30,128044.SZ,no remaining contractual cash flows
+2026-02-06,128044.SZ,no remaining contractual cash flows
+2026-02-13,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-02-13,128044.SZ,no remaining contractual cash flows
+2026-02-27,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-02-27,128044.SZ,no remaining contractual cash flows
+2026-03-06,110085.SH,missing or invalid observed inputs: volatility
+2026-03-06,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-03-06,128044.SZ,no remaining contractual cash flows
+2026-03-13,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-03-13,128044.SZ,no remaining contractual cash flows
+2026-03-13,128137.SZ,missing or invalid observed inputs: volatility
+2026-03-20,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-03-20,128044.SZ,no remaining contractual cash flows
+2026-03-27,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-03-27,128044.SZ,no remaining contractual cash flows
+2026-04-03,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-04-03,128044.SZ,no remaining contractual cash flows
+2026-04-10,111023.SH,observed bond value exceeds the contractual risk-free value
+2026-04-10,113687.SH,observed bond value exceeds the contractual risk-free value
+2026-04-10,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-04-10,127027.SZ,missing or invalid observed inputs: volatility
+2026-04-10,128044.SZ,no remaining contractual cash flows
+2026-04-17,113687.SH,observed bond value exceeds the contractual risk-free value
+2026-04-17,123254.SZ,observed bond value exceeds the contractual risk-free value
+2026-04-17,128044.SZ,no remaining contractual cash flows
+2026-04-24,128044.SZ,no remaining contractual cash flows
+2026-04-30,128044.SZ,no remaining contractual cash flows
+2026-05-08,128044.SZ,no remaining contractual cash flows
+2026-05-15,128044.SZ,no remaining contractual cash flows
+2026-05-22,128044.SZ,no remaining contractual cash flows
+2026-05-29,128044.SZ,no remaining contractual cash flows
+2026-06-05,111023.SH,observed bond value exceeds the contractual risk-free value
+2026-06-05,128044.SZ,no remaining contractual cash flows
+2026-06-12,111023.SH,observed bond value exceeds the contractual risk-free value
+2026-06-12,128044.SZ,no remaining contractual cash flows
+2026-06-18,111023.SH,observed bond value exceeds the contractual risk-free value
+2026-06-18,128044.SZ,no remaining contractual cash flows
+2026-06-26,118011.SH,missing or invalid observed inputs: volatility
+2026-06-26,128044.SZ,no remaining contractual cash flows
+2026-07-03,123092.SZ,missing or invalid observed inputs: volatility
+2026-07-03,128044.SZ,no remaining contractual cash flows
+2026-07-10,128044.SZ,no remaining contractual cash flows
+2026-07-17,128044.SZ,no remaining contractual cash flows
+2026-07-24,128044.SZ,no remaining contractual cash flows
+2026-07-31,128044.SZ,no remaining contractual cash flows
+2026-08-07,128044.SZ,no remaining contractual cash flows
+2026-08-14,128044.SZ,no remaining contractual cash flows
+2026-08-21,128044.SZ,no remaining contractual cash flows
+2026-08-28,128044.SZ,no remaining contractual cash flows
+2026-09-04,128044.SZ,no remaining contractual cash flows
+2026-09-11,128044.SZ,no remaining contractual cash flows
+2026-09-18,128044.SZ,no remaining contractual cash flows
+2026-09-24,128044.SZ,no remaining contractual cash flows
+2026-09-30,128044.SZ,no remaining contractual cash flows
+2026-10-09,128044.SZ,no remaining contractual cash flows
+2026-10-16,128044.SZ,no remaining contractual cash flows
+2026-10-23,128044.SZ,missing or invalid observed inputs: volatility
+2026-10-30,128044.SZ,missing or invalid observed inputs: volatility
+2026-11-06,128044.SZ,missing or invalid observed inputs: volatility
+2026-11-13,128044.SZ,missing or invalid observed inputs: volatility
+2026-11-20,118065.SH,missing or invalid observed inputs: volatility
+2026-11-20,128044.SZ,missing or invalid observed inputs: volatility
+2019-04-04,110044.SH,unresolved_latest_notice
+2019-04-12,110044.SH,unresolved_latest_notice
+2019-04-19,110044.SH,unresolved_latest_notice
+2019-04-19,113507.SH,unresolved_latest_notice
+2019-04-26,110044.SH,unresolved_latest_notice
+2019-04-26,113507.SH,unresolved_latest_notice
+2019-04-30,110044.SH,unresolved_latest_notice
+2019-04-30,113507.SH,unresolved_latest_notice
+2019-05-10,110044.SH,unresolved_latest_notice
+2019-05-10,113507.SH,unresolved_latest_notice
+2019-05-17,110044.SH,unresolved_latest_notice
+2019-05-17,113507.SH,unresolved_latest_notice
+2019-05-24,110044.SH,unresolved_latest_notice
+2019-05-24,113507.SH,unresolved_latest_notice
+2019-05-31,110044.SH,unresolved_latest_notice
+2019-05-31,113507.SH,unresolved_latest_notice
+2019-06-06,110044.SH,unresolved_latest_notice
+2019-06-06,113507.SH,unresolved_latest_notice
+2019-06-14,110044.SH,unresolved_latest_notice
+2019-06-14,113507.SH,unresolved_latest_notice
+2019-06-21,110044.SH,unresolved_latest_notice
+2019-06-21,113507.SH,unresolved_latest_notice
+2019-06-28,110044.SH,unresolved_latest_notice
+2019-06-28,113507.SH,unresolved_latest_notice
+2019-07-05,110044.SH,unresolved_latest_notice
+2019-07-05,113507.SH,unresolved_latest_notice
+2019-07-12,110044.SH,unresolved_latest_notice
+2019-07-12,113507.SH,unresolved_latest_notice
+2019-07-19,110044.SH,unresolved_latest_notice
+2019-07-19,113507.SH,unresolved_latest_notice
+2019-07-26,110044.SH,unresolved_latest_notice
+2019-07-26,113507.SH,unresolved_latest_notice
+2019-08-02,110044.SH,unresolved_latest_notice
+2019-08-02,113507.SH,unresolved_latest_notice
+2019-08-09,110044.SH,unresolved_latest_notice
+2019-08-09,113507.SH,unresolved_latest_notice
+2019-08-16,110044.SH,unresolved_latest_notice
+2019-08-16,113507.SH,unresolved_latest_notice
+2019-08-23,110044.SH,unresolved_latest_notice
+2019-08-23,113507.SH,unresolved_latest_notice
+2019-08-30,110044.SH,unresolved_latest_notice
+2019-08-30,113507.SH,unresolved_latest_notice
+2019-09-06,110044.SH,unresolved_latest_notice
+2019-09-06,113507.SH,unresolved_latest_notice
+2019-09-12,110044.SH,unresolved_latest_notice
+2019-09-12,113507.SH,unresolved_latest_notice
+2019-09-20,110044.SH,unresolved_latest_notice
+2019-09-20,113507.SH,unresolved_latest_notice
+2019-09-27,110044.SH,unresolved_latest_notice
+2019-09-27,113507.SH,unresolved_latest_notice
+2019-09-30,110044.SH,unresolved_latest_notice
+2019-09-30,113507.SH,unresolved_latest_notice
+2019-10-11,110044.SH,unresolved_latest_notice
+2019-10-11,113507.SH,unresolved_latest_notice
+2019-10-18,110044.SH,unresolved_latest_notice
+2019-10-18,113507.SH,unresolved_latest_notice
+2019-10-25,110044.SH,unresolved_latest_notice
+2019-10-25,113507.SH,unresolved_latest_notice
+2019-11-01,110044.SH,unresolved_latest_notice
+2019-11-01,113507.SH,unresolved_latest_notice
+2019-11-08,110044.SH,unresolved_latest_notice
+2019-11-08,113507.SH,unresolved_latest_notice
+2019-11-15,110044.SH,unresolved_latest_notice
+2019-11-15,113507.SH,unresolved_latest_notice
+2019-11-22,110044.SH,unresolved_latest_notice
+2019-11-22,113533.SH,unresolved_latest_notice
+2019-11-29,110044.SH,unresolved_latest_notice
+2019-11-29,113533.SH,unresolved_latest_notice
+2019-12-06,110044.SH,unresolved_latest_notice
+2019-12-06,113533.SH,unresolved_latest_notice
+2019-12-13,110044.SH,unresolved_latest_notice
+2019-12-13,113533.SH,unresolved_latest_notice
+2019-12-20,110044.SH,unresolved_latest_notice
+2019-12-20,113533.SH,unresolved_latest_notice
+2019-12-27,110044.SH,unresolved_latest_notice
+2019-12-27,113520.SH,unresolved_latest_notice
+2019-12-27,113533.SH,unresolved_latest_notice
+2019-12-27,123022.SZ,unresolved_latest_notice
+2020-01-03,110044.SH,unresolved_latest_notice
+2020-01-03,113520.SH,unresolved_latest_notice
+2020-01-03,113533.SH,unresolved_latest_notice
+2020-01-03,123022.SZ,unresolved_latest_notice
+2020-01-10,110044.SH,unresolved_latest_notice
+2020-01-10,113520.SH,unresolved_latest_notice
+2020-01-10,113533.SH,unresolved_latest_notice
+2020-01-10,123022.SZ,unresolved_latest_notice
+2020-01-17,110044.SH,unresolved_latest_notice
+2020-01-17,113520.SH,unresolved_latest_notice
+2020-01-17,123022.SZ,unresolved_latest_notice
+2020-01-23,110044.SH,unresolved_latest_notice
+2020-01-23,113520.SH,unresolved_latest_notice
+2020-01-23,123022.SZ,unresolved_latest_notice
+2020-02-07,110044.SH,unresolved_latest_notice
+2020-02-07,113520.SH,unresolved_latest_notice
+2020-02-07,123022.SZ,unresolved_latest_notice
+2020-02-14,110044.SH,unresolved_latest_notice
+2020-02-14,113520.SH,unresolved_latest_notice
+2020-02-14,113521.SH,unresolved_latest_notice
+2020-02-14,123022.SZ,unresolved_latest_notice
+2020-02-21,110044.SH,unresolved_latest_notice
+2020-02-21,113520.SH,unresolved_latest_notice
+2020-02-21,113521.SH,unresolved_latest_notice
+2020-02-21,123022.SZ,unresolved_latest_notice
+2020-02-28,110044.SH,unresolved_latest_notice
+2020-02-28,113520.SH,unresolved_latest_notice
+2020-02-28,113521.SH,unresolved_latest_notice
+2020-02-28,123022.SZ,unresolved_latest_notice
+2020-03-06,110044.SH,unresolved_latest_notice
+2020-03-06,113520.SH,unresolved_latest_notice
+2020-03-06,113521.SH,unresolved_latest_notice
+2020-03-06,123022.SZ,unresolved_latest_notice
+2020-03-13,110044.SH,unresolved_latest_notice
+2020-03-13,113503.SH,unresolved_latest_notice
+2020-03-13,113520.SH,unresolved_latest_notice
+2020-03-13,113521.SH,unresolved_latest_notice
+2020-03-13,123022.SZ,unresolved_latest_notice
+2020-03-20,110044.SH,unresolved_latest_notice
+2020-03-20,113503.SH,unresolved_latest_notice
+2020-03-20,113520.SH,unresolved_latest_notice
+2020-03-20,113521.SH,unresolved_latest_notice
+2020-03-20,123022.SZ,unresolved_latest_notice
+2020-03-27,110044.SH,unresolved_latest_notice
+2020-03-27,113503.SH,unresolved_latest_notice
+2020-03-27,113520.SH,unresolved_latest_notice
+2020-03-27,113521.SH,unresolved_latest_notice
+2020-03-27,123022.SZ,unresolved_latest_notice
+2020-04-03,110044.SH,unresolved_latest_notice
+2020-04-03,113503.SH,unresolved_latest_notice
+2020-04-03,113520.SH,unresolved_latest_notice
+2020-04-03,113521.SH,unresolved_latest_notice
+2020-04-03,123022.SZ,unresolved_latest_notice
+2020-04-10,110044.SH,unresolved_latest_notice
+2020-04-10,113503.SH,unresolved_latest_notice
+2020-04-10,113520.SH,unresolved_latest_notice
+2020-04-10,113521.SH,unresolved_latest_notice
+2020-04-10,123022.SZ,unresolved_latest_notice
+2020-04-17,110044.SH,unresolved_latest_notice
+2020-04-17,113503.SH,unresolved_latest_notice
+2020-04-17,113520.SH,unresolved_latest_notice
+2020-04-17,113521.SH,unresolved_latest_notice
+2020-04-17,123022.SZ,unresolved_latest_notice
+2020-04-24,110044.SH,unresolved_latest_notice
+2020-04-24,113503.SH,unresolved_latest_notice
+2020-04-24,113520.SH,unresolved_latest_notice
+2020-04-24,113521.SH,unresolved_latest_notice
+2020-04-24,123022.SZ,unresolved_latest_notice
+2020-04-30,110044.SH,unresolved_latest_notice
+2020-04-30,113503.SH,unresolved_latest_notice
+2020-04-30,113520.SH,unresolved_latest_notice
+2020-04-30,113521.SH,unresolved_latest_notice
+2020-04-30,123022.SZ,unresolved_latest_notice
+2020-05-08,110044.SH,unresolved_latest_notice
+2020-05-08,113503.SH,unresolved_latest_notice
+2020-05-08,113520.SH,unresolved_latest_notice
+2020-05-08,113521.SH,unresolved_latest_notice
+2020-05-08,123022.SZ,unresolved_latest_notice
+2020-05-15,110044.SH,unresolved_latest_notice
+2020-05-15,113503.SH,unresolved_latest_notice
+2020-05-15,113520.SH,unresolved_latest_notice
+2020-05-15,113521.SH,unresolved_latest_notice
+2020-05-15,123022.SZ,unresolved_latest_notice
+2020-05-22,110044.SH,unresolved_latest_notice
+2020-05-22,113503.SH,unresolved_latest_notice
+2020-05-22,113520.SH,unresolved_latest_notice
+2020-05-22,113521.SH,unresolved_latest_notice
+2020-05-22,123022.SZ,unresolved_latest_notice
+2020-05-29,110044.SH,unresolved_latest_notice
+2020-05-29,113520.SH,unresolved_latest_notice
+2020-05-29,113521.SH,unresolved_latest_notice
+2020-05-29,123022.SZ,unresolved_latest_notice
+2020-06-05,110044.SH,unresolved_latest_notice
+2020-06-05,113520.SH,unresolved_latest_notice
+2020-06-05,113521.SH,unresolved_latest_notice
+2020-06-05,123022.SZ,unresolved_latest_notice
+2020-06-12,110044.SH,unresolved_latest_notice
+2020-06-12,113509.SH,unresolved_latest_notice
+2020-06-12,113520.SH,unresolved_latest_notice
+2020-06-12,113521.SH,unresolved_latest_notice
+2020-06-12,123022.SZ,unresolved_latest_notice
+2020-06-19,110044.SH,unresolved_latest_notice
+2020-06-19,113509.SH,unresolved_latest_notice
+2020-06-19,113520.SH,unresolved_latest_notice
+2020-06-19,113521.SH,unresolved_latest_notice
+2020-06-19,113548.SH,unresolved_latest_notice
+2020-06-19,123022.SZ,unresolved_latest_notice
+2020-06-24,110044.SH,unresolved_latest_notice
+2020-06-24,113509.SH,unresolved_latest_notice
+2020-06-24,113520.SH,unresolved_latest_notice
+2020-06-24,113521.SH,unresolved_latest_notice
+2020-06-24,113548.SH,unresolved_latest_notice
+2020-06-24,123022.SZ,unresolved_latest_notice
+2020-07-03,110044.SH,unresolved_latest_notice
+2020-07-03,113509.SH,unresolved_latest_notice
+2020-07-03,113520.SH,unresolved_latest_notice
+2020-07-03,113521.SH,unresolved_latest_notice
+2020-07-03,113526.SH,unresolved_latest_notice
+2020-07-03,113548.SH,unresolved_latest_notice
+2020-07-03,123022.SZ,unresolved_latest_notice
+2020-07-10,110044.SH,unresolved_latest_notice
+2020-07-10,113509.SH,unresolved_latest_notice
+2020-07-10,113520.SH,unresolved_latest_notice
+2020-07-10,113521.SH,unresolved_latest_notice
+2020-07-10,113526.SH,unresolved_latest_notice
+2020-07-10,113548.SH,unresolved_latest_notice
+2020-07-10,123022.SZ,unresolved_latest_notice
+2020-07-17,110044.SH,unresolved_latest_notice
+2020-07-17,113504.SH,unresolved_latest_notice
+2020-07-17,113509.SH,unresolved_latest_notice
+2020-07-17,113520.SH,unresolved_latest_notice
+2020-07-17,113521.SH,unresolved_latest_notice
+2020-07-17,113526.SH,unresolved_latest_notice
+2020-07-17,113548.SH,unresolved_latest_notice
+2020-07-17,123022.SZ,unresolved_latest_notice
+2020-07-17,123029.SZ,unresolved_latest_notice
+2020-07-24,110044.SH,unresolved_latest_notice
+2020-07-24,113504.SH,unresolved_latest_notice
+2020-07-24,113509.SH,unresolved_latest_notice
+2020-07-24,113518.SH,unresolved_latest_notice
+2020-07-24,113520.SH,unresolved_latest_notice
+2020-07-24,113521.SH,unresolved_latest_notice
+2020-07-24,113526.SH,unresolved_latest_notice
+2020-07-24,113548.SH,unresolved_latest_notice
+2020-07-24,113555.SH,unresolved_latest_notice
+2020-07-24,123022.SZ,unresolved_latest_notice
+2020-07-24,123029.SZ,unresolved_latest_notice
+2020-07-31,110044.SH,unresolved_latest_notice
+2020-07-31,113504.SH,unresolved_latest_notice
+2020-07-31,113509.SH,unresolved_latest_notice
+2020-07-31,113518.SH,unresolved_latest_notice
+2020-07-31,113520.SH,unresolved_latest_notice
+2020-07-31,113521.SH,unresolved_latest_notice
+2020-07-31,113526.SH,unresolved_latest_notice
+2020-07-31,113548.SH,unresolved_latest_notice
+2020-07-31,113554.SH,unresolved_latest_notice
+2020-07-31,113555.SH,unresolved_latest_notice
+2020-07-31,123022.SZ,unresolved_latest_notice
+2020-07-31,123025.SZ,unresolved_latest_notice
+2020-07-31,123029.SZ,unresolved_latest_notice
+2020-07-31,123031.SZ,unresolved_latest_notice
+2020-08-07,110044.SH,unresolved_latest_notice
+2020-08-07,113504.SH,unresolved_latest_notice
+2020-08-07,113509.SH,unresolved_latest_notice
+2020-08-07,113518.SH,unresolved_latest_notice
+2020-08-07,113520.SH,unresolved_latest_notice
+2020-08-07,113521.SH,unresolved_latest_notice
+2020-08-07,113526.SH,unresolved_latest_notice
+2020-08-07,113547.SH,unresolved_latest_notice
+2020-08-07,113548.SH,unresolved_latest_notice
+2020-08-07,113554.SH,unresolved_latest_notice
+2020-08-07,113555.SH,unresolved_latest_notice
+2020-08-07,123022.SZ,unresolved_latest_notice
+2020-08-07,123025.SZ,unresolved_latest_notice
+2020-08-07,123031.SZ,unresolved_latest_notice
+2020-08-14,110044.SH,unresolved_latest_notice
+2020-08-14,113027.SH,unresolved_latest_notice
+2020-08-14,113504.SH,unresolved_latest_notice
+2020-08-14,113509.SH,unresolved_latest_notice
+2020-08-14,113518.SH,unresolved_latest_notice
+2020-08-14,113520.SH,unresolved_latest_notice
+2020-08-14,113521.SH,unresolved_latest_notice
+2020-08-14,113526.SH,unresolved_latest_notice
+2020-08-14,113547.SH,unresolved_latest_notice
+2020-08-14,113548.SH,unresolved_latest_notice
+2020-08-14,113554.SH,unresolved_latest_notice
+2020-08-14,123022.SZ,unresolved_latest_notice
+2020-08-14,123025.SZ,unresolved_latest_notice
+2020-08-14,123031.SZ,unresolved_latest_notice
+2020-08-14,128017.SZ,unresolved_latest_notice
+2020-08-21,110044.SH,unresolved_latest_notice
+2020-08-21,113027.SH,unresolved_latest_notice
+2020-08-21,113504.SH,unresolved_latest_notice
+2020-08-21,113509.SH,unresolved_latest_notice
+2020-08-21,113518.SH,unresolved_latest_notice
+2020-08-21,113520.SH,unresolved_latest_notice
+2020-08-21,113521.SH,unresolved_latest_notice
+2020-08-21,113526.SH,unresolved_latest_notice
+2020-08-21,113547.SH,unresolved_latest_notice
+2020-08-21,113548.SH,unresolved_latest_notice
+2020-08-21,113554.SH,unresolved_latest_notice
+2020-08-21,123022.SZ,unresolved_latest_notice
+2020-08-21,123025.SZ,unresolved_latest_notice
+2020-08-21,123031.SZ,unresolved_latest_notice
+2020-08-21,128017.SZ,unresolved_latest_notice
+2020-08-28,110044.SH,unresolved_latest_notice
+2020-08-28,113027.SH,unresolved_latest_notice
+2020-08-28,113504.SH,unresolved_latest_notice
+2020-08-28,113509.SH,unresolved_latest_notice
+2020-08-28,113520.SH,unresolved_latest_notice
+2020-08-28,113521.SH,unresolved_latest_notice
+2020-08-28,113526.SH,unresolved_latest_notice
+2020-08-28,113543.SH,unresolved_latest_notice
+2020-08-28,113547.SH,unresolved_latest_notice
+2020-08-28,113548.SH,unresolved_latest_notice
+2020-08-28,113554.SH,unresolved_latest_notice
+2020-08-28,123017.SZ,unresolved_latest_notice
+2020-08-28,123022.SZ,unresolved_latest_notice
+2020-08-28,123025.SZ,unresolved_latest_notice
+2020-08-28,123031.SZ,unresolved_latest_notice
+2020-08-28,128017.SZ,unresolved_latest_notice
+2020-09-04,110044.SH,unresolved_latest_notice
+2020-09-04,113027.SH,unresolved_latest_notice
+2020-09-04,113504.SH,unresolved_latest_notice
+2020-09-04,113520.SH,unresolved_latest_notice
+2020-09-04,113521.SH,unresolved_latest_notice
+2020-09-04,113526.SH,unresolved_latest_notice
+2020-09-04,113543.SH,unresolved_latest_notice
+2020-09-04,113547.SH,unresolved_latest_notice
+2020-09-04,113548.SH,unresolved_latest_notice
+2020-09-04,113553.SH,unresolved_latest_notice
+2020-09-04,113554.SH,unresolved_latest_notice
+2020-09-04,123017.SZ,unresolved_latest_notice
+2020-09-04,123022.SZ,unresolved_latest_notice
+2020-09-04,123025.SZ,unresolved_latest_notice
+2020-09-04,123026.SZ,unresolved_latest_notice
+2020-09-04,123031.SZ,unresolved_latest_notice
+2020-09-04,128017.SZ,unresolved_latest_notice
+2020-09-11,110044.SH,unresolved_latest_notice
+2020-09-11,113027.SH,unresolved_latest_notice
+2020-09-11,113504.SH,unresolved_latest_notice
+2020-09-11,113520.SH,unresolved_latest_notice
+2020-09-11,113521.SH,unresolved_latest_notice
+2020-09-11,113526.SH,unresolved_latest_notice
+2020-09-11,113543.SH,unresolved_latest_notice
+2020-09-11,113547.SH,unresolved_latest_notice
+2020-09-11,113548.SH,unresolved_latest_notice
+2020-09-11,113553.SH,unresolved_latest_notice
+2020-09-11,123017.SZ,unresolved_latest_notice
+2020-09-11,123018.SZ,unresolved_latest_notice
+2020-09-11,123022.SZ,unresolved_latest_notice
+2020-09-11,123025.SZ,unresolved_latest_notice
+2020-09-11,123026.SZ,unresolved_latest_notice
+2020-09-11,123031.SZ,unresolved_latest_notice
+2020-09-11,123038.SZ,unresolved_latest_notice
+2020-09-11,128017.SZ,unresolved_latest_notice
+2020-09-18,110044.SH,unresolved_latest_notice
+2020-09-18,113027.SH,unresolved_latest_notice
+2020-09-18,113504.SH,unresolved_latest_notice
+2020-09-18,113520.SH,unresolved_latest_notice
+2020-09-18,113521.SH,unresolved_latest_notice
+2020-09-18,113526.SH,unresolved_latest_notice
+2020-09-18,113548.SH,unresolved_latest_notice
+2020-09-18,113553.SH,unresolved_latest_notice
+2020-09-18,123017.SZ,unresolved_latest_notice
+2020-09-18,123018.SZ,unresolved_latest_notice
+2020-09-18,123022.SZ,unresolved_latest_notice
+2020-09-18,123025.SZ,unresolved_latest_notice
+2020-09-18,123026.SZ,unresolved_latest_notice
+2020-09-18,123031.SZ,unresolved_latest_notice
+2020-09-18,123038.SZ,unresolved_latest_notice
+2020-09-18,128017.SZ,unresolved_latest_notice
+2020-09-25,110044.SH,unresolved_latest_notice
+2020-09-25,113027.SH,unresolved_latest_notice
+2020-09-25,113504.SH,unresolved_latest_notice
+2020-09-25,113520.SH,unresolved_latest_notice
+2020-09-25,113521.SH,unresolved_latest_notice
+2020-09-25,113526.SH,unresolved_latest_notice
+2020-09-25,113548.SH,unresolved_latest_notice
+2020-09-25,113553.SH,unresolved_latest_notice
+2020-09-25,123017.SZ,unresolved_latest_notice
+2020-09-25,123018.SZ,unresolved_latest_notice
+2020-09-25,123022.SZ,unresolved_latest_notice
+2020-09-25,123025.SZ,unresolved_latest_notice
+2020-09-25,123026.SZ,unresolved_latest_notice
+2020-09-25,123031.SZ,unresolved_latest_notice
+2020-09-25,123038.SZ,unresolved_latest_notice
+2020-09-25,128017.SZ,unresolved_latest_notice
+2020-09-30,110044.SH,unresolved_latest_notice
+2020-09-30,113027.SH,unresolved_latest_notice
+2020-09-30,113504.SH,unresolved_latest_notice
+2020-09-30,113520.SH,unresolved_latest_notice
+2020-09-30,113521.SH,unresolved_latest_notice
+2020-09-30,113526.SH,unresolved_latest_notice
+2020-09-30,113548.SH,unresolved_latest_notice
+2020-09-30,113553.SH,unresolved_latest_notice
+2020-09-30,123017.SZ,unresolved_latest_notice
+2020-09-30,123018.SZ,unresolved_latest_notice
+2020-09-30,123022.SZ,unresolved_latest_notice
+2020-09-30,123025.SZ,unresolved_latest_notice
+2020-09-30,123026.SZ,unresolved_latest_notice
+2020-09-30,123031.SZ,unresolved_latest_notice
+2020-09-30,123038.SZ,unresolved_latest_notice
+2020-09-30,128017.SZ,unresolved_latest_notice
+2020-09-30,128095.SZ,unresolved_latest_notice
+2020-10-09,110044.SH,unresolved_latest_notice
+2020-10-09,113027.SH,unresolved_latest_notice
+2020-10-09,113504.SH,unresolved_latest_notice
+2020-10-09,113520.SH,unresolved_latest_notice
+2020-10-09,113521.SH,unresolved_latest_notice
+2020-10-09,113526.SH,unresolved_latest_notice
+2020-10-09,113548.SH,unresolved_latest_notice
+2020-10-09,113553.SH,unresolved_latest_notice
+2020-10-09,123017.SZ,unresolved_latest_notice
+2020-10-09,123018.SZ,unresolved_latest_notice
+2020-10-09,123022.SZ,unresolved_latest_notice
+2020-10-09,123025.SZ,unresolved_latest_notice
+2020-10-09,123026.SZ,unresolved_latest_notice
+2020-10-09,123031.SZ,unresolved_latest_notice
+2020-10-09,123038.SZ,unresolved_latest_notice
+2020-10-09,128017.SZ,unresolved_latest_notice
+2020-10-09,128095.SZ,unresolved_latest_notice
+2020-10-16,110044.SH,unresolved_latest_notice
+2020-10-16,113027.SH,unresolved_latest_notice
+2020-10-16,113504.SH,unresolved_latest_notice
+2020-10-16,113520.SH,unresolved_latest_notice
+2020-10-16,113521.SH,unresolved_latest_notice
+2020-10-16,113526.SH,unresolved_latest_notice
+2020-10-16,113548.SH,unresolved_latest_notice
+2020-10-16,113553.SH,unresolved_latest_notice
+2020-10-16,123017.SZ,unresolved_latest_notice
+2020-10-16,123018.SZ,unresolved_latest_notice
+2020-10-16,123022.SZ,unresolved_latest_notice
+2020-10-16,123025.SZ,unresolved_latest_notice
+2020-10-16,123026.SZ,unresolved_latest_notice
+2020-10-16,123031.SZ,unresolved_latest_notice
+2020-10-16,123038.SZ,unresolved_latest_notice
+2020-10-16,128017.SZ,unresolved_latest_notice
+2020-10-16,128095.SZ,unresolved_latest_notice
+2020-10-23,110044.SH,unresolved_latest_notice
+2020-10-23,113027.SH,unresolved_latest_notice
+2020-10-23,113504.SH,unresolved_latest_notice
+2020-10-23,113520.SH,unresolved_latest_notice
+2020-10-23,113521.SH,unresolved_latest_notice
+2020-10-23,113526.SH,unresolved_latest_notice
+2020-10-23,113548.SH,unresolved_latest_notice
+2020-10-23,113553.SH,unresolved_latest_notice
+2020-10-23,123017.SZ,unresolved_latest_notice
+2020-10-23,123018.SZ,unresolved_latest_notice
+2020-10-23,123022.SZ,unresolved_latest_notice
+2020-10-23,123025.SZ,unresolved_latest_notice
+2020-10-23,123026.SZ,unresolved_latest_notice
+2020-10-23,123031.SZ,unresolved_latest_notice
+2020-10-23,123038.SZ,unresolved_latest_notice
+2020-10-23,128017.SZ,unresolved_latest_notice
+2020-10-23,128095.SZ,unresolved_latest_notice
+2020-10-30,110044.SH,unresolved_latest_notice
+2020-10-30,113027.SH,unresolved_latest_notice
+2020-10-30,113504.SH,unresolved_latest_notice
+2020-10-30,113520.SH,unresolved_latest_notice
+2020-10-30,113521.SH,unresolved_latest_notice
+2020-10-30,113526.SH,unresolved_latest_notice
+2020-10-30,113548.SH,unresolved_latest_notice
+2020-10-30,113553.SH,unresolved_latest_notice
+2020-10-30,123017.SZ,unresolved_latest_notice
+2020-10-30,123018.SZ,unresolved_latest_notice
+2020-10-30,123022.SZ,unresolved_latest_notice
+2020-10-30,123025.SZ,unresolved_latest_notice
+2020-10-30,123026.SZ,unresolved_latest_notice
+2020-10-30,123031.SZ,unresolved_latest_notice
+2020-10-30,123038.SZ,unresolved_latest_notice
+2020-10-30,123046.SZ,unresolved_latest_notice
+2020-10-30,128017.SZ,unresolved_latest_notice
+2020-10-30,128095.SZ,unresolved_latest_notice
+2020-11-06,110044.SH,unresolved_latest_notice
+2020-11-06,113027.SH,unresolved_latest_notice
+2020-11-06,113504.SH,unresolved_latest_notice
+2020-11-06,113520.SH,unresolved_latest_notice
+2020-11-06,113521.SH,unresolved_latest_notice
+2020-11-06,113526.SH,unresolved_latest_notice
+2020-11-06,113548.SH,unresolved_latest_notice
+2020-11-06,113553.SH,unresolved_latest_notice
+2020-11-06,123017.SZ,unresolved_latest_notice
+2020-11-06,123018.SZ,unresolved_latest_notice
+2020-11-06,123022.SZ,unresolved_latest_notice
+2020-11-06,123025.SZ,unresolved_latest_notice
+2020-11-06,123026.SZ,unresolved_latest_notice
+2020-11-06,123031.SZ,unresolved_latest_notice
+2020-11-06,123038.SZ,unresolved_latest_notice
+2020-11-06,123046.SZ,unresolved_latest_notice
+2020-11-06,128017.SZ,unresolved_latest_notice
+2020-11-06,128095.SZ,unresolved_latest_notice
+2020-11-13,110044.SH,unresolved_latest_notice
+2020-11-13,113027.SH,unresolved_latest_notice
+2020-11-13,113504.SH,unresolved_latest_notice
+2020-11-13,113520.SH,unresolved_latest_notice
+2020-11-13,113521.SH,unresolved_latest_notice
+2020-11-13,113526.SH,unresolved_latest_notice
+2020-11-13,113548.SH,unresolved_latest_notice
+2020-11-13,113553.SH,unresolved_latest_notice
+2020-11-13,123017.SZ,unresolved_latest_notice
+2020-11-13,123018.SZ,unresolved_latest_notice
+2020-11-13,123022.SZ,unresolved_latest_notice
+2020-11-13,123025.SZ,unresolved_latest_notice
+2020-11-13,123026.SZ,unresolved_latest_notice
+2020-11-13,123031.SZ,unresolved_latest_notice
+2020-11-13,123038.SZ,unresolved_latest_notice
+2020-11-13,123046.SZ,unresolved_latest_notice
+2020-11-13,128017.SZ,unresolved_latest_notice
+2020-11-13,128095.SZ,unresolved_latest_notice
+2020-11-20,110044.SH,unresolved_latest_notice
+2020-11-20,113027.SH,unresolved_latest_notice
+2020-11-20,113504.SH,unresolved_latest_notice
+2020-11-20,113520.SH,unresolved_latest_notice
+2020-11-20,113521.SH,unresolved_latest_notice
+2020-11-20,113526.SH,unresolved_latest_notice
+2020-11-20,113548.SH,unresolved_latest_notice
+2020-11-20,113553.SH,unresolved_latest_notice
+2020-11-20,113580.SH,unresolved_latest_notice
+2020-11-20,123017.SZ,unresolved_latest_notice
+2020-11-20,123018.SZ,unresolved_latest_notice
+2020-11-20,123022.SZ,unresolved_latest_notice
+2020-11-20,123025.SZ,unresolved_latest_notice
+2020-11-20,123026.SZ,unresolved_latest_notice
+2020-11-20,123031.SZ,unresolved_latest_notice
+2020-11-20,123038.SZ,unresolved_latest_notice
+2020-11-20,128017.SZ,unresolved_latest_notice
+2020-11-20,128095.SZ,unresolved_latest_notice
+2020-11-27,110044.SH,unresolved_latest_notice
+2020-11-27,110066.SH,unresolved_latest_notice
+2020-11-27,113027.SH,unresolved_latest_notice
+2020-11-27,113504.SH,unresolved_latest_notice
+2020-11-27,113520.SH,unresolved_latest_notice
+2020-11-27,113526.SH,unresolved_latest_notice
+2020-11-27,113548.SH,unresolved_latest_notice
+2020-11-27,113553.SH,unresolved_latest_notice
+2020-11-27,113580.SH,unresolved_latest_notice
+2020-11-27,123017.SZ,unresolved_latest_notice
+2020-11-27,123018.SZ,unresolved_latest_notice
+2020-11-27,123022.SZ,unresolved_latest_notice
+2020-11-27,123025.SZ,unresolved_latest_notice
+2020-11-27,123026.SZ,unresolved_latest_notice
+2020-11-27,123031.SZ,unresolved_latest_notice
+2020-11-27,123038.SZ,unresolved_latest_notice
+2020-11-27,128017.SZ,unresolved_latest_notice
+2020-11-27,128095.SZ,unresolved_latest_notice
+2020-12-04,110044.SH,unresolved_latest_notice
+2020-12-04,110066.SH,unresolved_latest_notice
+2020-12-04,113027.SH,unresolved_latest_notice
+2020-12-04,113504.SH,unresolved_latest_notice
+2020-12-04,113520.SH,unresolved_latest_notice
+2020-12-04,113526.SH,unresolved_latest_notice
+2020-12-04,113548.SH,unresolved_latest_notice
+2020-12-04,113580.SH,unresolved_latest_notice
+2020-12-04,123017.SZ,unresolved_latest_notice
+2020-12-04,123018.SZ,unresolved_latest_notice
+2020-12-04,123022.SZ,unresolved_latest_notice
+2020-12-04,123025.SZ,unresolved_latest_notice
+2020-12-04,123026.SZ,unresolved_latest_notice
+2020-12-04,123031.SZ,unresolved_latest_notice
+2020-12-04,123038.SZ,unresolved_latest_notice
+2020-12-04,128017.SZ,unresolved_latest_notice
+2020-12-04,128095.SZ,unresolved_latest_notice
+2020-12-11,110044.SH,unresolved_latest_notice
+2020-12-11,110066.SH,unresolved_latest_notice
+2020-12-11,113027.SH,unresolved_latest_notice
+2020-12-11,113504.SH,unresolved_latest_notice
+2020-12-11,113520.SH,unresolved_latest_notice
+2020-12-11,113526.SH,unresolved_latest_notice
+2020-12-11,113548.SH,unresolved_latest_notice
+2020-12-11,113580.SH,unresolved_latest_notice
+2020-12-11,123017.SZ,unresolved_latest_notice
+2020-12-11,123018.SZ,unresolved_latest_notice
+2020-12-11,123022.SZ,unresolved_latest_notice
+2020-12-11,123025.SZ,unresolved_latest_notice
+2020-12-11,123026.SZ,unresolved_latest_notice
+2020-12-11,123031.SZ,unresolved_latest_notice
+2020-12-11,123038.SZ,unresolved_latest_notice
+2020-12-11,128017.SZ,unresolved_latest_notice
+2020-12-11,128095.SZ,unresolved_latest_notice
+2020-12-18,110044.SH,unresolved_latest_notice
+2020-12-18,110066.SH,unresolved_latest_notice
+2020-12-18,113027.SH,unresolved_latest_notice
+2020-12-18,113504.SH,unresolved_latest_notice
+2020-12-18,113520.SH,unresolved_latest_notice
+2020-12-18,113526.SH,unresolved_latest_notice
+2020-12-18,113548.SH,unresolved_latest_notice
+2020-12-18,113580.SH,unresolved_latest_notice
+2020-12-18,123017.SZ,unresolved_latest_notice
+2020-12-18,123018.SZ,unresolved_latest_notice
+2020-12-18,123022.SZ,unresolved_latest_notice
+2020-12-18,123025.SZ,unresolved_latest_notice
+2020-12-18,123031.SZ,unresolved_latest_notice
+2020-12-18,123038.SZ,unresolved_latest_notice
+2020-12-18,128017.SZ,unresolved_latest_notice
+2020-12-18,128095.SZ,unresolved_latest_notice
+2020-12-25,110044.SH,unresolved_latest_notice
+2020-12-25,110066.SH,unresolved_latest_notice
+2020-12-25,113027.SH,unresolved_latest_notice
+2020-12-25,113504.SH,unresolved_latest_notice
+2020-12-25,113520.SH,unresolved_latest_notice
+2020-12-25,113526.SH,unresolved_latest_notice
+2020-12-25,113543.SH,unresolved_latest_notice
+2020-12-25,113548.SH,unresolved_latest_notice
+2020-12-25,113580.SH,unresolved_latest_notice
+2020-12-25,123017.SZ,unresolved_latest_notice
+2020-12-25,123018.SZ,unresolved_latest_notice
+2020-12-25,123022.SZ,unresolved_latest_notice
+2020-12-25,123025.SZ,unresolved_latest_notice
+2020-12-25,123031.SZ,unresolved_latest_notice
+2020-12-25,123038.SZ,unresolved_latest_notice
+2020-12-25,128017.SZ,unresolved_latest_notice
+2020-12-25,128095.SZ,unresolved_latest_notice
+2020-12-31,110044.SH,unresolved_latest_notice
+2020-12-31,110066.SH,unresolved_latest_notice
+2020-12-31,113027.SH,unresolved_latest_notice
+2020-12-31,113504.SH,unresolved_latest_notice
+2020-12-31,113520.SH,unresolved_latest_notice
+2020-12-31,113526.SH,unresolved_latest_notice
+2020-12-31,113543.SH,unresolved_latest_notice
+2020-12-31,113548.SH,unresolved_latest_notice
+2020-12-31,113580.SH,unresolved_latest_notice
+2020-12-31,123017.SZ,unresolved_latest_notice
+2020-12-31,123018.SZ,unresolved_latest_notice
+2020-12-31,123022.SZ,unresolved_latest_notice
+2020-12-31,123025.SZ,unresolved_latest_notice
+2020-12-31,123031.SZ,unresolved_latest_notice
+2020-12-31,123038.SZ,unresolved_latest_notice
+2020-12-31,128017.SZ,unresolved_latest_notice
+2020-12-31,128095.SZ,unresolved_latest_notice
+2021-01-08,110044.SH,unresolved_latest_notice
+2021-01-08,110066.SH,unresolved_latest_notice
+2021-01-08,113027.SH,unresolved_latest_notice
+2021-01-08,113504.SH,unresolved_latest_notice
+2021-01-08,113526.SH,unresolved_latest_notice
+2021-01-08,113543.SH,unresolved_latest_notice
+2021-01-08,113548.SH,unresolved_latest_notice
+2021-01-08,113580.SH,unresolved_latest_notice
+2021-01-08,123017.SZ,unresolved_latest_notice
+2021-01-08,123018.SZ,unresolved_latest_notice
+2021-01-08,123022.SZ,unresolved_latest_notice
+2021-01-08,123025.SZ,unresolved_latest_notice
+2021-01-08,123031.SZ,unresolved_latest_notice
+2021-01-08,123038.SZ,unresolved_latest_notice
+2021-01-08,128017.SZ,unresolved_latest_notice
+2021-01-08,128095.SZ,unresolved_latest_notice
+2021-01-15,110044.SH,unresolved_latest_notice
+2021-01-15,110066.SH,unresolved_latest_notice
+2021-01-15,113027.SH,unresolved_latest_notice
+2021-01-15,113504.SH,unresolved_latest_notice
+2021-01-15,113526.SH,unresolved_latest_notice
+2021-01-15,113543.SH,unresolved_latest_notice
+2021-01-15,113548.SH,unresolved_latest_notice
+2021-01-15,113580.SH,unresolved_latest_notice
+2021-01-15,123017.SZ,unresolved_latest_notice
+2021-01-15,123018.SZ,unresolved_latest_notice
+2021-01-15,123022.SZ,unresolved_latest_notice
+2021-01-15,123025.SZ,unresolved_latest_notice
+2021-01-15,123031.SZ,unresolved_latest_notice
+2021-01-15,123038.SZ,unresolved_latest_notice
+2021-01-15,128017.SZ,unresolved_latest_notice
+2021-01-15,128095.SZ,unresolved_latest_notice
+2021-01-22,110044.SH,unresolved_latest_notice
+2021-01-22,110066.SH,unresolved_latest_notice
+2021-01-22,113027.SH,unresolved_latest_notice
+2021-01-22,113504.SH,unresolved_latest_notice
+2021-01-22,113526.SH,unresolved_latest_notice
+2021-01-22,113543.SH,unresolved_latest_notice
+2021-01-22,113548.SH,unresolved_latest_notice
+2021-01-22,113580.SH,unresolved_latest_notice
+2021-01-22,123017.SZ,unresolved_latest_notice
+2021-01-22,123018.SZ,unresolved_latest_notice
+2021-01-22,123022.SZ,unresolved_latest_notice
+2021-01-22,123025.SZ,unresolved_latest_notice
+2021-01-22,123031.SZ,unresolved_latest_notice
+2021-01-22,123038.SZ,unresolved_latest_notice
+2021-01-22,128017.SZ,unresolved_latest_notice
+2021-01-22,128095.SZ,unresolved_latest_notice
+2021-01-29,110044.SH,unresolved_latest_notice
+2021-01-29,110066.SH,unresolved_latest_notice
+2021-01-29,113027.SH,unresolved_latest_notice
+2021-01-29,113504.SH,unresolved_latest_notice
+2021-01-29,113526.SH,unresolved_latest_notice
+2021-01-29,113543.SH,unresolved_latest_notice
+2021-01-29,113548.SH,unresolved_latest_notice
+2021-01-29,113580.SH,unresolved_latest_notice
+2021-01-29,123017.SZ,unresolved_latest_notice
+2021-01-29,123018.SZ,unresolved_latest_notice
+2021-01-29,123022.SZ,unresolved_latest_notice
+2021-01-29,123025.SZ,unresolved_latest_notice
+2021-01-29,123031.SZ,unresolved_latest_notice
+2021-01-29,123038.SZ,unresolved_latest_notice
+2021-01-29,128017.SZ,unresolved_latest_notice
+2021-01-29,128095.SZ,unresolved_latest_notice
+2021-02-05,110044.SH,unresolved_latest_notice
+2021-02-05,110066.SH,unresolved_latest_notice
+2021-02-05,113027.SH,unresolved_latest_notice
+2021-02-05,113504.SH,unresolved_latest_notice
+2021-02-05,113526.SH,unresolved_latest_notice
+2021-02-05,113543.SH,unresolved_latest_notice
+2021-02-05,113548.SH,unresolved_latest_notice
+2021-02-05,113580.SH,unresolved_latest_notice
+2021-02-05,123017.SZ,unresolved_latest_notice
+2021-02-05,123018.SZ,unresolved_latest_notice
+2021-02-05,123022.SZ,unresolved_latest_notice
+2021-02-05,123025.SZ,unresolved_latest_notice
+2021-02-05,123031.SZ,unresolved_latest_notice
+2021-02-05,123038.SZ,unresolved_latest_notice
+2021-02-05,128017.SZ,unresolved_latest_notice
+2021-02-05,128095.SZ,unresolved_latest_notice
+2021-02-10,110044.SH,unresolved_latest_notice
+2021-02-10,110066.SH,unresolved_latest_notice
+2021-02-10,113025.SH,unresolved_latest_notice
+2021-02-10,113027.SH,unresolved_latest_notice
+2021-02-10,113504.SH,unresolved_latest_notice
+2021-02-10,113526.SH,unresolved_latest_notice
+2021-02-10,113543.SH,unresolved_latest_notice
+2021-02-10,113548.SH,unresolved_latest_notice
+2021-02-10,113580.SH,unresolved_latest_notice
+2021-02-10,123017.SZ,unresolved_latest_notice
+2021-02-10,123018.SZ,unresolved_latest_notice
+2021-02-10,123022.SZ,unresolved_latest_notice
+2021-02-10,123025.SZ,unresolved_latest_notice
+2021-02-10,123031.SZ,unresolved_latest_notice
+2021-02-10,123038.SZ,unresolved_latest_notice
+2021-02-10,128017.SZ,unresolved_latest_notice
+2021-02-10,128095.SZ,unresolved_latest_notice
+2021-02-10,128108.SZ,unresolved_latest_notice
+2021-02-19,110044.SH,unresolved_latest_notice
+2021-02-19,110066.SH,unresolved_latest_notice
+2021-02-19,113025.SH,unresolved_latest_notice
+2021-02-19,113027.SH,unresolved_latest_notice
+2021-02-19,113504.SH,unresolved_latest_notice
+2021-02-19,113526.SH,unresolved_latest_notice
+2021-02-19,113543.SH,unresolved_latest_notice
+2021-02-19,113548.SH,unresolved_latest_notice
+2021-02-19,113580.SH,unresolved_latest_notice
+2021-02-19,123017.SZ,unresolved_latest_notice
+2021-02-19,123018.SZ,unresolved_latest_notice
+2021-02-19,123022.SZ,unresolved_latest_notice
+2021-02-19,123025.SZ,unresolved_latest_notice
+2021-02-19,123031.SZ,unresolved_latest_notice
+2021-02-19,123038.SZ,unresolved_latest_notice
+2021-02-19,128017.SZ,unresolved_latest_notice
+2021-02-19,128095.SZ,unresolved_latest_notice
+2021-02-19,128108.SZ,unresolved_latest_notice
+2021-02-19,128119.SZ,unresolved_latest_notice
+2021-02-26,110044.SH,unresolved_latest_notice
+2021-02-26,110066.SH,unresolved_latest_notice
+2021-02-26,113025.SH,unresolved_latest_notice
+2021-02-26,113027.SH,unresolved_latest_notice
+2021-02-26,113504.SH,unresolved_latest_notice
+2021-02-26,113526.SH,unresolved_latest_notice
+2021-02-26,113543.SH,unresolved_latest_notice
+2021-02-26,113548.SH,unresolved_latest_notice
+2021-02-26,113580.SH,unresolved_latest_notice
+2021-02-26,123018.SZ,unresolved_latest_notice
+2021-02-26,123022.SZ,unresolved_latest_notice
+2021-02-26,123025.SZ,unresolved_latest_notice
+2021-02-26,123031.SZ,unresolved_latest_notice
+2021-02-26,123038.SZ,unresolved_latest_notice
+2021-02-26,128017.SZ,unresolved_latest_notice
+2021-02-26,128095.SZ,unresolved_latest_notice
+2021-02-26,128108.SZ,unresolved_latest_notice
+2021-02-26,128119.SZ,unresolved_latest_notice
+2021-03-05,110044.SH,unresolved_latest_notice
+2021-03-05,110066.SH,unresolved_latest_notice
+2021-03-05,113025.SH,unresolved_latest_notice
+2021-03-05,113027.SH,unresolved_latest_notice
+2021-03-05,113504.SH,unresolved_latest_notice
+2021-03-05,113526.SH,unresolved_latest_notice
+2021-03-05,113548.SH,unresolved_latest_notice
+2021-03-05,113580.SH,unresolved_latest_notice
+2021-03-05,123018.SZ,unresolved_latest_notice
+2021-03-05,123022.SZ,unresolved_latest_notice
+2021-03-05,123025.SZ,unresolved_latest_notice
+2021-03-05,123031.SZ,unresolved_latest_notice
+2021-03-05,123038.SZ,unresolved_latest_notice
+2021-03-05,128017.SZ,unresolved_latest_notice
+2021-03-05,128095.SZ,unresolved_latest_notice
+2021-03-05,128108.SZ,unresolved_latest_notice
+2021-03-05,128119.SZ,unresolved_latest_notice
+2021-03-12,110044.SH,unresolved_latest_notice
+2021-03-12,110066.SH,unresolved_latest_notice
+2021-03-12,113025.SH,unresolved_latest_notice
+2021-03-12,113027.SH,unresolved_latest_notice
+2021-03-12,113504.SH,unresolved_latest_notice
+2021-03-12,113526.SH,unresolved_latest_notice
+2021-03-12,113548.SH,unresolved_latest_notice
+2021-03-12,113580.SH,unresolved_latest_notice
+2021-03-12,123018.SZ,unresolved_latest_notice
+2021-03-12,123022.SZ,unresolved_latest_notice
+2021-03-12,123025.SZ,unresolved_latest_notice
+2021-03-12,123031.SZ,unresolved_latest_notice
+2021-03-12,123038.SZ,unresolved_latest_notice
+2021-03-12,128017.SZ,unresolved_latest_notice
+2021-03-12,128095.SZ,unresolved_latest_notice
+2021-03-12,128108.SZ,unresolved_latest_notice
+2021-03-12,128119.SZ,unresolved_latest_notice
+2021-03-19,110044.SH,unresolved_latest_notice
+2021-03-19,110066.SH,unresolved_latest_notice
+2021-03-19,113025.SH,unresolved_latest_notice
+2021-03-19,113027.SH,unresolved_latest_notice
+2021-03-19,113504.SH,unresolved_latest_notice
+2021-03-19,113526.SH,unresolved_latest_notice
+2021-03-19,113548.SH,unresolved_latest_notice
+2021-03-19,113580.SH,unresolved_latest_notice
+2021-03-19,123018.SZ,unresolved_latest_notice
+2021-03-19,123022.SZ,unresolved_latest_notice
+2021-03-19,123025.SZ,unresolved_latest_notice
+2021-03-19,123031.SZ,unresolved_latest_notice
+2021-03-19,123038.SZ,unresolved_latest_notice
+2021-03-19,128017.SZ,unresolved_latest_notice
+2021-03-19,128095.SZ,unresolved_latest_notice
+2021-03-19,128108.SZ,unresolved_latest_notice
+2021-03-19,128119.SZ,unresolved_latest_notice
+2021-03-26,110044.SH,unresolved_latest_notice
+2021-03-26,110066.SH,unresolved_latest_notice
+2021-03-26,113025.SH,unresolved_latest_notice
+2021-03-26,113027.SH,unresolved_latest_notice
+2021-03-26,113504.SH,unresolved_latest_notice
+2021-03-26,113526.SH,unresolved_latest_notice
+2021-03-26,113548.SH,unresolved_latest_notice
+2021-03-26,113580.SH,unresolved_latest_notice
+2021-03-26,123018.SZ,unresolved_latest_notice
+2021-03-26,123022.SZ,unresolved_latest_notice
+2021-03-26,123025.SZ,unresolved_latest_notice
+2021-03-26,123031.SZ,unresolved_latest_notice
+2021-03-26,123038.SZ,unresolved_latest_notice
+2021-03-26,128017.SZ,unresolved_latest_notice
+2021-03-26,128095.SZ,unresolved_latest_notice
+2021-03-26,128108.SZ,unresolved_latest_notice
+2021-03-26,128119.SZ,unresolved_latest_notice
+2021-04-02,110044.SH,unresolved_latest_notice
+2021-04-02,110066.SH,unresolved_latest_notice
+2021-04-02,113027.SH,unresolved_latest_notice
+2021-04-02,113504.SH,unresolved_latest_notice
+2021-04-02,113526.SH,unresolved_latest_notice
+2021-04-02,113548.SH,unresolved_latest_notice
+2021-04-02,113580.SH,unresolved_latest_notice
+2021-04-02,123018.SZ,unresolved_latest_notice
+2021-04-02,123022.SZ,unresolved_latest_notice
+2021-04-02,123025.SZ,unresolved_latest_notice
+2021-04-02,123031.SZ,unresolved_latest_notice
+2021-04-02,123038.SZ,unresolved_latest_notice
+2021-04-02,128017.SZ,unresolved_latest_notice
+2021-04-02,128095.SZ,unresolved_latest_notice
+2021-04-02,128108.SZ,unresolved_latest_notice
+2021-04-02,128119.SZ,unresolved_latest_notice
+2021-04-09,110044.SH,unresolved_latest_notice
+2021-04-09,110066.SH,unresolved_latest_notice
+2021-04-09,113016.SH,unresolved_latest_notice
+2021-04-09,113027.SH,unresolved_latest_notice
+2021-04-09,113504.SH,unresolved_latest_notice
+2021-04-09,113526.SH,unresolved_latest_notice
+2021-04-09,113548.SH,unresolved_latest_notice
+2021-04-09,113577.SH,unresolved_latest_notice
+2021-04-09,113580.SH,unresolved_latest_notice
+2021-04-09,123018.SZ,unresolved_latest_notice
+2021-04-09,123022.SZ,unresolved_latest_notice
+2021-04-09,123025.SZ,unresolved_latest_notice
+2021-04-09,123031.SZ,unresolved_latest_notice
+2021-04-09,123038.SZ,unresolved_latest_notice
+2021-04-09,128017.SZ,unresolved_latest_notice
+2021-04-09,128095.SZ,unresolved_latest_notice
+2021-04-09,128108.SZ,unresolved_latest_notice
+2021-04-09,128119.SZ,unresolved_latest_notice
+2021-04-16,110044.SH,unresolved_latest_notice
+2021-04-16,110066.SH,unresolved_latest_notice
+2021-04-16,113016.SH,unresolved_latest_notice
+2021-04-16,113027.SH,unresolved_latest_notice
+2021-04-16,113504.SH,unresolved_latest_notice
+2021-04-16,113526.SH,unresolved_latest_notice
+2021-04-16,113548.SH,unresolved_latest_notice
+2021-04-16,113577.SH,unresolved_latest_notice
+2021-04-16,113580.SH,unresolved_latest_notice
+2021-04-16,123018.SZ,unresolved_latest_notice
+2021-04-16,123022.SZ,unresolved_latest_notice
+2021-04-16,123025.SZ,unresolved_latest_notice
+2021-04-16,123031.SZ,unresolved_latest_notice
+2021-04-16,123038.SZ,unresolved_latest_notice
+2021-04-16,128017.SZ,unresolved_latest_notice
+2021-04-16,128095.SZ,unresolved_latest_notice
+2021-04-16,128108.SZ,unresolved_latest_notice
+2021-04-16,128119.SZ,unresolved_latest_notice
+2021-04-23,110044.SH,unresolved_latest_notice
+2021-04-23,110066.SH,unresolved_latest_notice
+2021-04-23,113016.SH,unresolved_latest_notice
+2021-04-23,113027.SH,unresolved_latest_notice
+2021-04-23,113504.SH,unresolved_latest_notice
+2021-04-23,113526.SH,unresolved_latest_notice
+2021-04-23,113548.SH,unresolved_latest_notice
+2021-04-23,113577.SH,unresolved_latest_notice
+2021-04-23,113580.SH,unresolved_latest_notice
+2021-04-23,123018.SZ,unresolved_latest_notice
+2021-04-23,123022.SZ,unresolved_latest_notice
+2021-04-23,123025.SZ,unresolved_latest_notice
+2021-04-23,123031.SZ,unresolved_latest_notice
+2021-04-23,123038.SZ,unresolved_latest_notice
+2021-04-23,128017.SZ,unresolved_latest_notice
+2021-04-23,128095.SZ,unresolved_latest_notice
+2021-04-23,128108.SZ,unresolved_latest_notice
+2021-04-23,128119.SZ,unresolved_latest_notice
+2021-04-30,110044.SH,unresolved_latest_notice
+2021-04-30,110066.SH,unresolved_latest_notice
+2021-04-30,113016.SH,unresolved_latest_notice
+2021-04-30,113027.SH,unresolved_latest_notice
+2021-04-30,113504.SH,unresolved_latest_notice
+2021-04-30,113526.SH,unresolved_latest_notice
+2021-04-30,113548.SH,unresolved_latest_notice
+2021-04-30,113577.SH,unresolved_latest_notice
+2021-04-30,113580.SH,unresolved_latest_notice
+2021-04-30,123018.SZ,unresolved_latest_notice
+2021-04-30,123022.SZ,unresolved_latest_notice
+2021-04-30,123025.SZ,unresolved_latest_notice
+2021-04-30,123031.SZ,unresolved_latest_notice
+2021-04-30,123038.SZ,unresolved_latest_notice
+2021-04-30,128017.SZ,unresolved_latest_notice
+2021-04-30,128095.SZ,unresolved_latest_notice
+2021-04-30,128108.SZ,unresolved_latest_notice
+2021-04-30,128119.SZ,unresolved_latest_notice
+2021-05-07,110044.SH,unresolved_latest_notice
+2021-05-07,110066.SH,unresolved_latest_notice
+2021-05-07,113016.SH,unresolved_latest_notice
+2021-05-07,113027.SH,unresolved_latest_notice
+2021-05-07,113504.SH,unresolved_latest_notice
+2021-05-07,113526.SH,unresolved_latest_notice
+2021-05-07,113548.SH,unresolved_latest_notice
+2021-05-07,113577.SH,unresolved_latest_notice
+2021-05-07,113580.SH,unresolved_latest_notice
+2021-05-07,123018.SZ,unresolved_latest_notice
+2021-05-07,123022.SZ,unresolved_latest_notice
+2021-05-07,123025.SZ,unresolved_latest_notice
+2021-05-07,123031.SZ,unresolved_latest_notice
+2021-05-07,123038.SZ,unresolved_latest_notice
+2021-05-07,128017.SZ,unresolved_latest_notice
+2021-05-07,128095.SZ,unresolved_latest_notice
+2021-05-07,128108.SZ,unresolved_latest_notice
+2021-05-07,128119.SZ,unresolved_latest_notice
+2021-05-14,110044.SH,unresolved_latest_notice
+2021-05-14,110066.SH,unresolved_latest_notice
+2021-05-14,113016.SH,unresolved_latest_notice
+2021-05-14,113027.SH,unresolved_latest_notice
+2021-05-14,113504.SH,unresolved_latest_notice
+2021-05-14,113526.SH,unresolved_latest_notice
+2021-05-14,113548.SH,unresolved_latest_notice
+2021-05-14,113577.SH,unresolved_latest_notice
+2021-05-14,113580.SH,unresolved_latest_notice
+2021-05-14,123018.SZ,unresolved_latest_notice
+2021-05-14,123022.SZ,unresolved_latest_notice
+2021-05-14,123025.SZ,unresolved_latest_notice
+2021-05-14,123031.SZ,unresolved_latest_notice
+2021-05-14,123038.SZ,unresolved_latest_notice
+2021-05-14,128017.SZ,unresolved_latest_notice
+2021-05-14,128095.SZ,unresolved_latest_notice
+2021-05-14,128108.SZ,unresolved_latest_notice
+2021-05-14,128119.SZ,unresolved_latest_notice
+2021-05-21,110044.SH,unresolved_latest_notice
+2021-05-21,110066.SH,unresolved_latest_notice
+2021-05-21,113016.SH,unresolved_latest_notice
+2021-05-21,113027.SH,unresolved_latest_notice
+2021-05-21,113504.SH,unresolved_latest_notice
+2021-05-21,113526.SH,unresolved_latest_notice
+2021-05-21,113548.SH,unresolved_latest_notice
+2021-05-21,113577.SH,unresolved_latest_notice
+2021-05-21,113580.SH,unresolved_latest_notice
+2021-05-21,123018.SZ,unresolved_latest_notice
+2021-05-21,123022.SZ,unresolved_latest_notice
+2021-05-21,123025.SZ,unresolved_latest_notice
+2021-05-21,123031.SZ,unresolved_latest_notice
+2021-05-21,123038.SZ,unresolved_latest_notice
+2021-05-21,128017.SZ,unresolved_latest_notice
+2021-05-21,128095.SZ,unresolved_latest_notice
+2021-05-21,128108.SZ,unresolved_latest_notice
+2021-05-21,128119.SZ,unresolved_latest_notice
+2021-05-28,110044.SH,unresolved_latest_notice
+2021-05-28,110066.SH,unresolved_latest_notice
+2021-05-28,113016.SH,unresolved_latest_notice
+2021-05-28,113027.SH,unresolved_latest_notice
+2021-05-28,113504.SH,unresolved_latest_notice
+2021-05-28,113526.SH,unresolved_latest_notice
+2021-05-28,113548.SH,unresolved_latest_notice
+2021-05-28,113577.SH,unresolved_latest_notice
+2021-05-28,113580.SH,unresolved_latest_notice
+2021-05-28,123018.SZ,unresolved_latest_notice
+2021-05-28,123022.SZ,unresolved_latest_notice
+2021-05-28,123025.SZ,unresolved_latest_notice
+2021-05-28,123031.SZ,unresolved_latest_notice
+2021-05-28,123038.SZ,unresolved_latest_notice
+2021-05-28,128017.SZ,unresolved_latest_notice
+2021-05-28,128095.SZ,unresolved_latest_notice
+2021-05-28,128108.SZ,unresolved_latest_notice
+2021-05-28,128119.SZ,unresolved_latest_notice
+2021-06-04,110044.SH,unresolved_latest_notice
+2021-06-04,110066.SH,unresolved_latest_notice
+2021-06-04,113016.SH,unresolved_latest_notice
+2021-06-04,113027.SH,unresolved_latest_notice
+2021-06-04,113504.SH,unresolved_latest_notice
+2021-06-04,113526.SH,unresolved_latest_notice
+2021-06-04,113548.SH,unresolved_latest_notice
+2021-06-04,113577.SH,unresolved_latest_notice
+2021-06-04,113580.SH,unresolved_latest_notice
+2021-06-04,123018.SZ,unresolved_latest_notice
+2021-06-04,123022.SZ,unresolved_latest_notice
+2021-06-04,123025.SZ,unresolved_latest_notice
+2021-06-04,123031.SZ,unresolved_latest_notice
+2021-06-04,123038.SZ,unresolved_latest_notice
+2021-06-04,128017.SZ,unresolved_latest_notice
+2021-06-04,128095.SZ,unresolved_latest_notice
+2021-06-04,128108.SZ,unresolved_latest_notice
+2021-06-04,128119.SZ,unresolved_latest_notice
+2021-06-11,110044.SH,unresolved_latest_notice
+2021-06-11,113016.SH,unresolved_latest_notice
+2021-06-11,113027.SH,unresolved_latest_notice
+2021-06-11,113504.SH,unresolved_latest_notice
+2021-06-11,113526.SH,unresolved_latest_notice
+2021-06-11,113548.SH,unresolved_latest_notice
+2021-06-11,113577.SH,unresolved_latest_notice
+2021-06-11,113580.SH,unresolved_latest_notice
+2021-06-11,123018.SZ,unresolved_latest_notice
+2021-06-11,123022.SZ,unresolved_latest_notice
+2021-06-11,123025.SZ,unresolved_latest_notice
+2021-06-11,123031.SZ,unresolved_latest_notice
+2021-06-11,123038.SZ,unresolved_latest_notice
+2021-06-11,128017.SZ,unresolved_latest_notice
+2021-06-11,128095.SZ,unresolved_latest_notice
+2021-06-11,128108.SZ,unresolved_latest_notice
+2021-06-11,128119.SZ,unresolved_latest_notice
+2021-06-18,110044.SH,unresolved_latest_notice
+2021-06-18,113016.SH,unresolved_latest_notice
+2021-06-18,113027.SH,unresolved_latest_notice
+2021-06-18,113504.SH,unresolved_latest_notice
+2021-06-18,113526.SH,unresolved_latest_notice
+2021-06-18,113548.SH,unresolved_latest_notice
+2021-06-18,113577.SH,unresolved_latest_notice
+2021-06-18,113580.SH,unresolved_latest_notice
+2021-06-18,123018.SZ,unresolved_latest_notice
+2021-06-18,123022.SZ,unresolved_latest_notice
+2021-06-18,123025.SZ,unresolved_latest_notice
+2021-06-18,123031.SZ,unresolved_latest_notice
+2021-06-18,123038.SZ,unresolved_latest_notice
+2021-06-18,123066.SZ,unresolved_latest_notice
+2021-06-18,128017.SZ,unresolved_latest_notice
+2021-06-18,128095.SZ,unresolved_latest_notice
+2021-06-18,128108.SZ,unresolved_latest_notice
+2021-06-18,128119.SZ,unresolved_latest_notice
+2021-06-25,110044.SH,unresolved_latest_notice
+2021-06-25,113016.SH,unresolved_latest_notice
+2021-06-25,113027.SH,unresolved_latest_notice
+2021-06-25,113504.SH,unresolved_latest_notice
+2021-06-25,113526.SH,unresolved_latest_notice
+2021-06-25,113548.SH,unresolved_latest_notice
+2021-06-25,113577.SH,unresolved_latest_notice
+2021-06-25,113580.SH,unresolved_latest_notice
+2021-06-25,123018.SZ,unresolved_latest_notice
+2021-06-25,123022.SZ,unresolved_latest_notice
+2021-06-25,123025.SZ,unresolved_latest_notice
+2021-06-25,123031.SZ,unresolved_latest_notice
+2021-06-25,123038.SZ,unresolved_latest_notice
+2021-06-25,123066.SZ,unresolved_latest_notice
+2021-06-25,128017.SZ,unresolved_latest_notice
+2021-06-25,128095.SZ,unresolved_latest_notice
+2021-06-25,128108.SZ,unresolved_latest_notice
+2021-06-25,128119.SZ,unresolved_latest_notice
+2021-07-02,110044.SH,unresolved_latest_notice
+2021-07-02,113016.SH,unresolved_latest_notice
+2021-07-02,113027.SH,unresolved_latest_notice
+2021-07-02,113504.SH,unresolved_latest_notice
+2021-07-02,113526.SH,unresolved_latest_notice
+2021-07-02,113548.SH,unresolved_latest_notice
+2021-07-02,113577.SH,unresolved_latest_notice
+2021-07-02,113580.SH,unresolved_latest_notice
+2021-07-02,123018.SZ,unresolved_latest_notice
+2021-07-02,123022.SZ,unresolved_latest_notice
+2021-07-02,123025.SZ,unresolved_latest_notice
+2021-07-02,123031.SZ,unresolved_latest_notice
+2021-07-02,123038.SZ,unresolved_latest_notice
+2021-07-02,123047.SZ,unresolved_latest_notice
+2021-07-02,123066.SZ,unresolved_latest_notice
+2021-07-02,128017.SZ,unresolved_latest_notice
+2021-07-02,128095.SZ,unresolved_latest_notice
+2021-07-02,128108.SZ,unresolved_latest_notice
+2021-07-02,128119.SZ,unresolved_latest_notice
+2021-07-09,110044.SH,unresolved_latest_notice
+2021-07-09,113016.SH,unresolved_latest_notice
+2021-07-09,113027.SH,unresolved_latest_notice
+2021-07-09,113504.SH,unresolved_latest_notice
+2021-07-09,113526.SH,unresolved_latest_notice
+2021-07-09,113548.SH,unresolved_latest_notice
+2021-07-09,113577.SH,unresolved_latest_notice
+2021-07-09,113580.SH,unresolved_latest_notice
+2021-07-09,123018.SZ,unresolved_latest_notice
+2021-07-09,123022.SZ,unresolved_latest_notice
+2021-07-09,123025.SZ,unresolved_latest_notice
+2021-07-09,123031.SZ,unresolved_latest_notice
+2021-07-09,123038.SZ,unresolved_latest_notice
+2021-07-09,123047.SZ,unresolved_latest_notice
+2021-07-09,123054.SZ,unresolved_latest_notice
+2021-07-09,123066.SZ,unresolved_latest_notice
+2021-07-09,128017.SZ,unresolved_latest_notice
+2021-07-09,128095.SZ,unresolved_latest_notice
+2021-07-09,128108.SZ,unresolved_latest_notice
+2021-07-09,128119.SZ,unresolved_latest_notice
+2021-07-16,110044.SH,unresolved_latest_notice
+2021-07-16,113016.SH,unresolved_latest_notice
+2021-07-16,113027.SH,unresolved_latest_notice
+2021-07-16,113504.SH,unresolved_latest_notice
+2021-07-16,113526.SH,unresolved_latest_notice
+2021-07-16,113548.SH,unresolved_latest_notice
+2021-07-16,113577.SH,unresolved_latest_notice
+2021-07-16,113580.SH,unresolved_latest_notice
+2021-07-16,123018.SZ,unresolved_latest_notice
+2021-07-16,123022.SZ,unresolved_latest_notice
+2021-07-16,123025.SZ,unresolved_latest_notice
+2021-07-16,123031.SZ,unresolved_latest_notice
+2021-07-16,123038.SZ,unresolved_latest_notice
+2021-07-16,123047.SZ,unresolved_latest_notice
+2021-07-16,123054.SZ,unresolved_latest_notice
+2021-07-16,123066.SZ,unresolved_latest_notice
+2021-07-16,123067.SZ,unresolved_latest_notice
+2021-07-16,128017.SZ,unresolved_latest_notice
+2021-07-16,128095.SZ,unresolved_latest_notice
+2021-07-16,128108.SZ,unresolved_latest_notice
+2021-07-16,128119.SZ,unresolved_latest_notice
+2021-07-23,110044.SH,unresolved_latest_notice
+2021-07-23,113016.SH,unresolved_latest_notice
+2021-07-23,113027.SH,unresolved_latest_notice
+2021-07-23,113504.SH,unresolved_latest_notice
+2021-07-23,113526.SH,unresolved_latest_notice
+2021-07-23,113548.SH,unresolved_latest_notice
+2021-07-23,113577.SH,unresolved_latest_notice
+2021-07-23,113580.SH,unresolved_latest_notice
+2021-07-23,123018.SZ,unresolved_latest_notice
+2021-07-23,123022.SZ,unresolved_latest_notice
+2021-07-23,123025.SZ,unresolved_latest_notice
+2021-07-23,123031.SZ,unresolved_latest_notice
+2021-07-23,123038.SZ,unresolved_latest_notice
+2021-07-23,123047.SZ,unresolved_latest_notice
+2021-07-23,123054.SZ,unresolved_latest_notice
+2021-07-23,123066.SZ,unresolved_latest_notice
+2021-07-23,123067.SZ,unresolved_latest_notice
+2021-07-23,128017.SZ,unresolved_latest_notice
+2021-07-23,128095.SZ,unresolved_latest_notice
+2021-07-23,128108.SZ,unresolved_latest_notice
+2021-07-23,128119.SZ,unresolved_latest_notice
+2021-07-30,110044.SH,unresolved_latest_notice
+2021-07-30,113016.SH,unresolved_latest_notice
+2021-07-30,113027.SH,unresolved_latest_notice
+2021-07-30,113504.SH,unresolved_latest_notice
+2021-07-30,113526.SH,unresolved_latest_notice
+2021-07-30,113548.SH,unresolved_latest_notice
+2021-07-30,113577.SH,unresolved_latest_notice
+2021-07-30,113580.SH,unresolved_latest_notice
+2021-07-30,123018.SZ,unresolved_latest_notice
+2021-07-30,123022.SZ,unresolved_latest_notice
+2021-07-30,123025.SZ,unresolved_latest_notice
+2021-07-30,123031.SZ,unresolved_latest_notice
+2021-07-30,123038.SZ,unresolved_latest_notice
+2021-07-30,123047.SZ,unresolved_latest_notice
+2021-07-30,123054.SZ,unresolved_latest_notice
+2021-07-30,123060.SZ,unresolved_latest_notice
+2021-07-30,123066.SZ,unresolved_latest_notice
+2021-07-30,123067.SZ,unresolved_latest_notice
+2021-07-30,128017.SZ,unresolved_latest_notice
+2021-07-30,128095.SZ,unresolved_latest_notice
+2021-07-30,128108.SZ,unresolved_latest_notice
+2021-07-30,128119.SZ,unresolved_latest_notice
+2021-08-06,110044.SH,unresolved_latest_notice
+2021-08-06,113016.SH,unresolved_latest_notice
+2021-08-06,113027.SH,unresolved_latest_notice
+2021-08-06,113504.SH,unresolved_latest_notice
+2021-08-06,113526.SH,unresolved_latest_notice
+2021-08-06,113577.SH,unresolved_latest_notice
+2021-08-06,113580.SH,unresolved_latest_notice
+2021-08-06,123018.SZ,unresolved_latest_notice
+2021-08-06,123022.SZ,unresolved_latest_notice
+2021-08-06,123025.SZ,unresolved_latest_notice
+2021-08-06,123031.SZ,unresolved_latest_notice
+2021-08-06,123038.SZ,unresolved_latest_notice
+2021-08-06,123047.SZ,unresolved_latest_notice
+2021-08-06,123054.SZ,unresolved_latest_notice
+2021-08-06,123060.SZ,unresolved_latest_notice
+2021-08-06,123066.SZ,unresolved_latest_notice
+2021-08-06,123067.SZ,unresolved_latest_notice
+2021-08-06,123069.SZ,unresolved_latest_notice
+2021-08-06,128017.SZ,unresolved_latest_notice
+2021-08-06,128095.SZ,unresolved_latest_notice
+2021-08-06,128108.SZ,unresolved_latest_notice
+2021-08-06,128119.SZ,unresolved_latest_notice
+2021-08-13,110044.SH,unresolved_latest_notice
+2021-08-13,113016.SH,unresolved_latest_notice
+2021-08-13,113027.SH,unresolved_latest_notice
+2021-08-13,113504.SH,unresolved_latest_notice
+2021-08-13,113526.SH,unresolved_latest_notice
+2021-08-13,113577.SH,unresolved_latest_notice
+2021-08-13,113580.SH,unresolved_latest_notice
+2021-08-13,123018.SZ,unresolved_latest_notice
+2021-08-13,123022.SZ,unresolved_latest_notice
+2021-08-13,123025.SZ,unresolved_latest_notice
+2021-08-13,123031.SZ,unresolved_latest_notice
+2021-08-13,123038.SZ,unresolved_latest_notice
+2021-08-13,123050.SZ,unresolved_latest_notice
+2021-08-13,123054.SZ,unresolved_latest_notice
+2021-08-13,123060.SZ,unresolved_latest_notice
+2021-08-13,123066.SZ,unresolved_latest_notice
+2021-08-13,123067.SZ,unresolved_latest_notice
+2021-08-13,123069.SZ,unresolved_latest_notice
+2021-08-13,128017.SZ,unresolved_latest_notice
+2021-08-13,128095.SZ,unresolved_latest_notice
+2021-08-13,128108.SZ,unresolved_latest_notice
+2021-08-13,128119.SZ,unresolved_latest_notice
+2021-08-20,110044.SH,unresolved_latest_notice
+2021-08-20,113016.SH,unresolved_latest_notice
+2021-08-20,113027.SH,unresolved_latest_notice
+2021-08-20,113504.SH,unresolved_latest_notice
+2021-08-20,113526.SH,unresolved_latest_notice
+2021-08-20,113577.SH,unresolved_latest_notice
+2021-08-20,113580.SH,unresolved_latest_notice
+2021-08-20,123018.SZ,unresolved_latest_notice
+2021-08-20,123022.SZ,unresolved_latest_notice
+2021-08-20,123025.SZ,unresolved_latest_notice
+2021-08-20,123031.SZ,unresolved_latest_notice
+2021-08-20,123038.SZ,unresolved_latest_notice
+2021-08-20,123050.SZ,unresolved_latest_notice
+2021-08-20,123054.SZ,unresolved_latest_notice
+2021-08-20,123060.SZ,unresolved_latest_notice
+2021-08-20,123067.SZ,unresolved_latest_notice
+2021-08-20,123069.SZ,unresolved_latest_notice
+2021-08-20,128017.SZ,unresolved_latest_notice
+2021-08-20,128095.SZ,unresolved_latest_notice
+2021-08-20,128108.SZ,unresolved_latest_notice
+2021-08-20,128119.SZ,unresolved_latest_notice
+2021-08-27,110044.SH,unresolved_latest_notice
+2021-08-27,113016.SH,unresolved_latest_notice
+2021-08-27,113027.SH,unresolved_latest_notice
+2021-08-27,113504.SH,unresolved_latest_notice
+2021-08-27,113526.SH,unresolved_latest_notice
+2021-08-27,113577.SH,unresolved_latest_notice
+2021-08-27,113580.SH,unresolved_latest_notice
+2021-08-27,113621.SH,unresolved_latest_notice
+2021-08-27,123018.SZ,unresolved_latest_notice
+2021-08-27,123022.SZ,unresolved_latest_notice
+2021-08-27,123025.SZ,unresolved_latest_notice
+2021-08-27,123031.SZ,unresolved_latest_notice
+2021-08-27,123038.SZ,unresolved_latest_notice
+2021-08-27,123050.SZ,unresolved_latest_notice
+2021-08-27,123054.SZ,unresolved_latest_notice
+2021-08-27,123060.SZ,unresolved_latest_notice
+2021-08-27,123069.SZ,unresolved_latest_notice
+2021-08-27,123098.SZ,unresolved_latest_notice
+2021-08-27,128017.SZ,unresolved_latest_notice
+2021-08-27,128095.SZ,unresolved_latest_notice
+2021-08-27,128108.SZ,unresolved_latest_notice
+2021-08-27,128119.SZ,unresolved_latest_notice
+2021-09-03,110044.SH,unresolved_latest_notice
+2021-09-03,113016.SH,unresolved_latest_notice
+2021-09-03,113027.SH,unresolved_latest_notice
+2021-09-03,113504.SH,unresolved_latest_notice
+2021-09-03,113526.SH,unresolved_latest_notice
+2021-09-03,113577.SH,unresolved_latest_notice
+2021-09-03,113580.SH,unresolved_latest_notice
+2021-09-03,113621.SH,unresolved_latest_notice
+2021-09-03,123018.SZ,unresolved_latest_notice
+2021-09-03,123022.SZ,unresolved_latest_notice
+2021-09-03,123025.SZ,unresolved_latest_notice
+2021-09-03,123031.SZ,unresolved_latest_notice
+2021-09-03,123038.SZ,unresolved_latest_notice
+2021-09-03,123050.SZ,unresolved_latest_notice
+2021-09-03,123054.SZ,unresolved_latest_notice
+2021-09-03,123060.SZ,unresolved_latest_notice
+2021-09-03,123069.SZ,unresolved_latest_notice
+2021-09-03,123084.SZ,unresolved_latest_notice
+2021-09-03,123098.SZ,unresolved_latest_notice
+2021-09-03,128017.SZ,unresolved_latest_notice
+2021-09-03,128095.SZ,unresolved_latest_notice
+2021-09-03,128108.SZ,unresolved_latest_notice
+2021-09-03,128119.SZ,unresolved_latest_notice
+2021-09-10,110044.SH,unresolved_latest_notice
+2021-09-10,113016.SH,unresolved_latest_notice
+2021-09-10,113027.SH,unresolved_latest_notice
+2021-09-10,113504.SH,unresolved_latest_notice
+2021-09-10,113526.SH,unresolved_latest_notice
+2021-09-10,113577.SH,unresolved_latest_notice
+2021-09-10,113580.SH,unresolved_latest_notice
+2021-09-10,113621.SH,unresolved_latest_notice
+2021-09-10,123018.SZ,unresolved_latest_notice
+2021-09-10,123022.SZ,unresolved_latest_notice
+2021-09-10,123025.SZ,unresolved_latest_notice
+2021-09-10,123031.SZ,unresolved_latest_notice
+2021-09-10,123038.SZ,unresolved_latest_notice
+2021-09-10,123050.SZ,unresolved_latest_notice
+2021-09-10,123054.SZ,unresolved_latest_notice
+2021-09-10,123060.SZ,unresolved_latest_notice
+2021-09-10,123069.SZ,unresolved_latest_notice
+2021-09-10,123084.SZ,unresolved_latest_notice
+2021-09-10,123098.SZ,unresolved_latest_notice
+2021-09-10,128017.SZ,unresolved_latest_notice
+2021-09-10,128095.SZ,unresolved_latest_notice
+2021-09-10,128108.SZ,unresolved_latest_notice
+2021-09-10,128119.SZ,unresolved_latest_notice
+2021-09-17,110044.SH,unresolved_latest_notice
+2021-09-17,113016.SH,unresolved_latest_notice
+2021-09-17,113027.SH,unresolved_latest_notice
+2021-09-17,113504.SH,unresolved_latest_notice
+2021-09-17,113526.SH,unresolved_latest_notice
+2021-09-17,113577.SH,unresolved_latest_notice
+2021-09-17,113580.SH,unresolved_latest_notice
+2021-09-17,113621.SH,unresolved_latest_notice
+2021-09-17,123018.SZ,unresolved_latest_notice
+2021-09-17,123022.SZ,unresolved_latest_notice
+2021-09-17,123025.SZ,unresolved_latest_notice
+2021-09-17,123031.SZ,unresolved_latest_notice
+2021-09-17,123038.SZ,unresolved_latest_notice
+2021-09-17,123050.SZ,unresolved_latest_notice
+2021-09-17,123054.SZ,unresolved_latest_notice
+2021-09-17,123060.SZ,unresolved_latest_notice
+2021-09-17,123069.SZ,unresolved_latest_notice
+2021-09-17,123084.SZ,unresolved_latest_notice
+2021-09-17,123098.SZ,unresolved_latest_notice
+2021-09-17,128017.SZ,unresolved_latest_notice
+2021-09-17,128095.SZ,unresolved_latest_notice
+2021-09-17,128108.SZ,unresolved_latest_notice
+2021-09-17,128119.SZ,unresolved_latest_notice
+2021-09-24,110044.SH,unresolved_latest_notice
+2021-09-24,113016.SH,unresolved_latest_notice
+2021-09-24,113027.SH,unresolved_latest_notice
+2021-09-24,113504.SH,unresolved_latest_notice
+2021-09-24,113526.SH,unresolved_latest_notice
+2021-09-24,113577.SH,unresolved_latest_notice
+2021-09-24,113580.SH,unresolved_latest_notice
+2021-09-24,113621.SH,unresolved_latest_notice
+2021-09-24,123018.SZ,unresolved_latest_notice
+2021-09-24,123022.SZ,unresolved_latest_notice
+2021-09-24,123025.SZ,unresolved_latest_notice
+2021-09-24,123031.SZ,unresolved_latest_notice
+2021-09-24,123038.SZ,unresolved_latest_notice
+2021-09-24,123050.SZ,unresolved_latest_notice
+2021-09-24,123054.SZ,unresolved_latest_notice
+2021-09-24,123060.SZ,unresolved_latest_notice
+2021-09-24,123069.SZ,unresolved_latest_notice
+2021-09-24,123098.SZ,unresolved_latest_notice
+2021-09-24,128017.SZ,unresolved_latest_notice
+2021-09-24,128095.SZ,unresolved_latest_notice
+2021-09-24,128108.SZ,unresolved_latest_notice
+2021-09-24,128119.SZ,unresolved_latest_notice
+2021-09-30,110044.SH,unresolved_latest_notice
+2021-09-30,113016.SH,unresolved_latest_notice
+2021-09-30,113027.SH,unresolved_latest_notice
+2021-09-30,113504.SH,unresolved_latest_notice
+2021-09-30,113526.SH,unresolved_latest_notice
+2021-09-30,113577.SH,unresolved_latest_notice
+2021-09-30,113580.SH,unresolved_latest_notice
+2021-09-30,113621.SH,unresolved_latest_notice
+2021-09-30,123018.SZ,unresolved_latest_notice
+2021-09-30,123022.SZ,unresolved_latest_notice
+2021-09-30,123025.SZ,unresolved_latest_notice
+2021-09-30,123038.SZ,unresolved_latest_notice
+2021-09-30,123050.SZ,unresolved_latest_notice
+2021-09-30,123054.SZ,unresolved_latest_notice
+2021-09-30,123060.SZ,unresolved_latest_notice
+2021-09-30,123069.SZ,unresolved_latest_notice
+2021-09-30,123083.SZ,unresolved_latest_notice
+2021-09-30,123098.SZ,unresolved_latest_notice
+2021-09-30,128017.SZ,unresolved_latest_notice
+2021-09-30,128095.SZ,unresolved_latest_notice
+2021-09-30,128108.SZ,unresolved_latest_notice
+2021-09-30,128119.SZ,unresolved_latest_notice
+2021-10-08,110044.SH,unresolved_latest_notice
+2021-10-08,113016.SH,unresolved_latest_notice
+2021-10-08,113027.SH,unresolved_latest_notice
+2021-10-08,113504.SH,unresolved_latest_notice
+2021-10-08,113526.SH,unresolved_latest_notice
+2021-10-08,113577.SH,unresolved_latest_notice
+2021-10-08,113580.SH,unresolved_latest_notice
+2021-10-08,113621.SH,unresolved_latest_notice
+2021-10-08,123018.SZ,unresolved_latest_notice
+2021-10-08,123022.SZ,unresolved_latest_notice
+2021-10-08,123025.SZ,unresolved_latest_notice
+2021-10-08,123038.SZ,unresolved_latest_notice
+2021-10-08,123050.SZ,unresolved_latest_notice
+2021-10-08,123054.SZ,unresolved_latest_notice
+2021-10-08,123060.SZ,unresolved_latest_notice
+2021-10-08,123069.SZ,unresolved_latest_notice
+2021-10-08,123083.SZ,unresolved_latest_notice
+2021-10-08,123098.SZ,unresolved_latest_notice
+2021-10-08,128017.SZ,unresolved_latest_notice
+2021-10-08,128095.SZ,unresolved_latest_notice
+2021-10-08,128108.SZ,unresolved_latest_notice
+2021-10-08,128119.SZ,unresolved_latest_notice
+2021-10-15,110044.SH,unresolved_latest_notice
+2021-10-15,113016.SH,unresolved_latest_notice
+2021-10-15,113027.SH,unresolved_latest_notice
+2021-10-15,113504.SH,unresolved_latest_notice
+2021-10-15,113526.SH,unresolved_latest_notice
+2021-10-15,113577.SH,unresolved_latest_notice
+2021-10-15,113580.SH,unresolved_latest_notice
+2021-10-15,123018.SZ,unresolved_latest_notice
+2021-10-15,123022.SZ,unresolved_latest_notice
+2021-10-15,123025.SZ,unresolved_latest_notice
+2021-10-15,123038.SZ,unresolved_latest_notice
+2021-10-15,123050.SZ,unresolved_latest_notice
+2021-10-15,123054.SZ,unresolved_latest_notice
+2021-10-15,123060.SZ,unresolved_latest_notice
+2021-10-15,123069.SZ,unresolved_latest_notice
+2021-10-15,123083.SZ,unresolved_latest_notice
+2021-10-15,123098.SZ,unresolved_latest_notice
+2021-10-15,128017.SZ,unresolved_latest_notice
+2021-10-15,128095.SZ,unresolved_latest_notice
+2021-10-15,128108.SZ,unresolved_latest_notice
+2021-10-15,128119.SZ,unresolved_latest_notice
+2021-10-22,110044.SH,unresolved_latest_notice
+2021-10-22,113016.SH,unresolved_latest_notice
+2021-10-22,113504.SH,unresolved_latest_notice
+2021-10-22,113526.SH,unresolved_latest_notice
+2021-10-22,113577.SH,unresolved_latest_notice
+2021-10-22,113580.SH,unresolved_latest_notice
+2021-10-22,123018.SZ,unresolved_latest_notice
+2021-10-22,123022.SZ,unresolved_latest_notice
+2021-10-22,123025.SZ,unresolved_latest_notice
+2021-10-22,123028.SZ,unresolved_latest_notice
+2021-10-22,123038.SZ,unresolved_latest_notice
+2021-10-22,123050.SZ,unresolved_latest_notice
+2021-10-22,123054.SZ,unresolved_latest_notice
+2021-10-22,123060.SZ,unresolved_latest_notice
+2021-10-22,123069.SZ,unresolved_latest_notice
+2021-10-22,123083.SZ,unresolved_latest_notice
+2021-10-22,123098.SZ,unresolved_latest_notice
+2021-10-22,128017.SZ,unresolved_latest_notice
+2021-10-22,128095.SZ,unresolved_latest_notice
+2021-10-22,128108.SZ,unresolved_latest_notice
+2021-10-22,128119.SZ,unresolved_latest_notice
+2021-10-29,110044.SH,unresolved_latest_notice
+2021-10-29,113016.SH,unresolved_latest_notice
+2021-10-29,113504.SH,unresolved_latest_notice
+2021-10-29,113526.SH,unresolved_latest_notice
+2021-10-29,113577.SH,unresolved_latest_notice
+2021-10-29,113580.SH,unresolved_latest_notice
+2021-10-29,123018.SZ,unresolved_latest_notice
+2021-10-29,123022.SZ,unresolved_latest_notice
+2021-10-29,123025.SZ,unresolved_latest_notice
+2021-10-29,123028.SZ,unresolved_latest_notice
+2021-10-29,123038.SZ,unresolved_latest_notice
+2021-10-29,123050.SZ,unresolved_latest_notice
+2021-10-29,123054.SZ,unresolved_latest_notice
+2021-10-29,123060.SZ,unresolved_latest_notice
+2021-10-29,123069.SZ,unresolved_latest_notice
+2021-10-29,123083.SZ,unresolved_latest_notice
+2021-10-29,123098.SZ,unresolved_latest_notice
+2021-10-29,128017.SZ,unresolved_latest_notice
+2021-10-29,128095.SZ,unresolved_latest_notice
+2021-10-29,128108.SZ,unresolved_latest_notice
+2021-10-29,128119.SZ,unresolved_latest_notice
+2021-11-05,110044.SH,unresolved_latest_notice
+2021-11-05,113016.SH,unresolved_latest_notice
+2021-11-05,113504.SH,unresolved_latest_notice
+2021-11-05,113526.SH,unresolved_latest_notice
+2021-11-05,113577.SH,unresolved_latest_notice
+2021-11-05,113580.SH,unresolved_latest_notice
+2021-11-05,123018.SZ,unresolved_latest_notice
+2021-11-05,123022.SZ,unresolved_latest_notice
+2021-11-05,123025.SZ,unresolved_latest_notice
+2021-11-05,123028.SZ,unresolved_latest_notice
+2021-11-05,123038.SZ,unresolved_latest_notice
+2021-11-05,123050.SZ,unresolved_latest_notice
+2021-11-05,123054.SZ,unresolved_latest_notice
+2021-11-05,123060.SZ,unresolved_latest_notice
+2021-11-05,123069.SZ,unresolved_latest_notice
+2021-11-05,123083.SZ,unresolved_latest_notice
+2021-11-05,123098.SZ,unresolved_latest_notice
+2021-11-05,128017.SZ,unresolved_latest_notice
+2021-11-05,128095.SZ,unresolved_latest_notice
+2021-11-05,128108.SZ,unresolved_latest_notice
+2021-11-05,128119.SZ,unresolved_latest_notice
+2021-11-12,110044.SH,unresolved_latest_notice
+2021-11-12,113016.SH,unresolved_latest_notice
+2021-11-12,113504.SH,unresolved_latest_notice
+2021-11-12,113526.SH,unresolved_latest_notice
+2021-11-12,113577.SH,unresolved_latest_notice
+2021-11-12,113580.SH,unresolved_latest_notice
+2021-11-12,123018.SZ,unresolved_latest_notice
+2021-11-12,123022.SZ,unresolved_latest_notice
+2021-11-12,123025.SZ,unresolved_latest_notice
+2021-11-12,123028.SZ,unresolved_latest_notice
+2021-11-12,123038.SZ,unresolved_latest_notice
+2021-11-12,123050.SZ,unresolved_latest_notice
+2021-11-12,123054.SZ,unresolved_latest_notice
+2021-11-12,123083.SZ,unresolved_latest_notice
+2021-11-12,123098.SZ,unresolved_latest_notice
+2021-11-12,128017.SZ,unresolved_latest_notice
+2021-11-12,128095.SZ,unresolved_latest_notice
+2021-11-12,128108.SZ,unresolved_latest_notice
+2021-11-12,128119.SZ,unresolved_latest_notice
+2021-11-19,110044.SH,unresolved_latest_notice
+2021-11-19,113016.SH,unresolved_latest_notice
+2021-11-19,113504.SH,unresolved_latest_notice
+2021-11-19,113526.SH,unresolved_latest_notice
+2021-11-19,113577.SH,unresolved_latest_notice
+2021-11-19,123018.SZ,unresolved_latest_notice
+2021-11-19,123022.SZ,unresolved_latest_notice
+2021-11-19,123025.SZ,unresolved_latest_notice
+2021-11-19,123028.SZ,unresolved_latest_notice
+2021-11-19,123038.SZ,unresolved_latest_notice
+2021-11-19,123050.SZ,unresolved_latest_notice
+2021-11-19,123054.SZ,unresolved_latest_notice
+2021-11-19,123083.SZ,unresolved_latest_notice
+2021-11-19,123098.SZ,unresolved_latest_notice
+2021-11-19,128017.SZ,unresolved_latest_notice
+2021-11-19,128095.SZ,unresolved_latest_notice
+2021-11-19,128108.SZ,unresolved_latest_notice
+2021-11-19,128119.SZ,unresolved_latest_notice
+2021-11-26,110044.SH,unresolved_latest_notice
+2021-11-26,113016.SH,unresolved_latest_notice
+2021-11-26,113504.SH,unresolved_latest_notice
+2021-11-26,113526.SH,unresolved_latest_notice
+2021-11-26,113577.SH,unresolved_latest_notice
+2021-11-26,123018.SZ,unresolved_latest_notice
+2021-11-26,123022.SZ,unresolved_latest_notice
+2021-11-26,123025.SZ,unresolved_latest_notice
+2021-11-26,123028.SZ,unresolved_latest_notice
+2021-11-26,123038.SZ,unresolved_latest_notice
+2021-11-26,123050.SZ,unresolved_latest_notice
+2021-11-26,123054.SZ,unresolved_latest_notice
+2021-11-26,123083.SZ,unresolved_latest_notice
+2021-11-26,123098.SZ,unresolved_latest_notice
+2021-11-26,128017.SZ,unresolved_latest_notice
+2021-11-26,128095.SZ,unresolved_latest_notice
+2021-11-26,128108.SZ,unresolved_latest_notice
+2021-11-26,128119.SZ,unresolved_latest_notice
+2021-12-03,110044.SH,unresolved_latest_notice
+2021-12-03,113016.SH,unresolved_latest_notice
+2021-12-03,113504.SH,unresolved_latest_notice
+2021-12-03,113526.SH,unresolved_latest_notice
+2021-12-03,113577.SH,unresolved_latest_notice
+2021-12-03,123018.SZ,unresolved_latest_notice
+2021-12-03,123022.SZ,unresolved_latest_notice
+2021-12-03,123025.SZ,unresolved_latest_notice
+2021-12-03,123038.SZ,unresolved_latest_notice
+2021-12-03,123050.SZ,unresolved_latest_notice
+2021-12-03,123054.SZ,unresolved_latest_notice
+2021-12-03,123083.SZ,unresolved_latest_notice
+2021-12-03,123098.SZ,unresolved_latest_notice
+2021-12-03,128017.SZ,unresolved_latest_notice
+2021-12-03,128095.SZ,unresolved_latest_notice
+2021-12-03,128108.SZ,unresolved_latest_notice
+2021-12-03,128119.SZ,unresolved_latest_notice
+2021-12-10,110044.SH,unresolved_latest_notice
+2021-12-10,113016.SH,unresolved_latest_notice
+2021-12-10,113504.SH,unresolved_latest_notice
+2021-12-10,113526.SH,unresolved_latest_notice
+2021-12-10,113577.SH,unresolved_latest_notice
+2021-12-10,123018.SZ,unresolved_latest_notice
+2021-12-10,123022.SZ,unresolved_latest_notice
+2021-12-10,123025.SZ,unresolved_latest_notice
+2021-12-10,123038.SZ,unresolved_latest_notice
+2021-12-10,123050.SZ,unresolved_latest_notice
+2021-12-10,123054.SZ,unresolved_latest_notice
+2021-12-10,123083.SZ,unresolved_latest_notice
+2021-12-10,123098.SZ,unresolved_latest_notice
+2021-12-10,128017.SZ,unresolved_latest_notice
+2021-12-10,128095.SZ,unresolved_latest_notice
+2021-12-10,128108.SZ,unresolved_latest_notice
+2021-12-10,128119.SZ,unresolved_latest_notice
+2021-12-17,110044.SH,unresolved_latest_notice
+2021-12-17,113016.SH,unresolved_latest_notice
+2021-12-17,113504.SH,unresolved_latest_notice
+2021-12-17,113526.SH,unresolved_latest_notice
+2021-12-17,113577.SH,unresolved_latest_notice
+2021-12-17,123018.SZ,unresolved_latest_notice
+2021-12-17,123022.SZ,unresolved_latest_notice
+2021-12-17,123025.SZ,unresolved_latest_notice
+2021-12-17,123038.SZ,unresolved_latest_notice
+2021-12-17,123050.SZ,unresolved_latest_notice
+2021-12-17,123054.SZ,unresolved_latest_notice
+2021-12-17,123083.SZ,unresolved_latest_notice
+2021-12-17,123098.SZ,unresolved_latest_notice
+2021-12-17,128017.SZ,unresolved_latest_notice
+2021-12-17,128095.SZ,unresolved_latest_notice
+2021-12-17,128108.SZ,unresolved_latest_notice
+2021-12-17,128119.SZ,unresolved_latest_notice
+2021-12-24,110044.SH,unresolved_latest_notice
+2021-12-24,113016.SH,unresolved_latest_notice
+2021-12-24,113504.SH,unresolved_latest_notice
+2021-12-24,113526.SH,unresolved_latest_notice
+2021-12-24,113577.SH,unresolved_latest_notice
+2021-12-24,123018.SZ,unresolved_latest_notice
+2021-12-24,123022.SZ,unresolved_latest_notice
+2021-12-24,123025.SZ,unresolved_latest_notice
+2021-12-24,123038.SZ,unresolved_latest_notice
+2021-12-24,123050.SZ,unresolved_latest_notice
+2021-12-24,123054.SZ,unresolved_latest_notice
+2021-12-24,123083.SZ,unresolved_latest_notice
+2021-12-24,123098.SZ,unresolved_latest_notice
+2021-12-24,128017.SZ,unresolved_latest_notice
+2021-12-24,128095.SZ,unresolved_latest_notice
+2021-12-24,128108.SZ,unresolved_latest_notice
+2021-12-24,128119.SZ,unresolved_latest_notice
+2021-12-31,110044.SH,unresolved_latest_notice
+2021-12-31,113016.SH,unresolved_latest_notice
+2021-12-31,113504.SH,unresolved_latest_notice
+2021-12-31,113526.SH,unresolved_latest_notice
+2021-12-31,113577.SH,unresolved_latest_notice
+2021-12-31,123018.SZ,unresolved_latest_notice
+2021-12-31,123022.SZ,unresolved_latest_notice
+2021-12-31,123025.SZ,unresolved_latest_notice
+2021-12-31,123038.SZ,unresolved_latest_notice
+2021-12-31,123050.SZ,unresolved_latest_notice
+2021-12-31,123054.SZ,unresolved_latest_notice
+2021-12-31,123083.SZ,unresolved_latest_notice
+2021-12-31,123098.SZ,unresolved_latest_notice
+2021-12-31,128017.SZ,unresolved_latest_notice
+2021-12-31,128095.SZ,unresolved_latest_notice
+2021-12-31,128108.SZ,unresolved_latest_notice
+2021-12-31,128119.SZ,unresolved_latest_notice
+2022-01-07,110044.SH,unresolved_latest_notice
+2022-01-07,113016.SH,unresolved_latest_notice
+2022-01-07,113504.SH,unresolved_latest_notice
+2022-01-07,113526.SH,unresolved_latest_notice
+2022-01-07,113577.SH,unresolved_latest_notice
+2022-01-07,123018.SZ,unresolved_latest_notice
+2022-01-07,123022.SZ,unresolved_latest_notice
+2022-01-07,123025.SZ,unresolved_latest_notice
+2022-01-07,123038.SZ,unresolved_latest_notice
+2022-01-07,123050.SZ,unresolved_latest_notice
+2022-01-07,123054.SZ,unresolved_latest_notice
+2022-01-07,123083.SZ,unresolved_latest_notice
+2022-01-07,128017.SZ,unresolved_latest_notice
+2022-01-07,128095.SZ,unresolved_latest_notice
+2022-01-07,128108.SZ,unresolved_latest_notice
+2022-01-07,128119.SZ,unresolved_latest_notice
+2022-01-14,110044.SH,unresolved_latest_notice
+2022-01-14,113016.SH,unresolved_latest_notice
+2022-01-14,113526.SH,unresolved_latest_notice
+2022-01-14,113577.SH,unresolved_latest_notice
+2022-01-14,123018.SZ,unresolved_latest_notice
+2022-01-14,123022.SZ,unresolved_latest_notice
+2022-01-14,123025.SZ,unresolved_latest_notice
+2022-01-14,123038.SZ,unresolved_latest_notice
+2022-01-14,123050.SZ,unresolved_latest_notice
+2022-01-14,123054.SZ,unresolved_latest_notice
+2022-01-14,123073.SZ,unresolved_latest_notice
+2022-01-14,123083.SZ,unresolved_latest_notice
+2022-01-14,128017.SZ,unresolved_latest_notice
+2022-01-14,128095.SZ,unresolved_latest_notice
+2022-01-14,128108.SZ,unresolved_latest_notice
+2022-01-14,128119.SZ,unresolved_latest_notice
+2022-01-21,110044.SH,unresolved_latest_notice
+2022-01-21,113016.SH,unresolved_latest_notice
+2022-01-21,113526.SH,unresolved_latest_notice
+2022-01-21,113577.SH,unresolved_latest_notice
+2022-01-21,123018.SZ,unresolved_latest_notice
+2022-01-21,123022.SZ,unresolved_latest_notice
+2022-01-21,123025.SZ,unresolved_latest_notice
+2022-01-21,123038.SZ,unresolved_latest_notice
+2022-01-21,123050.SZ,unresolved_latest_notice
+2022-01-21,123054.SZ,unresolved_latest_notice
+2022-01-21,123073.SZ,unresolved_latest_notice
+2022-01-21,123083.SZ,unresolved_latest_notice
+2022-01-21,128017.SZ,unresolved_latest_notice
+2022-01-21,128095.SZ,unresolved_latest_notice
+2022-01-21,128108.SZ,unresolved_latest_notice
+2022-01-21,128119.SZ,unresolved_latest_notice
+2022-01-28,110044.SH,unresolved_latest_notice
+2022-01-28,113016.SH,unresolved_latest_notice
+2022-01-28,113526.SH,unresolved_latest_notice
+2022-01-28,113577.SH,unresolved_latest_notice
+2022-01-28,123018.SZ,unresolved_latest_notice
+2022-01-28,123022.SZ,unresolved_latest_notice
+2022-01-28,123025.SZ,unresolved_latest_notice
+2022-01-28,123038.SZ,unresolved_latest_notice
+2022-01-28,123050.SZ,unresolved_latest_notice
+2022-01-28,123054.SZ,unresolved_latest_notice
+2022-01-28,123073.SZ,unresolved_latest_notice
+2022-01-28,123083.SZ,unresolved_latest_notice
+2022-01-28,128095.SZ,unresolved_latest_notice
+2022-01-28,128108.SZ,unresolved_latest_notice
+2022-01-28,128119.SZ,unresolved_latest_notice
+2022-02-11,110044.SH,unresolved_latest_notice
+2022-02-11,113016.SH,unresolved_latest_notice
+2022-02-11,113526.SH,unresolved_latest_notice
+2022-02-11,113577.SH,unresolved_latest_notice
+2022-02-11,123018.SZ,unresolved_latest_notice
+2022-02-11,123022.SZ,unresolved_latest_notice
+2022-02-11,123025.SZ,unresolved_latest_notice
+2022-02-11,123038.SZ,unresolved_latest_notice
+2022-02-11,123050.SZ,unresolved_latest_notice
+2022-02-11,123054.SZ,unresolved_latest_notice
+2022-02-11,123073.SZ,unresolved_latest_notice
+2022-02-11,123083.SZ,unresolved_latest_notice
+2022-02-11,128095.SZ,unresolved_latest_notice
+2022-02-11,128108.SZ,unresolved_latest_notice
+2022-02-11,128119.SZ,unresolved_latest_notice
+2022-02-18,110044.SH,unresolved_latest_notice
+2022-02-18,113016.SH,unresolved_latest_notice
+2022-02-18,113526.SH,unresolved_latest_notice
+2022-02-18,113577.SH,unresolved_latest_notice
+2022-02-18,123018.SZ,unresolved_latest_notice
+2022-02-18,123024.SZ,unresolved_latest_notice
+2022-02-18,123025.SZ,unresolved_latest_notice
+2022-02-18,123038.SZ,unresolved_latest_notice
+2022-02-18,123050.SZ,unresolved_latest_notice
+2022-02-18,123054.SZ,unresolved_latest_notice
+2022-02-18,123083.SZ,unresolved_latest_notice
+2022-02-18,128095.SZ,unresolved_latest_notice
+2022-02-18,128108.SZ,unresolved_latest_notice
+2022-02-18,128119.SZ,unresolved_latest_notice
+2022-02-25,110044.SH,unresolved_latest_notice
+2022-02-25,113016.SH,unresolved_latest_notice
+2022-02-25,113526.SH,unresolved_latest_notice
+2022-02-25,113577.SH,unresolved_latest_notice
+2022-02-25,123018.SZ,unresolved_latest_notice
+2022-02-25,123024.SZ,unresolved_latest_notice
+2022-02-25,123025.SZ,unresolved_latest_notice
+2022-02-25,123038.SZ,unresolved_latest_notice
+2022-02-25,123050.SZ,unresolved_latest_notice
+2022-02-25,123054.SZ,unresolved_latest_notice
+2022-02-25,123083.SZ,unresolved_latest_notice
+2022-02-25,128095.SZ,unresolved_latest_notice
+2022-02-25,128108.SZ,unresolved_latest_notice
+2022-02-25,128119.SZ,unresolved_latest_notice
+2022-03-04,110044.SH,unresolved_latest_notice
+2022-03-04,113016.SH,unresolved_latest_notice
+2022-03-04,113526.SH,unresolved_latest_notice
+2022-03-04,113577.SH,unresolved_latest_notice
+2022-03-04,123018.SZ,unresolved_latest_notice
+2022-03-04,123024.SZ,unresolved_latest_notice
+2022-03-04,123025.SZ,unresolved_latest_notice
+2022-03-04,123038.SZ,unresolved_latest_notice
+2022-03-04,123050.SZ,unresolved_latest_notice
+2022-03-04,123054.SZ,unresolved_latest_notice
+2022-03-04,123083.SZ,unresolved_latest_notice
+2022-03-04,128095.SZ,unresolved_latest_notice
+2022-03-04,128108.SZ,unresolved_latest_notice
+2022-03-04,128119.SZ,unresolved_latest_notice
+2022-03-11,110044.SH,unresolved_latest_notice
+2022-03-11,113016.SH,unresolved_latest_notice
+2022-03-11,113526.SH,unresolved_latest_notice
+2022-03-11,113577.SH,unresolved_latest_notice
+2022-03-11,123018.SZ,unresolved_latest_notice
+2022-03-11,123024.SZ,unresolved_latest_notice
+2022-03-11,123025.SZ,unresolved_latest_notice
+2022-03-11,123038.SZ,unresolved_latest_notice
+2022-03-11,123050.SZ,unresolved_latest_notice
+2022-03-11,123054.SZ,unresolved_latest_notice
+2022-03-11,123083.SZ,unresolved_latest_notice
+2022-03-11,128095.SZ,unresolved_latest_notice
+2022-03-11,128108.SZ,unresolved_latest_notice
+2022-03-11,128119.SZ,unresolved_latest_notice
+2022-03-18,110044.SH,unresolved_latest_notice
+2022-03-18,113016.SH,unresolved_latest_notice
+2022-03-18,113526.SH,unresolved_latest_notice
+2022-03-18,113577.SH,unresolved_latest_notice
+2022-03-18,123018.SZ,unresolved_latest_notice
+2022-03-18,123024.SZ,unresolved_latest_notice
+2022-03-18,123025.SZ,unresolved_latest_notice
+2022-03-18,123038.SZ,unresolved_latest_notice
+2022-03-18,123050.SZ,unresolved_latest_notice
+2022-03-18,123054.SZ,unresolved_latest_notice
+2022-03-18,123083.SZ,unresolved_latest_notice
+2022-03-18,128095.SZ,unresolved_latest_notice
+2022-03-18,128108.SZ,unresolved_latest_notice
+2022-03-18,128119.SZ,unresolved_latest_notice
+2022-03-25,110044.SH,unresolved_latest_notice
+2022-03-25,113016.SH,unresolved_latest_notice
+2022-03-25,113526.SH,unresolved_latest_notice
+2022-03-25,113577.SH,unresolved_latest_notice
+2022-03-25,123018.SZ,unresolved_latest_notice
+2022-03-25,123025.SZ,unresolved_latest_notice
+2022-03-25,123038.SZ,unresolved_latest_notice
+2022-03-25,123050.SZ,unresolved_latest_notice
+2022-03-25,123054.SZ,unresolved_latest_notice
+2022-03-25,123083.SZ,unresolved_latest_notice
+2022-03-25,128095.SZ,unresolved_latest_notice
+2022-03-25,128108.SZ,unresolved_latest_notice
+2022-03-25,128119.SZ,unresolved_latest_notice
+2022-04-01,110044.SH,unresolved_latest_notice
+2022-04-01,113016.SH,unresolved_latest_notice
+2022-04-01,113526.SH,unresolved_latest_notice
+2022-04-01,113577.SH,unresolved_latest_notice
+2022-04-01,123018.SZ,unresolved_latest_notice
+2022-04-01,123025.SZ,unresolved_latest_notice
+2022-04-01,123038.SZ,unresolved_latest_notice
+2022-04-01,123050.SZ,unresolved_latest_notice
+2022-04-01,123054.SZ,unresolved_latest_notice
+2022-04-01,123083.SZ,unresolved_latest_notice
+2022-04-01,128095.SZ,unresolved_latest_notice
+2022-04-01,128108.SZ,unresolved_latest_notice
+2022-04-01,128119.SZ,unresolved_latest_notice
+2022-04-08,110044.SH,unresolved_latest_notice
+2022-04-08,113016.SH,unresolved_latest_notice
+2022-04-08,113526.SH,unresolved_latest_notice
+2022-04-08,113577.SH,unresolved_latest_notice
+2022-04-08,123018.SZ,unresolved_latest_notice
+2022-04-08,123025.SZ,unresolved_latest_notice
+2022-04-08,123038.SZ,unresolved_latest_notice
+2022-04-08,123050.SZ,unresolved_latest_notice
+2022-04-08,123054.SZ,unresolved_latest_notice
+2022-04-08,123083.SZ,unresolved_latest_notice
+2022-04-08,128095.SZ,unresolved_latest_notice
+2022-04-08,128108.SZ,unresolved_latest_notice
+2022-04-08,128119.SZ,unresolved_latest_notice
+2022-04-15,110044.SH,unresolved_latest_notice
+2022-04-15,113016.SH,unresolved_latest_notice
+2022-04-15,113526.SH,unresolved_latest_notice
+2022-04-15,113577.SH,unresolved_latest_notice
+2022-04-15,123018.SZ,unresolved_latest_notice
+2022-04-15,123025.SZ,unresolved_latest_notice
+2022-04-15,123038.SZ,unresolved_latest_notice
+2022-04-15,123050.SZ,unresolved_latest_notice
+2022-04-15,123054.SZ,unresolved_latest_notice
+2022-04-15,123083.SZ,unresolved_latest_notice
+2022-04-15,128095.SZ,unresolved_latest_notice
+2022-04-15,128108.SZ,unresolved_latest_notice
+2022-04-15,128119.SZ,unresolved_latest_notice
+2022-04-22,110044.SH,unresolved_latest_notice
+2022-04-22,113016.SH,unresolved_latest_notice
+2022-04-22,113526.SH,unresolved_latest_notice
+2022-04-22,113577.SH,unresolved_latest_notice
+2022-04-22,123018.SZ,unresolved_latest_notice
+2022-04-22,123025.SZ,unresolved_latest_notice
+2022-04-22,123038.SZ,unresolved_latest_notice
+2022-04-22,123050.SZ,unresolved_latest_notice
+2022-04-22,123054.SZ,unresolved_latest_notice
+2022-04-22,123083.SZ,unresolved_latest_notice
+2022-04-22,128095.SZ,unresolved_latest_notice
+2022-04-22,128108.SZ,unresolved_latest_notice
+2022-04-22,128119.SZ,unresolved_latest_notice
+2022-04-29,110044.SH,unresolved_latest_notice
+2022-04-29,113016.SH,unresolved_latest_notice
+2022-04-29,113526.SH,unresolved_latest_notice
+2022-04-29,113577.SH,unresolved_latest_notice
+2022-04-29,123018.SZ,unresolved_latest_notice
+2022-04-29,123025.SZ,unresolved_latest_notice
+2022-04-29,123038.SZ,unresolved_latest_notice
+2022-04-29,123050.SZ,unresolved_latest_notice
+2022-04-29,123054.SZ,unresolved_latest_notice
+2022-04-29,123083.SZ,unresolved_latest_notice
+2022-04-29,128095.SZ,unresolved_latest_notice
+2022-04-29,128108.SZ,unresolved_latest_notice
+2022-04-29,128119.SZ,unresolved_latest_notice
+2022-05-06,110044.SH,unresolved_latest_notice
+2022-05-06,113016.SH,unresolved_latest_notice
+2022-05-06,113526.SH,unresolved_latest_notice
+2022-05-06,113577.SH,unresolved_latest_notice
+2022-05-06,123018.SZ,unresolved_latest_notice
+2022-05-06,123025.SZ,unresolved_latest_notice
+2022-05-06,123038.SZ,unresolved_latest_notice
+2022-05-06,123050.SZ,unresolved_latest_notice
+2022-05-06,123054.SZ,unresolved_latest_notice
+2022-05-06,123083.SZ,unresolved_latest_notice
+2022-05-06,128095.SZ,unresolved_latest_notice
+2022-05-06,128108.SZ,unresolved_latest_notice
+2022-05-06,128119.SZ,unresolved_latest_notice
+2022-05-13,110044.SH,unresolved_latest_notice
+2022-05-13,113016.SH,unresolved_latest_notice
+2022-05-13,113526.SH,unresolved_latest_notice
+2022-05-13,113577.SH,unresolved_latest_notice
+2022-05-13,123018.SZ,unresolved_latest_notice
+2022-05-13,123025.SZ,unresolved_latest_notice
+2022-05-13,123038.SZ,unresolved_latest_notice
+2022-05-13,123050.SZ,unresolved_latest_notice
+2022-05-13,123054.SZ,unresolved_latest_notice
+2022-05-13,123083.SZ,unresolved_latest_notice
+2022-05-13,128095.SZ,unresolved_latest_notice
+2022-05-13,128108.SZ,unresolved_latest_notice
+2022-05-13,128119.SZ,unresolved_latest_notice
+2022-05-20,110044.SH,unresolved_latest_notice
+2022-05-20,113016.SH,unresolved_latest_notice
+2022-05-20,113526.SH,unresolved_latest_notice
+2022-05-20,113577.SH,unresolved_latest_notice
+2022-05-20,123018.SZ,unresolved_latest_notice
+2022-05-20,123025.SZ,unresolved_latest_notice
+2022-05-20,123038.SZ,unresolved_latest_notice
+2022-05-20,123050.SZ,unresolved_latest_notice
+2022-05-20,123054.SZ,unresolved_latest_notice
+2022-05-20,123083.SZ,unresolved_latest_notice
+2022-05-20,128095.SZ,unresolved_latest_notice
+2022-05-20,128108.SZ,unresolved_latest_notice
+2022-05-20,128119.SZ,unresolved_latest_notice
+2022-05-27,110044.SH,unresolved_latest_notice
+2022-05-27,113016.SH,unresolved_latest_notice
+2022-05-27,113526.SH,unresolved_latest_notice
+2022-05-27,113577.SH,unresolved_latest_notice
+2022-05-27,123018.SZ,unresolved_latest_notice
+2022-05-27,123025.SZ,unresolved_latest_notice
+2022-05-27,123038.SZ,unresolved_latest_notice
+2022-05-27,123050.SZ,unresolved_latest_notice
+2022-05-27,123054.SZ,unresolved_latest_notice
+2022-05-27,123083.SZ,unresolved_latest_notice
+2022-05-27,128095.SZ,unresolved_latest_notice
+2022-05-27,128108.SZ,unresolved_latest_notice
+2022-05-27,128119.SZ,unresolved_latest_notice
+2022-06-02,110044.SH,unresolved_latest_notice
+2022-06-02,113016.SH,unresolved_latest_notice
+2022-06-02,113526.SH,unresolved_latest_notice
+2022-06-02,113577.SH,unresolved_latest_notice
+2022-06-02,123018.SZ,unresolved_latest_notice
+2022-06-02,123025.SZ,unresolved_latest_notice
+2022-06-02,123038.SZ,unresolved_latest_notice
+2022-06-02,123050.SZ,unresolved_latest_notice
+2022-06-02,123054.SZ,unresolved_latest_notice
+2022-06-02,123083.SZ,unresolved_latest_notice
+2022-06-02,128095.SZ,unresolved_latest_notice
+2022-06-02,128108.SZ,unresolved_latest_notice
+2022-06-02,128119.SZ,unresolved_latest_notice
+2022-06-10,110044.SH,unresolved_latest_notice
+2022-06-10,113016.SH,unresolved_latest_notice
+2022-06-10,113526.SH,unresolved_latest_notice
+2022-06-10,113577.SH,unresolved_latest_notice
+2022-06-10,123018.SZ,unresolved_latest_notice
+2022-06-10,123025.SZ,unresolved_latest_notice
+2022-06-10,123038.SZ,unresolved_latest_notice
+2022-06-10,123050.SZ,unresolved_latest_notice
+2022-06-10,123054.SZ,unresolved_latest_notice
+2022-06-10,123083.SZ,unresolved_latest_notice
+2022-06-10,128095.SZ,unresolved_latest_notice
+2022-06-10,128108.SZ,unresolved_latest_notice
+2022-06-10,128119.SZ,unresolved_latest_notice
+2022-06-17,110044.SH,unresolved_latest_notice
+2022-06-17,113016.SH,unresolved_latest_notice
+2022-06-17,113526.SH,unresolved_latest_notice
+2022-06-17,113577.SH,unresolved_latest_notice
+2022-06-17,123018.SZ,unresolved_latest_notice
+2022-06-17,123025.SZ,unresolved_latest_notice
+2022-06-17,123038.SZ,unresolved_latest_notice
+2022-06-17,123050.SZ,unresolved_latest_notice
+2022-06-17,123054.SZ,unresolved_latest_notice
+2022-06-17,123083.SZ,unresolved_latest_notice
+2022-06-17,128095.SZ,unresolved_latest_notice
+2022-06-17,128108.SZ,unresolved_latest_notice
+2022-06-17,128119.SZ,unresolved_latest_notice
+2022-06-24,110044.SH,unresolved_latest_notice
+2022-06-24,113016.SH,unresolved_latest_notice
+2022-06-24,113526.SH,unresolved_latest_notice
+2022-06-24,113577.SH,unresolved_latest_notice
+2022-06-24,123018.SZ,unresolved_latest_notice
+2022-06-24,123025.SZ,unresolved_latest_notice
+2022-06-24,123038.SZ,unresolved_latest_notice
+2022-06-24,123050.SZ,unresolved_latest_notice
+2022-06-24,123054.SZ,unresolved_latest_notice
+2022-06-24,123083.SZ,unresolved_latest_notice
+2022-06-24,128095.SZ,unresolved_latest_notice
+2022-06-24,128108.SZ,unresolved_latest_notice
+2022-06-24,128119.SZ,unresolved_latest_notice
+2022-07-01,110044.SH,unresolved_latest_notice
+2022-07-01,113016.SH,unresolved_latest_notice
+2022-07-01,113526.SH,unresolved_latest_notice
+2022-07-01,113577.SH,unresolved_latest_notice
+2022-07-01,123018.SZ,unresolved_latest_notice
+2022-07-01,123025.SZ,unresolved_latest_notice
+2022-07-01,123038.SZ,unresolved_latest_notice
+2022-07-01,123050.SZ,unresolved_latest_notice
+2022-07-01,123054.SZ,unresolved_latest_notice
+2022-07-01,123083.SZ,unresolved_latest_notice
+2022-07-01,128095.SZ,unresolved_latest_notice
+2022-07-01,128108.SZ,unresolved_latest_notice
+2022-07-01,128119.SZ,unresolved_latest_notice
+2022-07-08,110044.SH,unresolved_latest_notice
+2022-07-08,113016.SH,unresolved_latest_notice
+2022-07-08,113526.SH,unresolved_latest_notice
+2022-07-08,113577.SH,unresolved_latest_notice
+2022-07-08,123018.SZ,unresolved_latest_notice
+2022-07-08,123025.SZ,unresolved_latest_notice
+2022-07-08,123038.SZ,unresolved_latest_notice
+2022-07-08,123050.SZ,unresolved_latest_notice
+2022-07-08,123054.SZ,unresolved_latest_notice
+2022-07-08,123083.SZ,unresolved_latest_notice
+2022-07-08,128095.SZ,unresolved_latest_notice
+2022-07-08,128108.SZ,unresolved_latest_notice
+2022-07-08,128119.SZ,unresolved_latest_notice
+2022-07-15,110044.SH,unresolved_latest_notice
+2022-07-15,113016.SH,unresolved_latest_notice
+2022-07-15,113526.SH,unresolved_latest_notice
+2022-07-15,113577.SH,unresolved_latest_notice
+2022-07-15,123018.SZ,unresolved_latest_notice
+2022-07-15,123025.SZ,unresolved_latest_notice
+2022-07-15,123038.SZ,unresolved_latest_notice
+2022-07-15,123050.SZ,unresolved_latest_notice
+2022-07-15,123054.SZ,unresolved_latest_notice
+2022-07-15,123083.SZ,unresolved_latest_notice
+2022-07-15,128095.SZ,unresolved_latest_notice
+2022-07-15,128108.SZ,unresolved_latest_notice
+2022-07-15,128119.SZ,unresolved_latest_notice
+2022-07-22,110044.SH,unresolved_latest_notice
+2022-07-22,113016.SH,unresolved_latest_notice
+2022-07-22,113526.SH,unresolved_latest_notice
+2022-07-22,113577.SH,unresolved_latest_notice
+2022-07-22,123018.SZ,unresolved_latest_notice
+2022-07-22,123025.SZ,unresolved_latest_notice
+2022-07-22,123038.SZ,unresolved_latest_notice
+2022-07-22,123050.SZ,unresolved_latest_notice
+2022-07-22,123054.SZ,unresolved_latest_notice
+2022-07-22,123083.SZ,unresolved_latest_notice
+2022-07-22,128095.SZ,unresolved_latest_notice
+2022-07-22,128108.SZ,unresolved_latest_notice
+2022-07-22,128119.SZ,unresolved_latest_notice
+2022-07-29,110044.SH,unresolved_latest_notice
+2022-07-29,113016.SH,unresolved_latest_notice
+2022-07-29,113526.SH,unresolved_latest_notice
+2022-07-29,113577.SH,unresolved_latest_notice
+2022-07-29,123018.SZ,unresolved_latest_notice
+2022-07-29,123025.SZ,unresolved_latest_notice
+2022-07-29,123038.SZ,unresolved_latest_notice
+2022-07-29,123050.SZ,unresolved_latest_notice
+2022-07-29,123054.SZ,unresolved_latest_notice
+2022-07-29,123083.SZ,unresolved_latest_notice
+2022-07-29,128095.SZ,unresolved_latest_notice
+2022-07-29,128108.SZ,unresolved_latest_notice
+2022-07-29,128119.SZ,unresolved_latest_notice
+2022-08-05,110044.SH,unresolved_latest_notice
+2022-08-05,113016.SH,unresolved_latest_notice
+2022-08-05,113526.SH,unresolved_latest_notice
+2022-08-05,113577.SH,unresolved_latest_notice
+2022-08-05,123018.SZ,unresolved_latest_notice
+2022-08-05,123025.SZ,unresolved_latest_notice
+2022-08-05,123038.SZ,unresolved_latest_notice
+2022-08-05,123050.SZ,unresolved_latest_notice
+2022-08-05,123054.SZ,unresolved_latest_notice
+2022-08-05,123083.SZ,unresolved_latest_notice
+2022-08-05,128095.SZ,unresolved_latest_notice
+2022-08-05,128108.SZ,unresolved_latest_notice
+2022-08-05,128119.SZ,unresolved_latest_notice
+2022-08-12,110044.SH,unresolved_latest_notice
+2022-08-12,113016.SH,unresolved_latest_notice
+2022-08-12,113526.SH,unresolved_latest_notice
+2022-08-12,113577.SH,unresolved_latest_notice
+2022-08-12,123018.SZ,unresolved_latest_notice
+2022-08-12,123025.SZ,unresolved_latest_notice
+2022-08-12,123038.SZ,unresolved_latest_notice
+2022-08-12,123050.SZ,unresolved_latest_notice
+2022-08-12,123054.SZ,unresolved_latest_notice
+2022-08-12,128095.SZ,unresolved_latest_notice
+2022-08-12,128108.SZ,unresolved_latest_notice
+2022-08-12,128119.SZ,unresolved_latest_notice
+2022-08-19,110044.SH,unresolved_latest_notice
+2022-08-19,113016.SH,unresolved_latest_notice
+2022-08-19,113526.SH,unresolved_latest_notice
+2022-08-19,113577.SH,unresolved_latest_notice
+2022-08-19,123018.SZ,unresolved_latest_notice
+2022-08-19,123025.SZ,unresolved_latest_notice
+2022-08-19,123038.SZ,unresolved_latest_notice
+2022-08-19,123050.SZ,unresolved_latest_notice
+2022-08-19,123054.SZ,unresolved_latest_notice
+2022-08-19,128095.SZ,unresolved_latest_notice
+2022-08-19,128108.SZ,unresolved_latest_notice
+2022-08-19,128119.SZ,unresolved_latest_notice
+2022-08-26,110044.SH,unresolved_latest_notice
+2022-08-26,113016.SH,unresolved_latest_notice
+2022-08-26,113526.SH,unresolved_latest_notice
+2022-08-26,113577.SH,unresolved_latest_notice
+2022-08-26,123018.SZ,unresolved_latest_notice
+2022-08-26,123025.SZ,unresolved_latest_notice
+2022-08-26,123038.SZ,unresolved_latest_notice
+2022-08-26,123050.SZ,unresolved_latest_notice
+2022-08-26,123054.SZ,unresolved_latest_notice
+2022-08-26,128095.SZ,unresolved_latest_notice
+2022-08-26,128108.SZ,unresolved_latest_notice
+2022-08-26,128119.SZ,unresolved_latest_notice
+2022-09-02,110044.SH,unresolved_latest_notice
+2022-09-02,113016.SH,unresolved_latest_notice
+2022-09-02,113526.SH,unresolved_latest_notice
+2022-09-02,113577.SH,unresolved_latest_notice
+2022-09-02,123018.SZ,unresolved_latest_notice
+2022-09-02,123025.SZ,unresolved_latest_notice
+2022-09-02,123038.SZ,unresolved_latest_notice
+2022-09-02,123050.SZ,unresolved_latest_notice
+2022-09-02,123054.SZ,unresolved_latest_notice
+2022-09-02,128095.SZ,unresolved_latest_notice
+2022-09-02,128108.SZ,unresolved_latest_notice
+2022-09-02,128119.SZ,unresolved_latest_notice
+2022-09-09,110044.SH,unresolved_latest_notice
+2022-09-09,113016.SH,unresolved_latest_notice
+2022-09-09,113526.SH,unresolved_latest_notice
+2022-09-09,113577.SH,unresolved_latest_notice
+2022-09-09,123018.SZ,unresolved_latest_notice
+2022-09-09,123025.SZ,unresolved_latest_notice
+2022-09-09,123038.SZ,unresolved_latest_notice
+2022-09-09,123050.SZ,unresolved_latest_notice
+2022-09-09,123054.SZ,unresolved_latest_notice
+2022-09-09,128095.SZ,unresolved_latest_notice
+2022-09-09,128108.SZ,unresolved_latest_notice
+2022-09-09,128119.SZ,unresolved_latest_notice
+2022-09-16,110044.SH,unresolved_latest_notice
+2022-09-16,113016.SH,unresolved_latest_notice
+2022-09-16,113526.SH,unresolved_latest_notice
+2022-09-16,113577.SH,unresolved_latest_notice
+2022-09-16,123018.SZ,unresolved_latest_notice
+2022-09-16,123025.SZ,unresolved_latest_notice
+2022-09-16,123038.SZ,unresolved_latest_notice
+2022-09-16,123050.SZ,unresolved_latest_notice
+2022-09-16,123054.SZ,unresolved_latest_notice
+2022-09-16,128095.SZ,unresolved_latest_notice
+2022-09-16,128108.SZ,unresolved_latest_notice
+2022-09-16,128119.SZ,unresolved_latest_notice
+2022-09-23,110044.SH,unresolved_latest_notice
+2022-09-23,113016.SH,unresolved_latest_notice
+2022-09-23,113526.SH,unresolved_latest_notice
+2022-09-23,113577.SH,unresolved_latest_notice
+2022-09-23,123018.SZ,unresolved_latest_notice
+2022-09-23,123025.SZ,unresolved_latest_notice
+2022-09-23,123038.SZ,unresolved_latest_notice
+2022-09-23,123050.SZ,unresolved_latest_notice
+2022-09-23,123054.SZ,unresolved_latest_notice
+2022-09-23,128095.SZ,unresolved_latest_notice
+2022-09-23,128108.SZ,unresolved_latest_notice
+2022-09-23,128119.SZ,unresolved_latest_notice
+2022-09-30,110044.SH,unresolved_latest_notice
+2022-09-30,113016.SH,unresolved_latest_notice
+2022-09-30,113526.SH,unresolved_latest_notice
+2022-09-30,113577.SH,unresolved_latest_notice
+2022-09-30,123018.SZ,unresolved_latest_notice
+2022-09-30,123025.SZ,unresolved_latest_notice
+2022-09-30,123038.SZ,unresolved_latest_notice
+2022-09-30,123050.SZ,unresolved_latest_notice
+2022-09-30,123054.SZ,unresolved_latest_notice
+2022-09-30,128095.SZ,unresolved_latest_notice
+2022-09-30,128108.SZ,unresolved_latest_notice
+2022-09-30,128119.SZ,unresolved_latest_notice
+2022-10-14,110044.SH,unresolved_latest_notice
+2022-10-14,113016.SH,unresolved_latest_notice
+2022-10-14,113526.SH,unresolved_latest_notice
+2022-10-14,113577.SH,unresolved_latest_notice
+2022-10-14,123018.SZ,unresolved_latest_notice
+2022-10-14,123025.SZ,unresolved_latest_notice
+2022-10-14,123038.SZ,unresolved_latest_notice
+2022-10-14,123050.SZ,unresolved_latest_notice
+2022-10-14,123054.SZ,unresolved_latest_notice
+2022-10-14,128095.SZ,unresolved_latest_notice
+2022-10-14,128108.SZ,unresolved_latest_notice
+2022-10-14,128119.SZ,unresolved_latest_notice
+2022-10-21,110044.SH,unresolved_latest_notice
+2022-10-21,113016.SH,unresolved_latest_notice
+2022-10-21,113526.SH,unresolved_latest_notice
+2022-10-21,113577.SH,unresolved_latest_notice
+2022-10-21,123018.SZ,unresolved_latest_notice
+2022-10-21,123025.SZ,unresolved_latest_notice
+2022-10-21,123038.SZ,unresolved_latest_notice
+2022-10-21,123050.SZ,unresolved_latest_notice
+2022-10-21,123054.SZ,unresolved_latest_notice
+2022-10-21,128095.SZ,unresolved_latest_notice
+2022-10-21,128108.SZ,unresolved_latest_notice
+2022-10-21,128119.SZ,unresolved_latest_notice
+2022-10-28,110044.SH,unresolved_latest_notice
+2022-10-28,113016.SH,unresolved_latest_notice
+2022-10-28,113526.SH,unresolved_latest_notice
+2022-10-28,113577.SH,unresolved_latest_notice
+2022-10-28,123018.SZ,unresolved_latest_notice
+2022-10-28,123025.SZ,unresolved_latest_notice
+2022-10-28,123038.SZ,unresolved_latest_notice
+2022-10-28,123050.SZ,unresolved_latest_notice
+2022-10-28,123054.SZ,unresolved_latest_notice
+2022-10-28,128095.SZ,unresolved_latest_notice
+2022-10-28,128108.SZ,unresolved_latest_notice
+2022-10-28,128119.SZ,unresolved_latest_notice
+2022-11-04,110044.SH,unresolved_latest_notice
+2022-11-04,113016.SH,unresolved_latest_notice
+2022-11-04,113526.SH,unresolved_latest_notice
+2022-11-04,113577.SH,unresolved_latest_notice
+2022-11-04,123018.SZ,unresolved_latest_notice
+2022-11-04,123025.SZ,unresolved_latest_notice
+2022-11-04,123038.SZ,unresolved_latest_notice
+2022-11-04,123050.SZ,unresolved_latest_notice
+2022-11-04,123054.SZ,unresolved_latest_notice
+2022-11-04,128095.SZ,unresolved_latest_notice
+2022-11-04,128108.SZ,unresolved_latest_notice
+2022-11-04,128119.SZ,unresolved_latest_notice
+2022-11-11,110044.SH,unresolved_latest_notice
+2022-11-11,113016.SH,unresolved_latest_notice
+2022-11-11,113526.SH,unresolved_latest_notice
+2022-11-11,113577.SH,unresolved_latest_notice
+2022-11-11,123018.SZ,unresolved_latest_notice
+2022-11-11,123025.SZ,unresolved_latest_notice
+2022-11-11,123038.SZ,unresolved_latest_notice
+2022-11-11,123050.SZ,unresolved_latest_notice
+2022-11-11,123054.SZ,unresolved_latest_notice
+2022-11-11,128095.SZ,unresolved_latest_notice
+2022-11-11,128108.SZ,unresolved_latest_notice
+2022-11-11,128119.SZ,unresolved_latest_notice
+2022-11-18,110044.SH,unresolved_latest_notice
+2022-11-18,113016.SH,unresolved_latest_notice
+2022-11-18,113526.SH,unresolved_latest_notice
+2022-11-18,113577.SH,unresolved_latest_notice
+2022-11-18,123018.SZ,unresolved_latest_notice
+2022-11-18,123025.SZ,unresolved_latest_notice
+2022-11-18,123038.SZ,unresolved_latest_notice
+2022-11-18,123050.SZ,unresolved_latest_notice
+2022-11-18,123054.SZ,unresolved_latest_notice
+2022-11-18,128095.SZ,unresolved_latest_notice
+2022-11-18,128108.SZ,unresolved_latest_notice
+2022-11-18,128119.SZ,unresolved_latest_notice
+2022-11-25,110044.SH,unresolved_latest_notice
+2022-11-25,113016.SH,unresolved_latest_notice
+2022-11-25,113526.SH,unresolved_latest_notice
+2022-11-25,113577.SH,unresolved_latest_notice
+2022-11-25,123018.SZ,unresolved_latest_notice
+2022-11-25,123025.SZ,unresolved_latest_notice
+2022-11-25,123038.SZ,unresolved_latest_notice
+2022-11-25,123050.SZ,unresolved_latest_notice
+2022-11-25,123054.SZ,unresolved_latest_notice
+2022-11-25,128095.SZ,unresolved_latest_notice
+2022-11-25,128108.SZ,unresolved_latest_notice
+2022-11-25,128119.SZ,unresolved_latest_notice
+2022-12-02,110044.SH,unresolved_latest_notice
+2022-12-02,113016.SH,unresolved_latest_notice
+2022-12-02,113526.SH,unresolved_latest_notice
+2022-12-02,113577.SH,unresolved_latest_notice
+2022-12-02,123018.SZ,unresolved_latest_notice
+2022-12-02,123025.SZ,unresolved_latest_notice
+2022-12-02,123038.SZ,unresolved_latest_notice
+2022-12-02,123050.SZ,unresolved_latest_notice
+2022-12-02,123054.SZ,unresolved_latest_notice
+2022-12-02,128095.SZ,unresolved_latest_notice
+2022-12-02,128108.SZ,unresolved_latest_notice
+2022-12-02,128119.SZ,unresolved_latest_notice
+2022-12-09,110044.SH,unresolved_latest_notice
+2022-12-09,113016.SH,unresolved_latest_notice
+2022-12-09,113526.SH,unresolved_latest_notice
+2022-12-09,113577.SH,unresolved_latest_notice
+2022-12-09,123018.SZ,unresolved_latest_notice
+2022-12-09,123025.SZ,unresolved_latest_notice
+2022-12-09,123038.SZ,unresolved_latest_notice
+2022-12-09,123050.SZ,unresolved_latest_notice
+2022-12-09,123054.SZ,unresolved_latest_notice
+2022-12-09,128095.SZ,unresolved_latest_notice
+2022-12-09,128108.SZ,unresolved_latest_notice
+2022-12-09,128119.SZ,unresolved_latest_notice
+2022-12-16,110044.SH,unresolved_latest_notice
+2022-12-16,113016.SH,unresolved_latest_notice
+2022-12-16,113526.SH,unresolved_latest_notice
+2022-12-16,113577.SH,unresolved_latest_notice
+2022-12-16,123018.SZ,unresolved_latest_notice
+2022-12-16,123025.SZ,unresolved_latest_notice
+2022-12-16,123038.SZ,unresolved_latest_notice
+2022-12-16,123050.SZ,unresolved_latest_notice
+2022-12-16,123054.SZ,unresolved_latest_notice
+2022-12-16,128095.SZ,unresolved_latest_notice
+2022-12-16,128108.SZ,unresolved_latest_notice
+2022-12-16,128119.SZ,unresolved_latest_notice
+2022-12-23,110044.SH,unresolved_latest_notice
+2022-12-23,113016.SH,unresolved_latest_notice
+2022-12-23,113526.SH,unresolved_latest_notice
+2022-12-23,113577.SH,unresolved_latest_notice
+2022-12-23,123018.SZ,unresolved_latest_notice
+2022-12-23,123025.SZ,unresolved_latest_notice
+2022-12-23,123038.SZ,unresolved_latest_notice
+2022-12-23,123050.SZ,unresolved_latest_notice
+2022-12-23,123054.SZ,unresolved_latest_notice
+2022-12-23,128095.SZ,unresolved_latest_notice
+2022-12-23,128108.SZ,unresolved_latest_notice
+2022-12-23,128119.SZ,unresolved_latest_notice
+2022-12-30,110044.SH,unresolved_latest_notice
+2022-12-30,113016.SH,unresolved_latest_notice
+2022-12-30,113526.SH,unresolved_latest_notice
+2022-12-30,113577.SH,unresolved_latest_notice
+2022-12-30,123018.SZ,unresolved_latest_notice
+2022-12-30,123025.SZ,unresolved_latest_notice
+2022-12-30,123038.SZ,unresolved_latest_notice
+2022-12-30,123050.SZ,unresolved_latest_notice
+2022-12-30,123054.SZ,unresolved_latest_notice
+2022-12-30,128095.SZ,unresolved_latest_notice
+2022-12-30,128108.SZ,unresolved_latest_notice
+2022-12-30,128119.SZ,unresolved_latest_notice
+2023-01-06,110044.SH,unresolved_latest_notice
+2023-01-06,113016.SH,unresolved_latest_notice
+2023-01-06,113526.SH,unresolved_latest_notice
+2023-01-06,113577.SH,unresolved_latest_notice
+2023-01-06,123018.SZ,unresolved_latest_notice
+2023-01-06,123025.SZ,unresolved_latest_notice
+2023-01-06,123038.SZ,unresolved_latest_notice
+2023-01-06,123050.SZ,unresolved_latest_notice
+2023-01-06,123054.SZ,unresolved_latest_notice
+2023-01-06,128095.SZ,unresolved_latest_notice
+2023-01-06,128108.SZ,unresolved_latest_notice
+2023-01-06,128119.SZ,unresolved_latest_notice
+2023-01-13,110044.SH,unresolved_latest_notice
+2023-01-13,113016.SH,unresolved_latest_notice
+2023-01-13,113526.SH,unresolved_latest_notice
+2023-01-13,113577.SH,unresolved_latest_notice
+2023-01-13,123018.SZ,unresolved_latest_notice
+2023-01-13,123025.SZ,unresolved_latest_notice
+2023-01-13,123038.SZ,unresolved_latest_notice
+2023-01-13,123050.SZ,unresolved_latest_notice
+2023-01-13,123054.SZ,unresolved_latest_notice
+2023-01-13,128095.SZ,unresolved_latest_notice
+2023-01-13,128108.SZ,unresolved_latest_notice
+2023-01-13,128119.SZ,unresolved_latest_notice
+2023-01-20,110044.SH,unresolved_latest_notice
+2023-01-20,113016.SH,unresolved_latest_notice
+2023-01-20,113526.SH,unresolved_latest_notice
+2023-01-20,113577.SH,unresolved_latest_notice
+2023-01-20,123018.SZ,unresolved_latest_notice
+2023-01-20,123025.SZ,unresolved_latest_notice
+2023-01-20,123038.SZ,unresolved_latest_notice
+2023-01-20,123050.SZ,unresolved_latest_notice
+2023-01-20,123054.SZ,unresolved_latest_notice
+2023-01-20,128095.SZ,unresolved_latest_notice
+2023-01-20,128108.SZ,unresolved_latest_notice
+2023-01-20,128119.SZ,unresolved_latest_notice
+2023-02-03,110044.SH,unresolved_latest_notice
+2023-02-03,113016.SH,unresolved_latest_notice
+2023-02-03,113526.SH,unresolved_latest_notice
+2023-02-03,113577.SH,unresolved_latest_notice
+2023-02-03,123018.SZ,unresolved_latest_notice
+2023-02-03,123025.SZ,unresolved_latest_notice
+2023-02-03,123038.SZ,unresolved_latest_notice
+2023-02-03,123050.SZ,unresolved_latest_notice
+2023-02-03,123054.SZ,unresolved_latest_notice
+2023-02-03,128108.SZ,unresolved_latest_notice
+2023-02-03,128119.SZ,unresolved_latest_notice
+2023-02-10,110044.SH,unresolved_latest_notice
+2023-02-10,113016.SH,unresolved_latest_notice
+2023-02-10,113526.SH,unresolved_latest_notice
+2023-02-10,113577.SH,unresolved_latest_notice
+2023-02-10,123018.SZ,unresolved_latest_notice
+2023-02-10,123025.SZ,unresolved_latest_notice
+2023-02-10,123038.SZ,unresolved_latest_notice
+2023-02-10,123050.SZ,unresolved_latest_notice
+2023-02-10,123054.SZ,unresolved_latest_notice
+2023-02-10,128108.SZ,unresolved_latest_notice
+2023-02-10,128119.SZ,unresolved_latest_notice
+2023-02-17,110044.SH,unresolved_latest_notice
+2023-02-17,113016.SH,unresolved_latest_notice
+2023-02-17,113526.SH,unresolved_latest_notice
+2023-02-17,113577.SH,unresolved_latest_notice
+2023-02-17,123018.SZ,unresolved_latest_notice
+2023-02-17,123025.SZ,unresolved_latest_notice
+2023-02-17,123038.SZ,unresolved_latest_notice
+2023-02-17,123050.SZ,unresolved_latest_notice
+2023-02-17,123054.SZ,unresolved_latest_notice
+2023-02-17,128108.SZ,unresolved_latest_notice
+2023-02-17,128119.SZ,unresolved_latest_notice
+2023-02-24,110044.SH,unresolved_latest_notice
+2023-02-24,113016.SH,unresolved_latest_notice
+2023-02-24,113526.SH,unresolved_latest_notice
+2023-02-24,113577.SH,unresolved_latest_notice
+2023-02-24,123018.SZ,unresolved_latest_notice
+2023-02-24,123025.SZ,unresolved_latest_notice
+2023-02-24,123038.SZ,unresolved_latest_notice
+2023-02-24,123050.SZ,unresolved_latest_notice
+2023-02-24,123054.SZ,unresolved_latest_notice
+2023-02-24,128108.SZ,unresolved_latest_notice
+2023-02-24,128119.SZ,unresolved_latest_notice
+2023-03-03,110044.SH,unresolved_latest_notice
+2023-03-03,113016.SH,unresolved_latest_notice
+2023-03-03,113526.SH,unresolved_latest_notice
+2023-03-03,113577.SH,unresolved_latest_notice
+2023-03-03,123018.SZ,unresolved_latest_notice
+2023-03-03,123025.SZ,unresolved_latest_notice
+2023-03-03,123038.SZ,unresolved_latest_notice
+2023-03-03,123050.SZ,unresolved_latest_notice
+2023-03-03,123054.SZ,unresolved_latest_notice
+2023-03-03,128108.SZ,unresolved_latest_notice
+2023-03-03,128119.SZ,unresolved_latest_notice
+2023-03-10,110044.SH,unresolved_latest_notice
+2023-03-10,113016.SH,unresolved_latest_notice
+2023-03-10,113526.SH,unresolved_latest_notice
+2023-03-10,113577.SH,unresolved_latest_notice
+2023-03-10,123018.SZ,unresolved_latest_notice
+2023-03-10,123025.SZ,unresolved_latest_notice
+2023-03-10,123038.SZ,unresolved_latest_notice
+2023-03-10,123050.SZ,unresolved_latest_notice
+2023-03-10,123054.SZ,unresolved_latest_notice
+2023-03-10,128108.SZ,unresolved_latest_notice
+2023-03-10,128119.SZ,unresolved_latest_notice
+2023-03-17,110044.SH,unresolved_latest_notice
+2023-03-17,113016.SH,unresolved_latest_notice
+2023-03-17,113526.SH,unresolved_latest_notice
+2023-03-17,113577.SH,unresolved_latest_notice
+2023-03-17,123018.SZ,unresolved_latest_notice
+2023-03-17,123025.SZ,unresolved_latest_notice
+2023-03-17,123038.SZ,unresolved_latest_notice
+2023-03-17,123050.SZ,unresolved_latest_notice
+2023-03-17,123054.SZ,unresolved_latest_notice
+2023-03-17,128108.SZ,unresolved_latest_notice
+2023-03-17,128119.SZ,unresolved_latest_notice
+2023-03-24,110044.SH,unresolved_latest_notice
+2023-03-24,113016.SH,unresolved_latest_notice
+2023-03-24,113526.SH,unresolved_latest_notice
+2023-03-24,113577.SH,unresolved_latest_notice
+2023-03-24,123018.SZ,unresolved_latest_notice
+2023-03-24,123038.SZ,unresolved_latest_notice
+2023-03-24,123050.SZ,unresolved_latest_notice
+2023-03-24,123054.SZ,unresolved_latest_notice
+2023-03-24,128108.SZ,unresolved_latest_notice
+2023-03-24,128119.SZ,unresolved_latest_notice
+2023-03-31,110044.SH,unresolved_latest_notice
+2023-03-31,113016.SH,unresolved_latest_notice
+2023-03-31,113526.SH,unresolved_latest_notice
+2023-03-31,113577.SH,unresolved_latest_notice
+2023-03-31,123018.SZ,unresolved_latest_notice
+2023-03-31,123038.SZ,unresolved_latest_notice
+2023-03-31,123050.SZ,unresolved_latest_notice
+2023-03-31,123054.SZ,unresolved_latest_notice
+2023-03-31,128108.SZ,unresolved_latest_notice
+2023-03-31,128119.SZ,unresolved_latest_notice
+2023-04-07,110044.SH,unresolved_latest_notice
+2023-04-07,113016.SH,unresolved_latest_notice
+2023-04-07,113526.SH,unresolved_latest_notice
+2023-04-07,113577.SH,unresolved_latest_notice
+2023-04-07,123018.SZ,unresolved_latest_notice
+2023-04-07,123038.SZ,unresolved_latest_notice
+2023-04-07,123050.SZ,unresolved_latest_notice
+2023-04-07,123054.SZ,unresolved_latest_notice
+2023-04-07,128108.SZ,unresolved_latest_notice
+2023-04-07,128119.SZ,unresolved_latest_notice
+2023-04-14,110044.SH,unresolved_latest_notice
+2023-04-14,113016.SH,unresolved_latest_notice
+2023-04-14,113526.SH,unresolved_latest_notice
+2023-04-14,113577.SH,unresolved_latest_notice
+2023-04-14,123018.SZ,unresolved_latest_notice
+2023-04-14,123038.SZ,unresolved_latest_notice
+2023-04-14,123050.SZ,unresolved_latest_notice
+2023-04-14,123054.SZ,unresolved_latest_notice
+2023-04-14,128108.SZ,unresolved_latest_notice
+2023-04-14,128119.SZ,unresolved_latest_notice
+2023-04-21,110044.SH,unresolved_latest_notice
+2023-04-21,113016.SH,unresolved_latest_notice
+2023-04-21,113526.SH,unresolved_latest_notice
+2023-04-21,113577.SH,unresolved_latest_notice
+2023-04-21,123018.SZ,unresolved_latest_notice
+2023-04-21,123038.SZ,unresolved_latest_notice
+2023-04-21,123050.SZ,unresolved_latest_notice
+2023-04-21,123054.SZ,unresolved_latest_notice
+2023-04-21,128108.SZ,unresolved_latest_notice
+2023-04-21,128119.SZ,unresolved_latest_notice
+2023-04-28,110044.SH,unresolved_latest_notice
+2023-04-28,113016.SH,unresolved_latest_notice
+2023-04-28,113526.SH,unresolved_latest_notice
+2023-04-28,113577.SH,unresolved_latest_notice
+2023-04-28,123018.SZ,unresolved_latest_notice
+2023-04-28,123038.SZ,unresolved_latest_notice
+2023-04-28,123050.SZ,unresolved_latest_notice
+2023-04-28,123054.SZ,unresolved_latest_notice
+2023-04-28,128108.SZ,unresolved_latest_notice
+2023-04-28,128119.SZ,unresolved_latest_notice
+2023-05-05,110044.SH,unresolved_latest_notice
+2023-05-05,113016.SH,unresolved_latest_notice
+2023-05-05,113526.SH,unresolved_latest_notice
+2023-05-05,113577.SH,unresolved_latest_notice
+2023-05-05,123018.SZ,unresolved_latest_notice
+2023-05-05,123038.SZ,unresolved_latest_notice
+2023-05-05,123050.SZ,unresolved_latest_notice
+2023-05-05,123054.SZ,unresolved_latest_notice
+2023-05-05,128108.SZ,unresolved_latest_notice
+2023-05-05,128119.SZ,unresolved_latest_notice
+2023-05-12,110044.SH,unresolved_latest_notice
+2023-05-12,113016.SH,unresolved_latest_notice
+2023-05-12,113526.SH,unresolved_latest_notice
+2023-05-12,113577.SH,unresolved_latest_notice
+2023-05-12,123018.SZ,unresolved_latest_notice
+2023-05-12,123038.SZ,unresolved_latest_notice
+2023-05-12,123050.SZ,unresolved_latest_notice
+2023-05-12,123054.SZ,unresolved_latest_notice
+2023-05-12,128108.SZ,unresolved_latest_notice
+2023-05-12,128119.SZ,unresolved_latest_notice
+2023-05-19,110044.SH,unresolved_latest_notice
+2023-05-19,113016.SH,unresolved_latest_notice
+2023-05-19,113526.SH,unresolved_latest_notice
+2023-05-19,113577.SH,unresolved_latest_notice
+2023-05-19,123018.SZ,unresolved_latest_notice
+2023-05-19,123038.SZ,unresolved_latest_notice
+2023-05-19,123050.SZ,unresolved_latest_notice
+2023-05-19,123054.SZ,unresolved_latest_notice
+2023-05-19,128108.SZ,unresolved_latest_notice
+2023-05-19,128119.SZ,unresolved_latest_notice
+2023-05-26,110044.SH,unresolved_latest_notice
+2023-05-26,113016.SH,unresolved_latest_notice
+2023-05-26,113526.SH,unresolved_latest_notice
+2023-05-26,113577.SH,unresolved_latest_notice
+2023-05-26,123018.SZ,unresolved_latest_notice
+2023-05-26,123038.SZ,unresolved_latest_notice
+2023-05-26,123050.SZ,unresolved_latest_notice
+2023-05-26,123054.SZ,unresolved_latest_notice
+2023-05-26,128108.SZ,unresolved_latest_notice
+2023-05-26,128119.SZ,unresolved_latest_notice
+2023-06-02,110044.SH,unresolved_latest_notice
+2023-06-02,113016.SH,unresolved_latest_notice
+2023-06-02,113526.SH,unresolved_latest_notice
+2023-06-02,113577.SH,unresolved_latest_notice
+2023-06-02,123018.SZ,unresolved_latest_notice
+2023-06-02,123038.SZ,unresolved_latest_notice
+2023-06-02,123050.SZ,unresolved_latest_notice
+2023-06-02,123054.SZ,unresolved_latest_notice
+2023-06-02,128108.SZ,unresolved_latest_notice
+2023-06-02,128119.SZ,unresolved_latest_notice
+2023-06-09,110044.SH,unresolved_latest_notice
+2023-06-09,113016.SH,unresolved_latest_notice
+2023-06-09,113526.SH,unresolved_latest_notice
+2023-06-09,113577.SH,unresolved_latest_notice
+2023-06-09,123018.SZ,unresolved_latest_notice
+2023-06-09,123038.SZ,unresolved_latest_notice
+2023-06-09,123050.SZ,unresolved_latest_notice
+2023-06-09,123054.SZ,unresolved_latest_notice
+2023-06-09,128108.SZ,unresolved_latest_notice
+2023-06-09,128119.SZ,unresolved_latest_notice
+2023-06-16,110044.SH,unresolved_latest_notice
+2023-06-16,113016.SH,unresolved_latest_notice
+2023-06-16,113526.SH,unresolved_latest_notice
+2023-06-16,113577.SH,unresolved_latest_notice
+2023-06-16,123018.SZ,unresolved_latest_notice
+2023-06-16,123038.SZ,unresolved_latest_notice
+2023-06-16,123050.SZ,unresolved_latest_notice
+2023-06-16,123054.SZ,unresolved_latest_notice
+2023-06-16,128108.SZ,unresolved_latest_notice
+2023-06-16,128119.SZ,unresolved_latest_notice
+2023-06-21,110044.SH,unresolved_latest_notice
+2023-06-21,113016.SH,unresolved_latest_notice
+2023-06-21,113526.SH,unresolved_latest_notice
+2023-06-21,113577.SH,unresolved_latest_notice
+2023-06-21,123018.SZ,unresolved_latest_notice
+2023-06-21,123038.SZ,unresolved_latest_notice
+2023-06-21,123050.SZ,unresolved_latest_notice
+2023-06-21,123054.SZ,unresolved_latest_notice
+2023-06-21,128108.SZ,unresolved_latest_notice
+2023-06-21,128119.SZ,unresolved_latest_notice
+2023-06-30,110044.SH,unresolved_latest_notice
+2023-06-30,113526.SH,unresolved_latest_notice
+2023-06-30,113577.SH,unresolved_latest_notice
+2023-06-30,123018.SZ,unresolved_latest_notice
+2023-06-30,123038.SZ,unresolved_latest_notice
+2023-06-30,123050.SZ,unresolved_latest_notice
+2023-06-30,123054.SZ,unresolved_latest_notice
+2023-06-30,128108.SZ,unresolved_latest_notice
+2023-06-30,128119.SZ,unresolved_latest_notice
+2023-07-07,110044.SH,unresolved_latest_notice
+2023-07-07,113526.SH,unresolved_latest_notice
+2023-07-07,113577.SH,unresolved_latest_notice
+2023-07-07,123018.SZ,unresolved_latest_notice
+2023-07-07,123038.SZ,unresolved_latest_notice
+2023-07-07,123050.SZ,unresolved_latest_notice
+2023-07-07,123054.SZ,unresolved_latest_notice
+2023-07-07,128108.SZ,unresolved_latest_notice
+2023-07-07,128119.SZ,unresolved_latest_notice
+2023-07-14,110044.SH,unresolved_latest_notice
+2023-07-14,113526.SH,unresolved_latest_notice
+2023-07-14,113577.SH,unresolved_latest_notice
+2023-07-14,123018.SZ,unresolved_latest_notice
+2023-07-14,123038.SZ,unresolved_latest_notice
+2023-07-14,123050.SZ,unresolved_latest_notice
+2023-07-14,123054.SZ,unresolved_latest_notice
+2023-07-14,128108.SZ,unresolved_latest_notice
+2023-07-14,128119.SZ,unresolved_latest_notice
+2023-07-21,110044.SH,unresolved_latest_notice
+2023-07-21,113526.SH,unresolved_latest_notice
+2023-07-21,113577.SH,unresolved_latest_notice
+2023-07-21,123018.SZ,unresolved_latest_notice
+2023-07-21,123038.SZ,unresolved_latest_notice
+2023-07-21,123050.SZ,unresolved_latest_notice
+2023-07-21,123054.SZ,unresolved_latest_notice
+2023-07-21,128108.SZ,unresolved_latest_notice
+2023-07-21,128119.SZ,unresolved_latest_notice
+2023-07-28,110044.SH,unresolved_latest_notice
+2023-07-28,113526.SH,unresolved_latest_notice
+2023-07-28,113577.SH,unresolved_latest_notice
+2023-07-28,123018.SZ,unresolved_latest_notice
+2023-07-28,123038.SZ,unresolved_latest_notice
+2023-07-28,123050.SZ,unresolved_latest_notice
+2023-07-28,123054.SZ,unresolved_latest_notice
+2023-07-28,128108.SZ,unresolved_latest_notice
+2023-07-28,128119.SZ,unresolved_latest_notice
+2023-08-04,110044.SH,unresolved_latest_notice
+2023-08-04,113526.SH,unresolved_latest_notice
+2023-08-04,113577.SH,unresolved_latest_notice
+2023-08-04,123018.SZ,unresolved_latest_notice
+2023-08-04,123038.SZ,unresolved_latest_notice
+2023-08-04,123050.SZ,unresolved_latest_notice
+2023-08-04,123054.SZ,unresolved_latest_notice
+2023-08-04,128108.SZ,unresolved_latest_notice
+2023-08-04,128119.SZ,unresolved_latest_notice
+2023-08-11,110044.SH,unresolved_latest_notice
+2023-08-11,113526.SH,unresolved_latest_notice
+2023-08-11,113577.SH,unresolved_latest_notice
+2023-08-11,123018.SZ,unresolved_latest_notice
+2023-08-11,123038.SZ,unresolved_latest_notice
+2023-08-11,123050.SZ,unresolved_latest_notice
+2023-08-11,123054.SZ,unresolved_latest_notice
+2023-08-11,128108.SZ,unresolved_latest_notice
+2023-08-11,128119.SZ,unresolved_latest_notice
+2023-08-18,110044.SH,unresolved_latest_notice
+2023-08-18,113526.SH,unresolved_latest_notice
+2023-08-18,113577.SH,unresolved_latest_notice
+2023-08-18,123018.SZ,unresolved_latest_notice
+2023-08-18,123038.SZ,unresolved_latest_notice
+2023-08-18,123050.SZ,unresolved_latest_notice
+2023-08-18,123054.SZ,unresolved_latest_notice
+2023-08-18,128108.SZ,unresolved_latest_notice
+2023-08-18,128119.SZ,unresolved_latest_notice
+2023-08-25,110044.SH,unresolved_latest_notice
+2023-08-25,113526.SH,unresolved_latest_notice
+2023-08-25,113577.SH,unresolved_latest_notice
+2023-08-25,123018.SZ,unresolved_latest_notice
+2023-08-25,123038.SZ,unresolved_latest_notice
+2023-08-25,123050.SZ,unresolved_latest_notice
+2023-08-25,123054.SZ,unresolved_latest_notice
+2023-08-25,128108.SZ,unresolved_latest_notice
+2023-08-25,128119.SZ,unresolved_latest_notice
+2023-09-01,110044.SH,unresolved_latest_notice
+2023-09-01,113526.SH,unresolved_latest_notice
+2023-09-01,113577.SH,unresolved_latest_notice
+2023-09-01,123018.SZ,unresolved_latest_notice
+2023-09-01,123038.SZ,unresolved_latest_notice
+2023-09-01,123050.SZ,unresolved_latest_notice
+2023-09-01,123054.SZ,unresolved_latest_notice
+2023-09-01,128108.SZ,unresolved_latest_notice
+2023-09-01,128119.SZ,unresolved_latest_notice
+2023-09-08,110044.SH,unresolved_latest_notice
+2023-09-08,113526.SH,unresolved_latest_notice
+2023-09-08,113577.SH,unresolved_latest_notice
+2023-09-08,123018.SZ,unresolved_latest_notice
+2023-09-08,123038.SZ,unresolved_latest_notice
+2023-09-08,123050.SZ,unresolved_latest_notice
+2023-09-08,123054.SZ,unresolved_latest_notice
+2023-09-08,128108.SZ,unresolved_latest_notice
+2023-09-08,128119.SZ,unresolved_latest_notice
+2023-09-15,110044.SH,unresolved_latest_notice
+2023-09-15,113526.SH,unresolved_latest_notice
+2023-09-15,113577.SH,unresolved_latest_notice
+2023-09-15,123018.SZ,unresolved_latest_notice
+2023-09-15,123038.SZ,unresolved_latest_notice
+2023-09-15,123050.SZ,unresolved_latest_notice
+2023-09-15,123054.SZ,unresolved_latest_notice
+2023-09-15,128108.SZ,unresolved_latest_notice
+2023-09-15,128119.SZ,unresolved_latest_notice
+2023-09-22,110044.SH,unresolved_latest_notice
+2023-09-22,113526.SH,unresolved_latest_notice
+2023-09-22,113577.SH,unresolved_latest_notice
+2023-09-22,123018.SZ,unresolved_latest_notice
+2023-09-22,123038.SZ,unresolved_latest_notice
+2023-09-22,123050.SZ,unresolved_latest_notice
+2023-09-22,123054.SZ,unresolved_latest_notice
+2023-09-22,128108.SZ,unresolved_latest_notice
+2023-09-22,128119.SZ,unresolved_latest_notice
+2023-09-28,110044.SH,unresolved_latest_notice
+2023-09-28,113526.SH,unresolved_latest_notice
+2023-09-28,113577.SH,unresolved_latest_notice
+2023-09-28,123018.SZ,unresolved_latest_notice
+2023-09-28,123038.SZ,unresolved_latest_notice
+2023-09-28,123050.SZ,unresolved_latest_notice
+2023-09-28,123054.SZ,unresolved_latest_notice
+2023-09-28,128108.SZ,unresolved_latest_notice
+2023-09-28,128119.SZ,unresolved_latest_notice
+2023-10-13,110044.SH,unresolved_latest_notice
+2023-10-13,113526.SH,unresolved_latest_notice
+2023-10-13,113577.SH,unresolved_latest_notice
+2023-10-13,123018.SZ,unresolved_latest_notice
+2023-10-13,123038.SZ,unresolved_latest_notice
+2023-10-13,123050.SZ,unresolved_latest_notice
+2023-10-13,123054.SZ,unresolved_latest_notice
+2023-10-13,128108.SZ,unresolved_latest_notice
+2023-10-13,128119.SZ,unresolved_latest_notice
+2023-10-20,110044.SH,unresolved_latest_notice
+2023-10-20,113526.SH,unresolved_latest_notice
+2023-10-20,113577.SH,unresolved_latest_notice
+2023-10-20,123018.SZ,unresolved_latest_notice
+2023-10-20,123038.SZ,unresolved_latest_notice
+2023-10-20,123050.SZ,unresolved_latest_notice
+2023-10-20,123054.SZ,unresolved_latest_notice
+2023-10-20,128108.SZ,unresolved_latest_notice
+2023-10-20,128119.SZ,unresolved_latest_notice
+2023-10-27,110044.SH,unresolved_latest_notice
+2023-10-27,113526.SH,unresolved_latest_notice
+2023-10-27,113577.SH,unresolved_latest_notice
+2023-10-27,123018.SZ,unresolved_latest_notice
+2023-10-27,123038.SZ,unresolved_latest_notice
+2023-10-27,123050.SZ,unresolved_latest_notice
+2023-10-27,123054.SZ,unresolved_latest_notice
+2023-10-27,128108.SZ,unresolved_latest_notice
+2023-10-27,128119.SZ,unresolved_latest_notice
+2023-11-03,110044.SH,unresolved_latest_notice
+2023-11-03,113526.SH,unresolved_latest_notice
+2023-11-03,113577.SH,unresolved_latest_notice
+2023-11-03,123018.SZ,unresolved_latest_notice
+2023-11-03,123038.SZ,unresolved_latest_notice
+2023-11-03,123050.SZ,unresolved_latest_notice
+2023-11-03,123054.SZ,unresolved_latest_notice
+2023-11-03,128108.SZ,unresolved_latest_notice
+2023-11-03,128119.SZ,unresolved_latest_notice
+2023-11-10,110044.SH,unresolved_latest_notice
+2023-11-10,113526.SH,unresolved_latest_notice
+2023-11-10,113577.SH,unresolved_latest_notice
+2023-11-10,123018.SZ,unresolved_latest_notice
+2023-11-10,123038.SZ,unresolved_latest_notice
+2023-11-10,123050.SZ,unresolved_latest_notice
+2023-11-10,123054.SZ,unresolved_latest_notice
+2023-11-10,128108.SZ,unresolved_latest_notice
+2023-11-10,128119.SZ,unresolved_latest_notice
+2023-11-17,110044.SH,unresolved_latest_notice
+2023-11-17,113526.SH,unresolved_latest_notice
+2023-11-17,113577.SH,unresolved_latest_notice
+2023-11-17,123018.SZ,unresolved_latest_notice
+2023-11-17,123038.SZ,unresolved_latest_notice
+2023-11-17,123050.SZ,unresolved_latest_notice
+2023-11-17,123054.SZ,unresolved_latest_notice
+2023-11-17,128108.SZ,unresolved_latest_notice
+2023-11-17,128119.SZ,unresolved_latest_notice
+2023-11-24,110044.SH,unresolved_latest_notice
+2023-11-24,113526.SH,unresolved_latest_notice
+2023-11-24,113577.SH,unresolved_latest_notice
+2023-11-24,123018.SZ,unresolved_latest_notice
+2023-11-24,123038.SZ,unresolved_latest_notice
+2023-11-24,123050.SZ,unresolved_latest_notice
+2023-11-24,123054.SZ,unresolved_latest_notice
+2023-11-24,128108.SZ,unresolved_latest_notice
+2023-11-24,128119.SZ,unresolved_latest_notice
+2023-12-01,110044.SH,unresolved_latest_notice
+2023-12-01,113526.SH,unresolved_latest_notice
+2023-12-01,113577.SH,unresolved_latest_notice
+2023-12-01,123018.SZ,unresolved_latest_notice
+2023-12-01,123050.SZ,unresolved_latest_notice
+2023-12-01,128108.SZ,unresolved_latest_notice
+2023-12-01,128119.SZ,unresolved_latest_notice
+2023-12-08,110044.SH,unresolved_latest_notice
+2023-12-08,113526.SH,unresolved_latest_notice
+2023-12-08,113577.SH,unresolved_latest_notice
+2023-12-08,123018.SZ,unresolved_latest_notice
+2023-12-08,123050.SZ,unresolved_latest_notice
+2023-12-08,128108.SZ,unresolved_latest_notice
+2023-12-08,128119.SZ,unresolved_latest_notice
+2023-12-15,110044.SH,unresolved_latest_notice
+2023-12-15,113526.SH,unresolved_latest_notice
+2023-12-15,113577.SH,unresolved_latest_notice
+2023-12-15,113578.SH,non-production bond floor source
+2023-12-15,123018.SZ,unresolved_latest_notice
+2023-12-15,123050.SZ,unresolved_latest_notice
+2023-12-15,128108.SZ,unresolved_latest_notice
+2023-12-15,128119.SZ,unresolved_latest_notice
+2023-12-22,110044.SH,unresolved_latest_notice
+2023-12-22,113526.SH,unresolved_latest_notice
+2023-12-22,113577.SH,unresolved_latest_notice
+2023-12-22,113578.SH,non-production bond floor source
+2023-12-22,123018.SZ,unresolved_latest_notice
+2023-12-22,123050.SZ,unresolved_latest_notice
+2023-12-22,128108.SZ,unresolved_latest_notice
+2023-12-22,128119.SZ,unresolved_latest_notice
+2023-12-29,110044.SH,unresolved_latest_notice
+2023-12-29,113526.SH,unresolved_latest_notice
+2023-12-29,113577.SH,unresolved_latest_notice
+2023-12-29,113578.SH,non-production bond floor source
+2023-12-29,123018.SZ,unresolved_latest_notice
+2023-12-29,123050.SZ,unresolved_latest_notice
+2023-12-29,128108.SZ,unresolved_latest_notice
+2023-12-29,128119.SZ,unresolved_latest_notice
+2024-01-05,110044.SH,unresolved_latest_notice
+2024-01-05,113526.SH,unresolved_latest_notice
+2024-01-05,113577.SH,unresolved_latest_notice
+2024-01-05,113578.SH,non-production bond floor source
+2024-01-05,123018.SZ,unresolved_latest_notice
+2024-01-05,123050.SZ,unresolved_latest_notice
+2024-01-05,128108.SZ,unresolved_latest_notice
+2024-01-05,128119.SZ,unresolved_latest_notice
+2024-01-12,110044.SH,unresolved_latest_notice
+2024-01-12,113526.SH,unresolved_latest_notice
+2024-01-12,113577.SH,unresolved_latest_notice
+2024-01-12,113578.SH,non-production bond floor source
+2024-01-12,123018.SZ,unresolved_latest_notice
+2024-01-12,123050.SZ,unresolved_latest_notice
+2024-01-12,128108.SZ,unresolved_latest_notice
+2024-01-12,128119.SZ,unresolved_latest_notice
+2024-01-19,110044.SH,unresolved_latest_notice
+2024-01-19,113526.SH,unresolved_latest_notice
+2024-01-19,113577.SH,unresolved_latest_notice
+2024-01-19,113578.SH,non-production bond floor source
+2024-01-19,123018.SZ,unresolved_latest_notice
+2024-01-19,123050.SZ,unresolved_latest_notice
+2024-01-19,128108.SZ,unresolved_latest_notice
+2024-01-19,128119.SZ,unresolved_latest_notice
+2024-01-26,110044.SH,unresolved_latest_notice
+2024-01-26,113526.SH,unresolved_latest_notice
+2024-01-26,113577.SH,unresolved_latest_notice
+2024-01-26,123018.SZ,unresolved_latest_notice
+2024-01-26,123050.SZ,unresolved_latest_notice
+2024-01-26,128108.SZ,unresolved_latest_notice
+2024-01-26,128119.SZ,unresolved_latest_notice
+2024-02-02,110044.SH,unresolved_latest_notice
+2024-02-02,113526.SH,unresolved_latest_notice
+2024-02-02,113577.SH,unresolved_latest_notice
+2024-02-02,123018.SZ,unresolved_latest_notice
+2024-02-02,123050.SZ,unresolved_latest_notice
+2024-02-02,128108.SZ,unresolved_latest_notice
+2024-02-02,128119.SZ,unresolved_latest_notice
+2024-02-08,110044.SH,unresolved_latest_notice
+2024-02-08,113526.SH,unresolved_latest_notice
+2024-02-08,113577.SH,unresolved_latest_notice
+2024-02-08,123018.SZ,unresolved_latest_notice
+2024-02-08,123050.SZ,unresolved_latest_notice
+2024-02-08,128108.SZ,unresolved_latest_notice
+2024-02-08,128119.SZ,unresolved_latest_notice
+2024-02-23,110044.SH,unresolved_latest_notice
+2024-02-23,113526.SH,unresolved_latest_notice
+2024-02-23,113577.SH,unresolved_latest_notice
+2024-02-23,123018.SZ,unresolved_latest_notice
+2024-02-23,123050.SZ,unresolved_latest_notice
+2024-02-23,128108.SZ,unresolved_latest_notice
+2024-02-23,128119.SZ,unresolved_latest_notice
+2024-03-01,110044.SH,unresolved_latest_notice
+2024-03-01,113526.SH,unresolved_latest_notice
+2024-03-01,113577.SH,unresolved_latest_notice
+2024-03-01,123018.SZ,unresolved_latest_notice
+2024-03-01,123050.SZ,unresolved_latest_notice
+2024-03-01,128108.SZ,unresolved_latest_notice
+2024-03-01,128119.SZ,unresolved_latest_notice
+2024-03-08,110044.SH,unresolved_latest_notice
+2024-03-08,113526.SH,unresolved_latest_notice
+2024-03-08,113577.SH,unresolved_latest_notice
+2024-03-08,123018.SZ,unresolved_latest_notice
+2024-03-08,123050.SZ,unresolved_latest_notice
+2024-03-08,128108.SZ,unresolved_latest_notice
+2024-03-08,128119.SZ,unresolved_latest_notice
+2024-03-15,110044.SH,unresolved_latest_notice
+2024-03-15,113526.SH,unresolved_latest_notice
+2024-03-15,113577.SH,unresolved_latest_notice
+2024-03-15,123018.SZ,unresolved_latest_notice
+2024-03-15,123050.SZ,unresolved_latest_notice
+2024-03-15,128108.SZ,unresolved_latest_notice
+2024-03-15,128119.SZ,unresolved_latest_notice
+2024-03-22,110044.SH,unresolved_latest_notice
+2024-03-22,113526.SH,unresolved_latest_notice
+2024-03-22,113577.SH,unresolved_latest_notice
+2024-03-22,123018.SZ,unresolved_latest_notice
+2024-03-22,123050.SZ,unresolved_latest_notice
+2024-03-22,128108.SZ,unresolved_latest_notice
+2024-03-22,128119.SZ,unresolved_latest_notice
+2024-03-29,110044.SH,unresolved_latest_notice
+2024-03-29,113526.SH,unresolved_latest_notice
+2024-03-29,113577.SH,unresolved_latest_notice
+2024-03-29,123018.SZ,unresolved_latest_notice
+2024-03-29,123050.SZ,unresolved_latest_notice
+2024-03-29,128108.SZ,unresolved_latest_notice
+2024-03-29,128119.SZ,unresolved_latest_notice
+2024-04-03,110044.SH,unresolved_latest_notice
+2024-04-03,113526.SH,unresolved_latest_notice
+2024-04-03,113577.SH,unresolved_latest_notice
+2024-04-03,123018.SZ,unresolved_latest_notice
+2024-04-03,123050.SZ,unresolved_latest_notice
+2024-04-03,128108.SZ,unresolved_latest_notice
+2024-04-03,128119.SZ,unresolved_latest_notice
+2024-04-12,110044.SH,unresolved_latest_notice
+2024-04-12,113526.SH,unresolved_latest_notice
+2024-04-12,113577.SH,unresolved_latest_notice
+2024-04-12,123018.SZ,unresolved_latest_notice
+2024-04-12,123050.SZ,unresolved_latest_notice
+2024-04-12,128108.SZ,unresolved_latest_notice
+2024-04-12,128119.SZ,unresolved_latest_notice
+2024-04-19,110044.SH,unresolved_latest_notice
+2024-04-19,113526.SH,unresolved_latest_notice
+2024-04-19,113577.SH,unresolved_latest_notice
+2024-04-19,123018.SZ,unresolved_latest_notice
+2024-04-19,123050.SZ,unresolved_latest_notice
+2024-04-19,124024.SZ,non-production bond floor source
+2024-04-19,128108.SZ,unresolved_latest_notice
+2024-04-19,128119.SZ,unresolved_latest_notice
+2024-04-26,110044.SH,unresolved_latest_notice
+2024-04-26,113526.SH,unresolved_latest_notice
+2024-04-26,113577.SH,unresolved_latest_notice
+2024-04-26,123018.SZ,unresolved_latest_notice
+2024-04-26,123050.SZ,unresolved_latest_notice
+2024-04-26,128108.SZ,unresolved_latest_notice
+2024-04-26,128119.SZ,unresolved_latest_notice
+2024-04-30,110044.SH,unresolved_latest_notice
+2024-04-30,113526.SH,unresolved_latest_notice
+2024-04-30,113577.SH,unresolved_latest_notice
+2024-04-30,123018.SZ,unresolved_latest_notice
+2024-04-30,123050.SZ,unresolved_latest_notice
+2024-04-30,128108.SZ,unresolved_latest_notice
+2024-04-30,128119.SZ,unresolved_latest_notice
+2024-05-10,110044.SH,unresolved_latest_notice
+2024-05-10,113526.SH,unresolved_latest_notice
+2024-05-10,113577.SH,unresolved_latest_notice
+2024-05-10,123018.SZ,unresolved_latest_notice
+2024-05-10,123050.SZ,unresolved_latest_notice
+2024-05-10,128108.SZ,unresolved_latest_notice
+2024-05-10,128119.SZ,unresolved_latest_notice
+2024-05-17,110044.SH,unresolved_latest_notice
+2024-05-17,113526.SH,unresolved_latest_notice
+2024-05-17,113577.SH,unresolved_latest_notice
+2024-05-17,123018.SZ,unresolved_latest_notice
+2024-05-17,123050.SZ,unresolved_latest_notice
+2024-05-17,128108.SZ,unresolved_latest_notice
+2024-05-17,128119.SZ,unresolved_latest_notice
+2024-05-24,110044.SH,unresolved_latest_notice
+2024-05-24,113526.SH,unresolved_latest_notice
+2024-05-24,113577.SH,unresolved_latest_notice
+2024-05-24,123018.SZ,unresolved_latest_notice
+2024-05-24,123050.SZ,unresolved_latest_notice
+2024-05-24,128108.SZ,unresolved_latest_notice
+2024-05-24,128119.SZ,unresolved_latest_notice
+2024-05-31,110044.SH,unresolved_latest_notice
+2024-05-31,113526.SH,unresolved_latest_notice
+2024-05-31,113577.SH,unresolved_latest_notice
+2024-05-31,123018.SZ,unresolved_latest_notice
+2024-05-31,123050.SZ,unresolved_latest_notice
+2024-05-31,128108.SZ,unresolved_latest_notice
+2024-05-31,128119.SZ,unresolved_latest_notice
+2024-06-07,110044.SH,unresolved_latest_notice
+2024-06-07,113526.SH,unresolved_latest_notice
+2024-06-07,113577.SH,unresolved_latest_notice
+2024-06-07,123018.SZ,unresolved_latest_notice
+2024-06-07,123050.SZ,unresolved_latest_notice
+2024-06-07,128108.SZ,unresolved_latest_notice
+2024-06-07,128119.SZ,unresolved_latest_notice
+2024-06-14,110044.SH,unresolved_latest_notice
+2024-06-14,113526.SH,unresolved_latest_notice
+2024-06-14,113577.SH,unresolved_latest_notice
+2024-06-14,123018.SZ,unresolved_latest_notice
+2024-06-14,123050.SZ,unresolved_latest_notice
+2024-06-14,128108.SZ,unresolved_latest_notice
+2024-06-14,128119.SZ,unresolved_latest_notice
+2024-06-21,110044.SH,unresolved_latest_notice
+2024-06-21,113526.SH,unresolved_latest_notice
+2024-06-21,113577.SH,unresolved_latest_notice
+2024-06-21,123018.SZ,unresolved_latest_notice
+2024-06-21,123050.SZ,unresolved_latest_notice
+2024-06-21,128108.SZ,unresolved_latest_notice
+2024-06-21,128119.SZ,unresolved_latest_notice
+2024-06-28,113526.SH,unresolved_latest_notice
+2024-06-28,113577.SH,unresolved_latest_notice
+2024-06-28,123018.SZ,unresolved_latest_notice
+2024-06-28,123050.SZ,unresolved_latest_notice
+2024-06-28,128108.SZ,unresolved_latest_notice
+2024-06-28,128119.SZ,unresolved_latest_notice
+2024-07-05,113526.SH,unresolved_latest_notice
+2024-07-05,113577.SH,unresolved_latest_notice
+2024-07-05,123018.SZ,unresolved_latest_notice
+2024-07-05,123050.SZ,unresolved_latest_notice
+2024-07-05,128108.SZ,unresolved_latest_notice
+2024-07-05,128119.SZ,unresolved_latest_notice
+2024-07-12,113526.SH,unresolved_latest_notice
+2024-07-12,113577.SH,unresolved_latest_notice
+2024-07-12,123018.SZ,unresolved_latest_notice
+2024-07-12,123050.SZ,unresolved_latest_notice
+2024-07-12,128108.SZ,unresolved_latest_notice
+2024-07-12,128119.SZ,unresolved_latest_notice
+2024-07-19,113526.SH,unresolved_latest_notice
+2024-07-19,113577.SH,unresolved_latest_notice
+2024-07-19,123018.SZ,unresolved_latest_notice
+2024-07-19,123050.SZ,unresolved_latest_notice
+2024-07-19,128108.SZ,unresolved_latest_notice
+2024-07-19,128119.SZ,unresolved_latest_notice
+2024-07-26,113526.SH,unresolved_latest_notice
+2024-07-26,113577.SH,unresolved_latest_notice
+2024-07-26,123018.SZ,unresolved_latest_notice
+2024-07-26,123050.SZ,unresolved_latest_notice
+2024-07-26,128108.SZ,unresolved_latest_notice
+2024-07-26,128119.SZ,unresolved_latest_notice
+2024-08-02,113526.SH,unresolved_latest_notice
+2024-08-02,113577.SH,unresolved_latest_notice
+2024-08-02,123018.SZ,unresolved_latest_notice
+2024-08-02,123050.SZ,unresolved_latest_notice
+2024-08-02,128108.SZ,unresolved_latest_notice
+2024-08-02,128119.SZ,unresolved_latest_notice
+2024-08-09,113526.SH,unresolved_latest_notice
+2024-08-09,113577.SH,unresolved_latest_notice
+2024-08-09,123018.SZ,unresolved_latest_notice
+2024-08-09,123050.SZ,unresolved_latest_notice
+2024-08-09,128108.SZ,unresolved_latest_notice
+2024-08-09,128119.SZ,unresolved_latest_notice
+2024-08-16,113526.SH,unresolved_latest_notice
+2024-08-16,113577.SH,unresolved_latest_notice
+2024-08-16,123018.SZ,unresolved_latest_notice
+2024-08-16,123050.SZ,unresolved_latest_notice
+2024-08-16,128108.SZ,unresolved_latest_notice
+2024-08-16,128119.SZ,unresolved_latest_notice
+2024-08-23,113526.SH,unresolved_latest_notice
+2024-08-23,113577.SH,unresolved_latest_notice
+2024-08-23,123018.SZ,unresolved_latest_notice
+2024-08-23,123050.SZ,unresolved_latest_notice
+2024-08-23,128108.SZ,unresolved_latest_notice
+2024-08-23,128119.SZ,unresolved_latest_notice
+2024-08-30,113526.SH,unresolved_latest_notice
+2024-08-30,113577.SH,unresolved_latest_notice
+2024-08-30,123018.SZ,unresolved_latest_notice
+2024-08-30,123050.SZ,unresolved_latest_notice
+2024-08-30,128108.SZ,unresolved_latest_notice
+2024-08-30,128119.SZ,unresolved_latest_notice
+2024-09-06,113526.SH,unresolved_latest_notice
+2024-09-06,113577.SH,unresolved_latest_notice
+2024-09-06,123018.SZ,unresolved_latest_notice
+2024-09-06,123050.SZ,unresolved_latest_notice
+2024-09-06,128108.SZ,unresolved_latest_notice
+2024-09-06,128119.SZ,unresolved_latest_notice
+2024-09-13,113526.SH,unresolved_latest_notice
+2024-09-13,113577.SH,unresolved_latest_notice
+2024-09-13,123018.SZ,unresolved_latest_notice
+2024-09-13,123050.SZ,unresolved_latest_notice
+2024-09-13,128108.SZ,unresolved_latest_notice
+2024-09-13,128119.SZ,unresolved_latest_notice
+2024-09-20,113526.SH,unresolved_latest_notice
+2024-09-20,113577.SH,unresolved_latest_notice
+2024-09-20,123018.SZ,unresolved_latest_notice
+2024-09-20,123050.SZ,unresolved_latest_notice
+2024-09-20,128108.SZ,unresolved_latest_notice
+2024-09-20,128119.SZ,unresolved_latest_notice
+2024-09-27,113526.SH,unresolved_latest_notice
+2024-09-27,113577.SH,unresolved_latest_notice
+2024-09-27,123018.SZ,unresolved_latest_notice
+2024-09-27,123050.SZ,unresolved_latest_notice
+2024-09-27,128108.SZ,unresolved_latest_notice
+2024-09-27,128119.SZ,unresolved_latest_notice
+2024-09-30,113526.SH,unresolved_latest_notice
+2024-09-30,113577.SH,unresolved_latest_notice
+2024-09-30,123018.SZ,unresolved_latest_notice
+2024-09-30,123050.SZ,unresolved_latest_notice
+2024-09-30,128108.SZ,unresolved_latest_notice
+2024-09-30,128119.SZ,unresolved_latest_notice
+2024-10-11,113526.SH,unresolved_latest_notice
+2024-10-11,113577.SH,unresolved_latest_notice
+2024-10-11,123018.SZ,unresolved_latest_notice
+2024-10-11,123050.SZ,unresolved_latest_notice
+2024-10-11,128108.SZ,unresolved_latest_notice
+2024-10-11,128119.SZ,unresolved_latest_notice
+2024-10-18,113526.SH,unresolved_latest_notice
+2024-10-18,113577.SH,unresolved_latest_notice
+2024-10-18,123018.SZ,unresolved_latest_notice
+2024-10-18,123050.SZ,unresolved_latest_notice
+2024-10-18,128108.SZ,unresolved_latest_notice
+2024-10-18,128119.SZ,unresolved_latest_notice
+2024-10-25,113526.SH,unresolved_latest_notice
+2024-10-25,113577.SH,unresolved_latest_notice
+2024-10-25,123018.SZ,unresolved_latest_notice
+2024-10-25,123050.SZ,unresolved_latest_notice
+2024-10-25,128108.SZ,unresolved_latest_notice
+2024-10-25,128119.SZ,unresolved_latest_notice
+2024-11-01,113526.SH,unresolved_latest_notice
+2024-11-01,113577.SH,unresolved_latest_notice
+2024-11-01,123018.SZ,unresolved_latest_notice
+2024-11-01,123050.SZ,unresolved_latest_notice
+2024-11-01,128108.SZ,unresolved_latest_notice
+2024-11-01,128119.SZ,unresolved_latest_notice
+2024-11-08,113526.SH,unresolved_latest_notice
+2024-11-08,113577.SH,unresolved_latest_notice
+2024-11-08,123018.SZ,unresolved_latest_notice
+2024-11-08,123050.SZ,unresolved_latest_notice
+2024-11-08,128108.SZ,unresolved_latest_notice
+2024-11-08,128119.SZ,unresolved_latest_notice
+2024-11-15,113526.SH,unresolved_latest_notice
+2024-11-15,113577.SH,unresolved_latest_notice
+2024-11-15,123018.SZ,unresolved_latest_notice
+2024-11-15,123050.SZ,unresolved_latest_notice
+2024-11-15,128108.SZ,unresolved_latest_notice
+2024-11-15,128119.SZ,unresolved_latest_notice
+2024-11-22,113526.SH,unresolved_latest_notice
+2024-11-22,113577.SH,unresolved_latest_notice
+2024-11-22,123018.SZ,unresolved_latest_notice
+2024-11-22,123050.SZ,unresolved_latest_notice
+2024-11-22,128108.SZ,unresolved_latest_notice
+2024-11-22,128119.SZ,unresolved_latest_notice
+2024-11-29,113526.SH,unresolved_latest_notice
+2024-11-29,113577.SH,unresolved_latest_notice
+2024-11-29,123018.SZ,unresolved_latest_notice
+2024-11-29,128108.SZ,unresolved_latest_notice
+2024-11-29,128119.SZ,unresolved_latest_notice
+2024-12-06,113526.SH,unresolved_latest_notice
+2024-12-06,113577.SH,unresolved_latest_notice
+2024-12-06,123018.SZ,unresolved_latest_notice
+2024-12-06,128108.SZ,unresolved_latest_notice
+2024-12-06,128119.SZ,unresolved_latest_notice
+2024-12-13,113526.SH,unresolved_latest_notice
+2024-12-13,113577.SH,unresolved_latest_notice
+2024-12-13,123018.SZ,unresolved_latest_notice
+2024-12-13,128108.SZ,unresolved_latest_notice
+2024-12-13,128119.SZ,unresolved_latest_notice
+2024-12-20,113526.SH,unresolved_latest_notice
+2024-12-20,113577.SH,unresolved_latest_notice
+2024-12-20,128108.SZ,unresolved_latest_notice
+2024-12-20,128119.SZ,unresolved_latest_notice
+2024-12-27,113526.SH,unresolved_latest_notice
+2024-12-27,113577.SH,unresolved_latest_notice
+2024-12-27,128108.SZ,unresolved_latest_notice
+2024-12-27,128119.SZ,unresolved_latest_notice
+2025-01-03,113526.SH,unresolved_latest_notice
+2025-01-03,113577.SH,unresolved_latest_notice
+2025-01-03,128108.SZ,unresolved_latest_notice
+2025-01-03,128119.SZ,unresolved_latest_notice
+2025-01-10,113526.SH,unresolved_latest_notice
+2025-01-10,113577.SH,unresolved_latest_notice
+2025-01-10,128108.SZ,unresolved_latest_notice
+2025-01-10,128119.SZ,unresolved_latest_notice
+2025-01-17,113526.SH,unresolved_latest_notice
+2025-01-17,113577.SH,unresolved_latest_notice
+2025-01-17,128108.SZ,unresolved_latest_notice
+2025-01-17,128119.SZ,unresolved_latest_notice
+2025-01-24,113577.SH,unresolved_latest_notice
+2025-01-24,128108.SZ,unresolved_latest_notice
+2025-01-24,128119.SZ,unresolved_latest_notice
+2025-01-27,113577.SH,unresolved_latest_notice
+2025-01-27,128108.SZ,unresolved_latest_notice
+2025-01-27,128119.SZ,unresolved_latest_notice
+2025-02-07,113577.SH,unresolved_latest_notice
+2025-02-07,128108.SZ,unresolved_latest_notice
+2025-02-07,128119.SZ,unresolved_latest_notice
+2025-02-14,113577.SH,unresolved_latest_notice
+2025-02-14,128108.SZ,unresolved_latest_notice
+2025-02-14,128119.SZ,unresolved_latest_notice
+2025-02-21,113577.SH,unresolved_latest_notice
+2025-02-21,128108.SZ,unresolved_latest_notice
+2025-02-21,128119.SZ,unresolved_latest_notice
+2025-02-28,113577.SH,unresolved_latest_notice
+2025-02-28,128108.SZ,unresolved_latest_notice
+2025-02-28,128119.SZ,unresolved_latest_notice
+2025-03-07,113577.SH,unresolved_latest_notice
+2025-03-07,128108.SZ,unresolved_latest_notice
+2025-03-07,128119.SZ,unresolved_latest_notice
+2025-03-14,113577.SH,unresolved_latest_notice
+2025-03-14,128108.SZ,unresolved_latest_notice
+2025-03-14,128119.SZ,unresolved_latest_notice
+2025-03-21,113577.SH,unresolved_latest_notice
+2025-03-21,128108.SZ,unresolved_latest_notice
+2025-03-21,128119.SZ,unresolved_latest_notice
+2025-03-28,113577.SH,unresolved_latest_notice
+2025-03-28,128108.SZ,unresolved_latest_notice
+2025-03-28,128119.SZ,unresolved_latest_notice
+2025-04-03,113577.SH,unresolved_latest_notice
+2025-04-03,128108.SZ,unresolved_latest_notice
+2025-04-03,128119.SZ,unresolved_latest_notice
+2025-04-11,113577.SH,unresolved_latest_notice
+2025-04-11,128108.SZ,unresolved_latest_notice
+2025-04-11,128119.SZ,unresolved_latest_notice
+2025-04-18,113577.SH,unresolved_latest_notice
+2025-04-18,128108.SZ,unresolved_latest_notice
+2025-04-18,128119.SZ,unresolved_latest_notice
+2025-04-25,113577.SH,unresolved_latest_notice
+2025-04-25,128108.SZ,unresolved_latest_notice
+2025-04-25,128119.SZ,unresolved_latest_notice
+2025-04-30,113577.SH,unresolved_latest_notice
+2025-04-30,128108.SZ,unresolved_latest_notice
+2025-04-30,128119.SZ,unresolved_latest_notice
+2025-05-09,113577.SH,unresolved_latest_notice
+2025-05-09,128108.SZ,unresolved_latest_notice
+2025-05-09,128119.SZ,unresolved_latest_notice
+2025-05-16,113577.SH,unresolved_latest_notice
+2025-05-16,128108.SZ,unresolved_latest_notice
+2025-05-16,128119.SZ,unresolved_latest_notice
+2025-05-23,113577.SH,unresolved_latest_notice
+2025-05-23,128108.SZ,unresolved_latest_notice
+2025-05-23,128119.SZ,unresolved_latest_notice
+2025-05-30,113577.SH,unresolved_latest_notice
+2025-05-30,128108.SZ,unresolved_latest_notice
+2025-05-30,128119.SZ,unresolved_latest_notice
+2025-06-06,113577.SH,unresolved_latest_notice
+2025-06-06,128108.SZ,unresolved_latest_notice
+2025-06-06,128119.SZ,unresolved_latest_notice
+2025-06-13,113577.SH,unresolved_latest_notice
+2025-06-13,128108.SZ,unresolved_latest_notice
+2025-06-13,128119.SZ,unresolved_latest_notice
+2025-06-20,113577.SH,unresolved_latest_notice
+2025-06-20,128108.SZ,unresolved_latest_notice
+2025-06-20,128119.SZ,unresolved_latest_notice
+2025-06-27,113577.SH,unresolved_latest_notice
+2025-06-27,128108.SZ,unresolved_latest_notice
+2025-06-27,128119.SZ,unresolved_latest_notice
+2025-07-04,113577.SH,unresolved_latest_notice
+2025-07-04,128108.SZ,unresolved_latest_notice
+2025-07-04,128119.SZ,unresolved_latest_notice
+2025-07-11,113577.SH,unresolved_latest_notice
+2025-07-11,128108.SZ,unresolved_latest_notice
+2025-07-11,128119.SZ,unresolved_latest_notice
+2025-07-18,113577.SH,unresolved_latest_notice
+2025-07-18,128108.SZ,unresolved_latest_notice
+2025-07-18,128119.SZ,unresolved_latest_notice
+2025-07-25,113577.SH,unresolved_latest_notice
+2025-07-25,128108.SZ,unresolved_latest_notice
+2025-07-25,128119.SZ,unresolved_latest_notice
+2025-08-01,113577.SH,unresolved_latest_notice
+2025-08-01,128108.SZ,unresolved_latest_notice
+2025-08-01,128119.SZ,unresolved_latest_notice
+2025-08-08,113577.SH,unresolved_latest_notice
+2025-08-08,128108.SZ,unresolved_latest_notice
+2025-08-08,128119.SZ,unresolved_latest_notice
+2025-08-15,113577.SH,unresolved_latest_notice
+2025-08-15,128108.SZ,unresolved_latest_notice
+2025-08-15,128119.SZ,unresolved_latest_notice
+2025-08-22,113577.SH,unresolved_latest_notice
+2025-08-22,128108.SZ,unresolved_latest_notice
+2025-08-22,128119.SZ,unresolved_latest_notice
+2025-08-29,113577.SH,unresolved_latest_notice
+2025-08-29,128108.SZ,unresolved_latest_notice
+2025-08-29,128119.SZ,unresolved_latest_notice
+2025-09-05,113577.SH,unresolved_latest_notice
+2025-09-05,124024.SZ,non-production bond floor source
+2025-09-05,128108.SZ,unresolved_latest_notice
+2025-09-05,128119.SZ,unresolved_latest_notice
+2025-09-12,113577.SH,unresolved_latest_notice
+2025-09-12,124024.SZ,non-production bond floor source
+2025-09-12,128108.SZ,unresolved_latest_notice
+2025-09-12,128119.SZ,unresolved_latest_notice
+2025-09-19,113577.SH,unresolved_latest_notice
+2025-09-19,124024.SZ,non-production bond floor source
+2025-09-19,128108.SZ,unresolved_latest_notice
+2025-09-19,128119.SZ,unresolved_latest_notice
+2025-09-26,113577.SH,unresolved_latest_notice
+2025-09-26,124024.SZ,non-production bond floor source
+2025-09-26,128108.SZ,unresolved_latest_notice
+2025-09-26,128119.SZ,unresolved_latest_notice
+2025-09-30,113577.SH,unresolved_latest_notice
+2025-09-30,124024.SZ,non-production bond floor source
+2025-09-30,128108.SZ,unresolved_latest_notice
+2025-09-30,128119.SZ,unresolved_latest_notice
+2025-10-10,113577.SH,unresolved_latest_notice
+2025-10-10,128108.SZ,unresolved_latest_notice
+2025-10-10,128119.SZ,unresolved_latest_notice
+2025-10-17,113577.SH,unresolved_latest_notice
+2025-10-17,128108.SZ,unresolved_latest_notice
+2025-10-17,128119.SZ,unresolved_latest_notice
+2025-10-24,113577.SH,unresolved_latest_notice
+2025-10-24,128108.SZ,unresolved_latest_notice
+2025-10-24,128119.SZ,unresolved_latest_notice
+2025-10-31,113577.SH,unresolved_latest_notice
+2025-10-31,128108.SZ,unresolved_latest_notice
+2025-10-31,128119.SZ,unresolved_latest_notice
+2025-11-07,128108.SZ,unresolved_latest_notice
+2025-11-07,128119.SZ,unresolved_latest_notice
+2025-11-14,128108.SZ,unresolved_latest_notice
+2025-11-14,128119.SZ,unresolved_latest_notice
+2025-11-21,128108.SZ,unresolved_latest_notice
+2025-11-21,128119.SZ,unresolved_latest_notice
+2025-11-28,128108.SZ,unresolved_latest_notice
+2025-11-28,128119.SZ,unresolved_latest_notice
+2025-12-05,128108.SZ,unresolved_latest_notice
+2025-12-05,128119.SZ,unresolved_latest_notice
+2025-12-12,128108.SZ,unresolved_latest_notice
+2025-12-12,128119.SZ,unresolved_latest_notice
+2025-12-19,128108.SZ,unresolved_latest_notice
+2025-12-19,128119.SZ,unresolved_latest_notice
+2025-12-26,128108.SZ,unresolved_latest_notice
+2025-12-26,128119.SZ,unresolved_latest_notice
+2025-12-31,128108.SZ,unresolved_latest_notice
+2025-12-31,128119.SZ,unresolved_latest_notice
+2026-01-09,128108.SZ,unresolved_latest_notice
+2026-01-09,128119.SZ,unresolved_latest_notice
+2026-01-16,128108.SZ,unresolved_latest_notice
+2026-01-16,128119.SZ,unresolved_latest_notice
+2026-01-23,128108.SZ,unresolved_latest_notice
+2026-01-23,128119.SZ,unresolved_latest_notice
+2026-01-30,128108.SZ,unresolved_latest_notice
+2026-01-30,128119.SZ,unresolved_latest_notice
+2026-02-06,128108.SZ,unresolved_latest_notice
+2026-02-06,128119.SZ,unresolved_latest_notice
+2026-02-13,128108.SZ,unresolved_latest_notice
+2026-02-13,128119.SZ,unresolved_latest_notice
+2026-02-27,128108.SZ,unresolved_latest_notice
+2026-02-27,128119.SZ,unresolved_latest_notice
+2026-03-06,128108.SZ,unresolved_latest_notice
+2026-03-06,128119.SZ,unresolved_latest_notice
+2026-03-13,128108.SZ,unresolved_latest_notice
+2026-03-13,128119.SZ,unresolved_latest_notice
+2026-03-20,128108.SZ,unresolved_latest_notice
+2026-03-20,128119.SZ,unresolved_latest_notice
+2026-03-27,128108.SZ,unresolved_latest_notice
+2026-03-27,128119.SZ,unresolved_latest_notice
+2026-04-03,128108.SZ,unresolved_latest_notice
+2026-04-03,128119.SZ,unresolved_latest_notice
+2026-04-10,128108.SZ,unresolved_latest_notice
+2026-04-10,128119.SZ,unresolved_latest_notice
+2026-04-17,128108.SZ,unresolved_latest_notice
+2026-04-17,128119.SZ,unresolved_latest_notice
+2026-04-24,128108.SZ,unresolved_latest_notice
+2026-04-24,128119.SZ,unresolved_latest_notice
+2026-04-30,128108.SZ,unresolved_latest_notice
+2026-04-30,128119.SZ,unresolved_latest_notice
+2026-05-08,128108.SZ,unresolved_latest_notice
+2026-05-08,128119.SZ,unresolved_latest_notice
+2026-05-15,128108.SZ,unresolved_latest_notice
+2026-05-15,128119.SZ,unresolved_latest_notice
+2026-05-22,128108.SZ,unresolved_latest_notice
+2026-05-22,128119.SZ,unresolved_latest_notice
+2026-05-29,128119.SZ,unresolved_latest_notice
+2026-06-05,128119.SZ,unresolved_latest_notice
+2026-06-12,128119.SZ,unresolved_latest_notice
+2026-06-18,128119.SZ,unresolved_latest_notice
+2026-06-26,128119.SZ,unresolved_latest_notice
+2026-07-03,128119.SZ,unresolved_latest_notice
+2026-07-10,128119.SZ,unresolved_latest_notice

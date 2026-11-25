@@ -1,0 +1,18 @@
+{
+  "BS": {
+    "manifest_sha256": "c85b77933ca384fd17a22de5c01c4766874317a3ac25322c7f862a287a8cea25",
+    "cutoff": "2026-11-20"
+  },
+  "ZL": {
+    "manifest_sha256": "1497d534a5ed299307f7a7ab48d305e426e9d99be36a9538decd0272285c0080",
+    "cutoff": "2026-11-20"
+  },
+  "LSM": {
+    "manifest_sha256": "0411eaa6a19a442e16f1328a622d4da78f5b547c40c6e3f03eabdab7c79b4908",
+    "cutoff": "2026-11-20"
+  },
+  "CCB": {
+    "manifest_sha256": "b473010c36e1a64c9e983a6fa1310d325f5996b09e8971aa80d78e0ae501f1cf",
+    "cutoff": "2026-11-20"
+  }
+}

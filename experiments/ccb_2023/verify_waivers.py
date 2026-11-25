@@ -28,20 +28,23 @@ def main():
     saved=pd.read_csv(OUT/'comparison_overall.csv').set_index('model')
     key=['date','code'];assert not f.duplicated(key).any()
     assert f[key].equals(basic[key])
+    assert f.date.min()==manifest['start'] and f.date.max()==manifest['cutoff']
+    assert f.date.nunique()==manifest['weeks']
     for model in ['BS','ZL','LSM','market']:
         assert np.allclose(f[model],basic[model],rtol=0,atol=1e-10,equal_nan=True)
     assert np.allclose(f.CCB_basic,basic.CCB,rtol=0,atol=1e-10)
     unresolved=f.waiver_state.str.startswith('unresolved')
     assert f.loc[unresolved,'CCB'].isna().all()
     mask=np.isfinite(f[MODELS+['market']]).all(axis=1)&f[MODELS+['market']].gt(0).all(axis=1)
-    assert f.loc[mask,key].reset_index(drop=True).equals(c[key])
-    assert len(c)==manifest['common_sample']
+    pd.testing.assert_frame_equal(f.loc[mask].reset_index(drop=True),c)
+    assert len(c)==manifest['common_sample'] and f.CCB.notna().sum()==manifest['prices']
     for model in MODELS:
         error=c[model]-c.market
         assert abs(error.abs().mean()-saved.at[model,'MAE'])<1e-10
         assert abs(np.sqrt((error**2).mean())-saved.at[model,'RMSE'])<1e-10
     active=f.loc[f.waiver_state.eq('explicit_active')]
     evidence=active.merge(terms,on='announcement_id',validate='many_to_one',suffixes=('','_notice'))
+    assert len(evidence)==len(active)
     assert evidence.status.eq('explicit').all()
     assert evidence.code.eq(evidence.code_notice).all()
     assert (evidence.available_date<=evidence.date).all()
@@ -58,8 +61,7 @@ def main():
     acceptance=dict(passed=True,unique_observations=len(f),common_sample=len(c),
         asof_provenance_checks=len(evidence),unchanged_prices_verified=int(unchanged.sum()),
         unresolved_excluded=int(unresolved.sum()),production_artifact_guards=guards,
-        grid_cases=len(grid),max_grid_difference=float(grid.difference.abs().max()),
-        tests='26 unchanged base-model tests previously passed; 18 current waiver tests passed')
+        grid_cases=len(grid),max_grid_difference=float(grid.difference.abs().max()))
     (OUT/'acceptance.json').write_text(json.dumps(acceptance,ensure_ascii=False,indent=2),encoding='utf-8')
     # Report the treatment effect on identical affected observations separately.
     affected=c.loc[c.protection.gt(c.basic_protection+1e-12)]
@@ -77,18 +79,15 @@ def main():
     links='\n'.join(f'- [{r.title}]({r.source})：{r.start} 至 {r.end}；可用日 {r.available_date}。' for r in source_sample.itertuples())
     report=f'''# CCB 2023：明确不赎回承诺补充结果
 
-已按2023版保护期逻辑纳入能够从公告确定期限的历史不赎回承诺；模型版本为2023，估值区间仍为2019-01-04至2026-10-23。
-本次没有加入2024版CCBA、未给出期限时默认一季度、或连续两周未赎回推断。
+按 2023 版保护期逻辑纳入可从公告确定期限的不赎回承诺。估值区间为 {manifest['start']} 至 {manifest['cutoff']}，覆盖 {manifest['weeks']} 个周度截面，共有 {manifest['prices']:,} 个有效增强版价格。
 
 ## 结果
 
-在完全一致的 {len(c):,} 个债券—日期、{c.code.nunique()}只债券、{c.date.nunique()}周样本上：
+共同样本有 {len(c):,} 个券日、{c.code.nunique()} 只债券，覆盖 {c.date.min()} 至 {c.date.max()} 的 {c.date.nunique()} 个周度截面。
 
 {table(saved.reset_index())}
 
-CCB_basic是原基础CCB在本次样本上的重新统计，CCB是加入明确承诺后的版本。
-不能把本表与原报告的151,991个样本直接作前后比较：本次排除了期限仍待核实的观测。
-承诺补充使CCB的MAE下降{saved.at['CCB_basic','MAE']-saved.at['CCB','MAE']:.4f}元、RMSE下降{saved.at['CCB_basic','RMSE']-saved.at['CCB','RMSE']:.4f}元；仍不是误差最低的模型。
+CCB_basic 为基础保护期版本在上述样本上的误差，CCB 为纳入明确承诺后的误差。相对基础版，增强版 MAE 变化 {saved.at['CCB','MAE']-saved.at['CCB_basic','MAE']:+.4f} 元，RMSE 变化 {saved.at['CCB','RMSE']-saved.at['CCB_basic','RMSE']:+.4f} 元。
 
 实际延长保护期的 {len(affected):,} 个共同观测单独比较：
 
@@ -112,7 +111,7 @@ CCB_basic是原基础CCB在本次样本上的重新统计，CCB是加入明确�
 
 ## 公告覆盖与缺口
 
-巨潮资讯检索范围为2013年至2026-10-23，查询词为“不赎回”和“不提前赎回”；保留原始分页响应、PDF、文字、债券映射及逐项提取依据。
+巨潮资讯检索覆盖 {manifest['search_start']} 至 {manifest['search_end']}，查询词为“不赎回”和“不提前赎回”。原始分页响应、PDF、提取文字和债券映射均可复核。
 下载并处理 {len(terms)} 份与基础样本发行人相关的公告，其中 {status.get('explicit',0)} 份明确期限、{status.get('informational_notice',0)} 份信息性文件、{status.get('no_explicit_future_period',0)} 份尚不能确定未来期限、{status.get('correction_review_required',0)} 份取消/更正状态待核，另有 {status.get('superseded_notice',0)} 份旧稿已关联更新版。
 最新公告仍未解决时，增强版留空并从同样本比较排除，共 {int(unresolved.sum()):,} 个观测；详见[待核队列](../inputs/waivers/review_queue.csv)。
 保护期实际延长 {int(changed.sum()):,} 个观测、{f.loc[changed,'code'].nunique()} 只债券。
@@ -120,7 +119,8 @@ CCB_basic是原基础CCB在本次样本上的重新统计，CCB是加入明确�
 **这不是完整历史承诺数据库。** 关键词覆盖、历史网页变更、未写明期限和公告撤销时点仍有限制。
 “未检索到承诺”沿用基础保护期，仅表示当前检索中没有可用记录，不证明发行人没有作出承诺。
 旧稿仅在其更新版已经可用时退出冲突判断，不能将当前撤销状态当作历史当日已知信息。
-本轮194份的逐项复核见[审计明细](../inputs/waivers/review_20261029/audit.csv)及[复核报告](REVIEW_20261029.md)。
+2026-10-29 对原 194 份待核公告的逐项复核见[审计明细](../inputs/waivers/review_20261029/audit.csv)及[复核报告](REVIEW_20261029.md)。
+2026-11-25 的更正关系和同期披露核查见[复核记录](../inputs/waivers/review_20261125/README.md)。
 
 可追溯公告示例：
 
@@ -128,7 +128,7 @@ CCB_basic是原基础CCB在本次样本上的重新统计，CCB是加入明确�
 
 ## 验证与文件
 
-基础模型未变，沿用此前26项通过记录；本轮18项公告/时点测试通过。{len(grid)}个受影响观测加密网格，最大差异 {grid.difference.abs().max():.6f} 元，低于用户选择的0.05元数值容差。
+对 {len(grid)} 个受影响观测加密网格，最大差异 {grid.difference.abs().max():.6f} 元，低于 0.05 元数值容差。
 逐项验证了公告可用日、债券映射、承诺期限、相同样本交集、未调整价格保持一致，以及MAE/RMSE独立复算。
 生产BS/ZL/LSM通过现有artifact完整性校验，本次未重算或改写生产定价。
 

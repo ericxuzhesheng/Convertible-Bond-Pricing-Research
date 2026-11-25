@@ -1,29 +1,36 @@
 {
-  "research_contract_version": "research-pricing-v2",
-  "superseded_git_commit": "a2ec8f16d0b340e5575370ff33caf600f184e302",
+  "research_contract_version": "research-four-model-mean-v1",
+  "superseded_git_commit": "abb13950912ea49bdfd676597f4d064b1b9fb809",
   "pricing": {
     "BS": {
       "contract_version": "cashflow-pricing-v2",
-      "input_cutoff": "2026-11-13",
-      "output_sha256": "62a2785566a462ddc417d06b8bff5dd1ce44aa8a9b7700989f52d6c1c2b9c80d"
+      "input_cutoff": "2026-11-20",
+      "output_sha256": "d5f947ee0f80db9784e9a2ed27e2fa15b0d295d4dd59bc8e3d33748f0077577c"
     },
     "ZL": {
       "contract_version": "cashflow-pricing-v2",
-      "input_cutoff": "2026-11-13",
-      "output_sha256": "9ae99d34c7423d532c64b11a95d008ddc3a3a50a0dd29bfc062db4126e1518b4"
+      "input_cutoff": "2026-11-20",
+      "output_sha256": "e65b5b890e6e8961e0dc35d704641ccfa5aebecb064336b1faef638e22726d30"
     },
     "LSM": {
       "contract_version": "cashflow-pricing-v2",
-      "input_cutoff": "2026-11-13",
-      "output_sha256": "e05514abf06d5de9fbd938ef6140743543fd81fa303bc29d950840d1783105c3"
+      "input_cutoff": "2026-11-20",
+      "output_sha256": "c50904ab173d770bf0b4dc4a8ec74dcdaaa4a7bcf4b7888f20e54996c7a34dc8"
+    },
+    "CCB": {
+      "contract_version": "cashflow-pricing-v2",
+      "input_cutoff": "2026-11-20",
+      "output_sha256": "2c5dc40f61f332c5d55803484fd2f44ace7c29cbd53358703a7d0c319f9f6e8f"
     }
   },
   "factor_periods": {
     "BS": 94,
     "ZL": 94,
-    "LSM": 94
+    "LSM": 94,
+    "CCB": 94,
+    "Mean": 94
   },
-  "stage": "D:\\Github Repository\\Convertible-Bond-Pricing-Research\\backtest\\logs\\research_full_l6ir8hml",
+  "stage": "D:\\Github Repository\\Convertible-Bond-Pricing-Research\\backtest\\logs\\research_full_mw3jybwx",
   "total_return_certified": false,
   "frozen_tracking": "Original prospective evidence is preserved; recalculated research is retrospective"
 }

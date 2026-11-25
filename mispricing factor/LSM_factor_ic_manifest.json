@@ -2,8 +2,8 @@
   "model": "LSM",
   "methodology_version": 1,
   "last_rebalance_date": "2026-10-30",
-  "last_return_date": "2026-11-13",
-  "history_sha256": "0e7156a1d54eff42b6d79e8c8e932c81082216f21c771e1c0926810f61c27e96",
+  "last_return_date": "2026-11-20",
+  "history_sha256": "700d0b342499c168da5d3d983ea9f4f0bb6b69a29e5af18866b1420d3bc4ed14",
   "historical_columns": [
     "110030.SH",
     "110031.SH",
@@ -448,6 +448,7 @@
     "118075.SH",
     "118076.SH",
     "118077.SH",
+    "118078.SH",
     "123001.SZ",
     "123002.SZ",
     "123003.SZ",
@@ -995,5 +996,5 @@
     "128144.SZ",
     "128145.SZ"
   ],
-  "historical_input_fingerprint": "0fbc104d628e45361347e57e787e2a2d2c2b3696fd55047c340531ef55617bf1"
+  "historical_input_fingerprint": "d9db3b3bf69ffb0cfbe51921f5471958eafdadf8380f862dbd7f8f1bfea8c4a5"
 }

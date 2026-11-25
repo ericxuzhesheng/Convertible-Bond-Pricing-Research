@@ -13,12 +13,12 @@ BASE = HERE.parent / "backtest"
 sys.path.insert(0, str(BASE))
 from strategy_data import write_csv, write_json, write_text, now_local
 from market_data_contracts import observed_average_risk_free_rate
-from weekly_strategy_core import Config, ValueConfig, net_valuation_upside, Inputs, build_ranking, next_session, select_targets, simulate, performance, timestamp
+from weekly_strategy_core import MODELS, Config, ValueConfig, net_valuation_upside, Inputs, build_ranking, next_session, select_targets, simulate, performance, timestamp
 
-METHOD = "weekly-ensemble-v1"
-ENGINE_REVISION = 5
-VALUE_METHOD = "weekly-value-v1"
-VALUE_ENGINE_REVISION = 2
+METHOD = "weekly-ensemble-four-model-v2"
+ENGINE_REVISION = 7
+VALUE_METHOD = "weekly-value-four-model-v2"
+VALUE_ENGINE_REVISION = 4
 LIMITATION = ("理论多空，无历史券源验证；历史强赎/ST覆盖不完整；初次抓取的财务历史不是原始发布版本。"
               "日净值为价格与已核验现金流的研究估计，尚未验证全部历史付息，不能称为完整总收益。")
 
@@ -202,7 +202,7 @@ def run_one(data, config, start, end, output, mode="both", detail=True):
             "market_eligible_count": len(pre), "eligible_count": int(ranking.eligible.sum()),
             **({"long_entry_qualified_count": int(ranking.long_entry_qualified.sum()),
                 "long_selected_count": int(ranking.long_selected.sum())} if is_value else {}),
-            "three_model_count": int(ranking[["BS", "ZL", "LSM"]].notna().all(axis=1).sum()),
+            "four_model_count": int(ranking[list(MODELS)].gt(0).all(axis=1).sum()),
             "financial_coverage": pre.financial_known.mean() if len(pre) else None,
             "event_coverage": pre.event_known.mean() if len(pre) else None,
             "st_coverage": pre.st_known.mean() if len(pre) else None})
@@ -218,7 +218,7 @@ def run_one(data, config, start, end, output, mode="both", detail=True):
                          for name, frame in files.items() if name.endswith("_daily_nav.csv"))
     for name, frame in files.items():
         write_csv(output/name, frame)
-    report = ["# 周度均价安全边际策略" if is_value else "# 周度三模型相对排名策略", "", f"模型：{config.model}；频率：{config.frequency}；模式：{config.risk_mode}。",
+    report = ["# 周度四模型均价安全边际策略" if is_value else "# 周度四模型相对排名策略", "", f"模型：{config.model}；频率：{config.frequency}；模式：{config.risk_mode}。",
               "", "采用每日OHLCV和日持仓账本，下一交易日开盘调仓。", "", LIMITATION, ""]
     if rankings:
         latest = rankings[-1]
@@ -229,10 +229,10 @@ def run_one(data, config, start, end, output, mode="both", detail=True):
             f"多头目标仓位 {sum(latest_long.values()):.1%}；目标现金约 {1-sum(latest_long.values()):.1%}（另扣实际成交成本）。理论多空目标净敞口 {sum(latest_ls.values()):.1%}。"]
         if is_value:
             report += [f"买入要求：扣除往返综合成本后的条件性估值余量≥{config.long_safety_margin:.1%}；开盘价再次复核。该余量不是预期周收益。",
-                "", "|代码|转债|多头目标权重|扣费后估值余量|买入价格上限约|三模型均高于市价|", "|---|---|---:|---:|---:|---|"]
+                "", "|代码|转债|多头目标权重|扣费后估值余量|买入价格上限约|四模型均高于市价|", "|---|---|---:|---:|---:|---|"]
             for code, weight in latest_long.items():
                 row = latest.set_index("code").loc[code]
-                consensus = "是" if row[["BS", "ZL", "LSM"]].gt(row.market_price).all() else "否"
+                consensus = "是" if row[list(MODELS)].gt(row.market_price).all() else "否"
                 report.append(f"|{code}|{row['name']}|{weight:.1%}|{row.roundtrip_net_upside:.2%}|{np.floor(row.long_entry_limit*1000)/1000:.3f}|{consensus}|")
         report += ["", "以下为风险合格池相对排名，未必满足买入门槛。", "", "|代码|转债|均价与市价差(元)|均价估值差|排序信号|", "|---|---|---:|---:|---:|"]
         for row in eligible.itertuples():
@@ -274,7 +274,7 @@ def run_one(data, config, start, end, output, mode="both", detail=True):
 
 def main(argv=None, *, value_strategy=False):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", choices=["mean", "BS", "ZL", "LSM"], default="mean")
+    parser.add_argument("--model", choices=["mean", *MODELS], default="mean")
     parser.add_argument("--frequency", choices=["weekly", "monthly"], default="weekly")
     parser.add_argument("--mode", choices=["both", "long_only", "long_short"], default="both")
     parser.add_argument("--line", choices=["both", "research", "tracking"], default="both")
@@ -302,7 +302,8 @@ def main(argv=None, *, value_strategy=False):
     summaries = []
     for line in lines:
         c = replace(config, risk_mode=line)
-        summaries.append(run_one(data, c, start, end, args.output_dir/line, args.mode))
+        subdir = "tracking_four_models" if line == "tracking" else line
+        summaries.append(run_one(data, c, start, end, args.output_dir/subdir, args.mode))
     if args.compare:
         monthly_dates = data.signal_dates(start, end, "monthly")
         if len(monthly_dates) == 0:
@@ -311,7 +312,7 @@ def main(argv=None, *, value_strategy=False):
         summaries = []
         variants = {"mean_weekly": replace(config, model="mean", frequency="weekly"),
                     "mean_monthly": replace(config, model="mean", frequency="monthly"),
-                    **{f"{m}_weekly": replace(config, model=m) for m in ("BS", "ZL", "LSM")},
+                    **{f"{m}_weekly": replace(config, model=m) for m in MODELS},
                     "no_fundamentals": replace(config, fundamentals=False),
                     **{f"cost_{bps}bp": replace(config, transaction_bps=bps) for bps in ((10, 20) if value_strategy else (5, 20))},
                     **{f"borrow_{rate}": replace(config, borrow_rate=rate) for rate in (0., .08)}}

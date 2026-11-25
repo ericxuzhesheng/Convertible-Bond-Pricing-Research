@@ -21,9 +21,14 @@ if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8"
 
 BASE = Path(__file__).resolve().parent
 CONTRACT_VERSION = "cashflow-pricing-v2"
+LEGACY_MODELS = ("BS", "ZL", "LSM")
+MODELS = (*LEGACY_MODELS, "CCB")
+RESEARCH_MODELS = (*MODELS, "Mean")
 
 
 def implementation_for(model):
+    if model=="CCB":
+        return "ccb-observed-curve-waivers-v1"
     return 'cashflow-stopping-lsm-v2.4' if model=='LSM' else IMPLEMENTATION
 
 
@@ -82,6 +87,26 @@ def _write_csv(frame, path):
     tmp = path.with_suffix(path.suffix+".tmp")
     frame.to_csv(tmp)
     os.replace(tmp,path)
+
+
+def pricing_panel(base=BASE):
+    base = Path(base)
+    def read(path):
+        return pd.read_csv(path, index_col=0, parse_dates=True, float_precision="round_trip")
+    market = read(paths_for(base, 'BS')['market'])
+    models = {}
+    valid = np.isfinite(market) & market.gt(0)
+    for model in MODELS:
+        files = paths_for(base, model)
+        price = read(files['model'])
+        if not price.index.equals(market.index) or not price.columns.equals(market.columns):
+            raise DataContractError(f'{model}: shared pricing axes differ')
+        if model != 'BS' and not read(files['market']).equals(market):
+            raise DataContractError(f'{model}: market quotes differ')
+        models[model] = price
+        valid &= np.isfinite(price) & price.gt(0)
+    models['Mean'] = (sum(models.values()) / len(MODELS)).where(valid)
+    return models, market
 
 
 def validate_outputs(model, output, data=None):
@@ -210,7 +235,7 @@ def run_model(model, args, data=None):
     return write_outputs(model,data,output,params,frames,coverage,issues,execution_backend='cuda' if backend=='cuda' else 'cpu')
 
 
-def write_outputs(model,data,output,params,frames,coverage,issues,execution_backend='cpu'):
+def write_outputs(model,data,output,params,frames,coverage,issues,execution_backend='cpu',limitations=None):
     files=paths_for(output,model)
     prices = frames["model"]
     market = data.market.reindex_like(prices)
@@ -231,7 +256,7 @@ def write_outputs(model,data,output,params,frames,coverage,issues,execution_back
         "output_sha256":hashlib.sha256(files["summary"].read_bytes()).hexdigest(),
         "artifact_sha256":{path.name:hashlib.sha256(path.read_bytes()).hexdigest()
                            for key,path in files.items() if key not in ("manifest","summary")},
-        "limitations":["Zero dividend yield; no unverified future reset or discretionary waiver assumed.",
+        "limitations":limitations if limitations is not None else ["Zero dividend yield; no unverified future reset or discretionary waiver assumed.",
             "Deterministic issuer policy and fixed notice period are model assumptions, not observed issuer decisions.",
             "TF-style discounting is not an explicit default/recovery model; contractual coupon dates are not verified historical cashflow events."]}
     files["manifest"].write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")

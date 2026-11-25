@@ -65,7 +65,7 @@ Register-ScheduledTask `
     -Action $action `
     -Settings $settings `
     -Principal $principal `
-    -Description "每周五16:30本地更新行情、定价、策略、周报和README；验证通过才提交推送GitHub。" `
+    -Description "每周五16:30本地更新行情、四模型定价、策略、周报和README；验证通过才提交推送GitHub。" `
     -Force | Out-Null
 
 Write-Host ""

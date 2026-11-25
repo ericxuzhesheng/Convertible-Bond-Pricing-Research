@@ -1,5 +1,22 @@
 # Research Brief | 研究摘要
 
+<!-- four-model-summary:start -->
+## 四模型均价研究 | Four-Model Mean
+
+定价共同样本覆盖 2019-01-04 至 2026-11-20 的 404 周，共 150,005 个券日。BS、ZL、LSM 和 CCB 各占 25%，均价相对市场的 MAE 为 10.89 元，RMSE 为 30.14 元。
+
+The four-model arithmetic mean uses the same 150,005 observations over 404 weeks. The table reports daily-accounted research results.
+
+| 组合 / Portfolio | 年化研究收益 / Annualized estimate | 夏普 / Sharpe | 最大回撤 / Max drawdown |
+|---|---|---|---|
+| long_only | 15.97% | 1.25 | -17.57% |
+| long_short | 13.14% | 1.34 | -12.09% |
+
+周度研究使用下一交易日开盘复核和交易成本，历史付息与理论空头券源仍有缺口。 [定价、因子及策略结果](../README.md)
+<!-- four-model-summary:end -->
+
+## 历史研究档案 | Historical Research Archive
+
 2026-10-28新增：[2026年修正版定价周报](../long-short%20strategy/weekly_value_results_pricing_v2_2026/README.md)覆盖截至10月23日的43个自然周，按已验证BS/ZL/LSM价格回补历史研究。旧版策略与IC数字仍保留原版本；本次不创建历史事前冻结信号。
 
 > 定价版本说明（2026-10-28）：三模型已重建并验证400周历史至2026-10-23，各有151,991个有效定价单元。修正版采用独立 BS、ZL、LSM 引擎和合同现金流口径，LSM 不再读取或叠加 ZL 价格。下文策略收益、IC 和旧版定价统计保留其原有版本，尚未迁移为新方法结果。方法与独立命令见 [PRICING_METHODS.md](../backtest/PRICING_METHODS.md)。

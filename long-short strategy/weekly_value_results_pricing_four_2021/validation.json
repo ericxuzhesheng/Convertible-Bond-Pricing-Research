@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "report_weeks": 53,
+  "observed_signal_weeks": 53,
+  "start": "2021-01-01",
+  "end": "2021-12-31",
+  "pricing_version": "four-model-mean-v1",
+  "scope": "Retrospective research reports; no historical frozen signals or complete-total-return claim"
+}
