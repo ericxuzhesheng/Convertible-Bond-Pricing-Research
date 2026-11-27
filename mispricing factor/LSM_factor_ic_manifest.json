@@ -2,8 +2,8 @@
   "model": "LSM",
   "methodology_version": 1,
   "last_rebalance_date": "2026-10-30",
-  "last_return_date": "2026-11-20",
-  "history_sha256": "700d0b342499c168da5d3d983ea9f4f0bb6b69a29e5af18866b1420d3bc4ed14",
+  "last_return_date": "2026-11-27",
+  "history_sha256": "6c8ea9f3401cded1d4ed139c24bc32d56d2b323dd6e3abef5500101c37f5313c",
   "historical_columns": [
     "110030.SH",
     "110031.SH",

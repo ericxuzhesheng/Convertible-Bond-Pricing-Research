@@ -1,10 +1,10 @@
 {
-  "generated_at_utc": "2026-11-25T13:57:06.352756+00:00",
+  "generated_at_utc": "2026-11-27T10:26:46.566896+00:00",
   "source": {
     "price": "backtest/cb_price_cache.csv (Tushare cb_daily)",
     "amount": "backtest/cb_amount_cache.csv (Tushare cb_daily)",
     "conversion_value": "backtest/cb_convert_val_cache.csv (Tushare cb_daily cb_value)",
-    "bond_floor": "backtest/cb_bond_floor_cache.csv (Tushare cb_daily bond_value)"
+    "bond_floor": "backtest/cb_bond_floor_cache.csv (Tushare cb_daily bond_value and same-session Eastmoney fallback; fallback cells in backtest/cb_bond_floor_sources.csv)"
   },
   "lookback_trading_days": 20,
   "min_observations": 10,

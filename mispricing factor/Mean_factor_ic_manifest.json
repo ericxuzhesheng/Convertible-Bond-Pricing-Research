@@ -2,8 +2,8 @@
   "model": "Mean",
   "methodology_version": 1,
   "last_rebalance_date": "2026-10-30",
-  "last_return_date": "2026-11-20",
-  "history_sha256": "32fc84c22ccf7c5814eb355258c7361a16cfdddccc9f7a692d2e669bf794968e",
+  "last_return_date": "2026-11-27",
+  "history_sha256": "561de1617ed281125aa7a61e6e40d18236ff9691e1f3f9b7ec23878980d46519",
   "historical_columns": [
     "110030.SH",
     "110031.SH",

@@ -17,6 +17,13 @@ and interpolates these continuous zero-rate proxies to form
 `D(t) = exp(-interpolated_continuous_rate(t) * t)`. It does not claim a bootstrapped
 discount curve. A nonnegative cash-credit spread is calibrated to the observed
 pure-bond value using the same contractual cash flows and discount convention.
+Incremental weekly acquisition prefers Tushare `cb_daily.bond_value`. When
+coverage is insufficient, it fills missing values from Eastmoney's dated
+valuation table and then its timestamped closing snapshot. The alternate quote
+must match the valuation session and primary bond close within one price tick,
+and its reported pure-bond premium must agree with the floor. The standard
+coverage and credit-spread checks still apply. Accepted alternate cells are
+recorded in `cb_bond_floor_sources.csv`.
 No credit spread is fitted to the convertible market price. An observation
 above its contractual risk-free cash-flow value is excluded and reported;
 it is not silently assigned zero credit spread.

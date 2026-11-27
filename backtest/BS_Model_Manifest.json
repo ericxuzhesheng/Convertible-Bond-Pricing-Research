@@ -406,10 +406,11 @@
     "2026-10-30",
     "2026-11-06",
     "2026-11-13",
-    "2026-11-20"
+    "2026-11-20",
+    "2026-11-27"
   ],
-  "input_cutoff": "2026-11-20",
-  "input_fingerprint": "bf374fe820b3092063d36c36dd179060cef440db6de1fe2c1d05ddfd4c0468e0",
+  "input_cutoff": "2026-11-27",
+  "input_fingerprint": "863846440ff9c2ab64f86c6d44bc4ab47df3bd4d5e02caf6eb4e995b344868f8",
   "model_parameters": {
     "model": "BS",
     "implementation": "cashflow-stopping-v2.3",
@@ -426,16 +427,16 @@
     "quote_basis": "full-price",
     "coupon_timing": "contractual-dates; next-simulation-observation"
   },
-  "output_sha256": "d5f947ee0f80db9784e9a2ed27e2fa15b0d295d4dd59bc8e3d33748f0077577c",
+  "output_sha256": "a0640168c5b77a602a9872a5b2498ba94f019bef27f528efe7f8f84546742985",
   "artifact_sha256": {
-    "BS_Model_Prices.csv": "d1a142f544bac8516c5b6720391cbe7dd222160e79e4182b5d1df13ee308162b",
-    "Market_Prices.csv": "865a24baeebf2783665132f6fc0a58b7204339a461405d020691793e41a4bbb4",
-    "BS_Model_Deviation_Abs.csv": "b5ed7952b0ad4b774f6e6e8e37b459ea315c3a5af98be0423f7fc005aa8449a0",
-    "BS_Model_Deviation_Pct.csv": "5bfbe898752871694388b0a658390ebabcf00506f461a267b2167d4b8b86cb0c",
-    "BS_Monte_Carlo_SE.csv": "472c5f2b97ca9b5e40091e671634918065dc4d30e8ed3cf83b1f4b6a8d5a1971",
-    "BS_Implied_Credit_Spread.csv": "3ca580b03cebbde270fe816844c0f2daab18f4bef779a13a7ca8cf0637f00078",
-    "BS_Pricing_Coverage.csv": "f31964abca02b70ec8179e75127d607e576f51e514ec633e4d5e0047c1fc1437",
-    "BS_Pricing_Issues.csv": "84a4c9f335948e8a32e09261db20bb5198532e931bbd46420e4de751b60c1435"
+    "BS_Model_Prices.csv": "b9ba8adac5933cbebd99b7ce096537bf7eb6e645592e57b30bba36f45281ad5d",
+    "Market_Prices.csv": "7a12c74258e66b9e4f722a8011b39b263741548d2ccb1f56ec5f209d0f5e5886",
+    "BS_Model_Deviation_Abs.csv": "a8a2d9d75e80230aeb1bee848da3aaf25055fbdd8dd0a7209bebc1b67f040588",
+    "BS_Model_Deviation_Pct.csv": "3d3d81dc197235850376675d200b71e638dfcf5f8e450fd52c324f8fae9528bd",
+    "BS_Monte_Carlo_SE.csv": "4c22b168a2eed6fc81df6b919871b826329005ff828e463458940bc044340ad6",
+    "BS_Implied_Credit_Spread.csv": "21769dab9113f7032f5f015274c133ef95f72e8ce4294505d2ca5f384a960155",
+    "BS_Pricing_Coverage.csv": "79650681203d3aa1efa9ecf2bcfb90b12245c01ec6d6926bb59353646e268d03",
+    "BS_Pricing_Issues.csv": "25905ae4a88fd740935834a9d07ff7e7be72ae395e18f5db1d534a4f18943eb2"
   },
   "limitations": [
     "Zero dividend yield; no unverified future reset or discretionary waiver assumed.",

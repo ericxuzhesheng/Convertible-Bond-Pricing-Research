@@ -12,7 +12,7 @@ Usage:
 Output files (all in the same directory as this script):
     cb_price_cache.csv        可转债收盘价
     cb_convert_val_cache.csv  转换价值（正股价 × 面值 / 转股价）
-    cb_bond_floor_cache.csv   纯债价值（DCF）
+    cb_bond_floor_cache.csv   同日数据源纯债价值
     cb_maturity_cache.csv     剩余期限（年）
     cb_stock_mv_cache.csv     正股总市值（万元）
     cb_balance_cache.csv      转债待偿余额（万元，来自 cb_basic）
@@ -32,9 +32,11 @@ Verified Tushare field names (as of 2026):
 """
 
 import argparse
+import io
 import os
 import re
 import shutil
+import sys
 import time
 import warnings
 from collections.abc import Callable
@@ -49,6 +51,8 @@ import requests
 import tushare as ts
 from tqdm import tqdm
 
+from bond_floor_sources import fill_bond_floors
+from market_calendar_source import sina_open_dates
 from market_data_contracts import (
     DataContractError,
     PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
@@ -68,6 +72,9 @@ from market_data_contracts import (
 )
 from token_loader import load_tushare_token
 
+if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
 warnings.filterwarnings('ignore')
 
 # ==========================================
@@ -81,6 +88,7 @@ OUT_DIR       = os.path.dirname(os.path.abspath(__file__))
 OUT_PRICE     = os.path.join(OUT_DIR, 'cb_price_cache.csv')
 OUT_CV        = os.path.join(OUT_DIR, 'cb_convert_val_cache.csv')
 OUT_FLOOR     = os.path.join(OUT_DIR, 'cb_bond_floor_cache.csv')
+OUT_FLOOR_SOURCES = os.path.join(OUT_DIR, 'cb_bond_floor_sources.csv')
 OUT_MATURITY  = os.path.join(OUT_DIR, 'cb_maturity_cache.csv')
 OUT_STOCK_MV  = os.path.join(OUT_DIR, 'cb_stock_mv_cache.csv')
 OUT_BALANCE   = os.path.join(OUT_DIR, 'cb_balance_cache.csv')
@@ -239,7 +247,7 @@ def filter_exchangeable_bonds(cb_basic: pd.DataFrame) -> pd.DataFrame:
     return filtered
 
 
-def fetch_trade_dates(pro, start: str, end: str) -> list[str]:
+def _tushare_trade_dates(pro, start: str, end: str, *, allow_no_open: bool) -> list[str]:
     """Return actual open SSE dates for bounded per-day market queries."""
 
     calendar = call_tushare_with_retry(
@@ -256,14 +264,31 @@ def fetch_trade_dates(pro, start: str, end: str) -> list[str]:
         raise DataContractError(
             f"trade_cal missing columns: {sorted(missing)}"
         )
-    open_days = calendar.loc[
-        pd.to_numeric(calendar['is_open'], errors='coerce') == 1,
-        'cal_date',
-    ].astype(str)
+    flags = pd.to_numeric(calendar['is_open'], errors='coerce')
+    open_days = calendar.loc[flags == 1, 'cal_date'].astype(str)
     dates = sorted(day for day in open_days if start <= day <= end)
     if not dates:
+        requested = set(pd.date_range(start, end).strftime('%Y%m%d'))
+        closed = set(calendar.loc[flags == 0, 'cal_date'].astype(str))
+        if allow_no_open and requested.issubset(closed):
+            return []
         raise DataContractError(f"no open trading dates for {start}..{end}")
     return dates
+
+
+def fetch_trade_dates(pro, start: str, end: str, *, allow_no_open: bool = False) -> list[str]:
+    """Fall back to a second published calendar within its dated coverage."""
+    try:
+        return _tushare_trade_dates(pro, start, end, allow_no_open=allow_no_open)
+    except (requests.RequestException, DataContractError) as primary_error:
+        try:
+            open_days = sina_open_dates(start, end)
+        except (requests.RequestException, DataContractError) as alternate_error:
+            raise DataContractError(f'{primary_error}; alternate calendar: {alternate_error}') from alternate_error
+        if not open_days and not allow_no_open:
+            raise DataContractError(f'no open trading dates for {start}..{end}') from primary_error
+        print(f'   Sina SSE calendar: {len(open_days)} open dates for {start}..{end} ({primary_error})')
+        return open_days
 
 
 def resolve_completed_weekly_end(
@@ -272,10 +297,15 @@ def resolve_completed_weekly_end(
     start: str,
     requested_end: str,
     as_of: pd.Timestamp | None = None,
-) -> str:
+    allow_no_completed: bool = False,
+) -> str | None:
     """Cap a weekly rebuild at the latest fully published W-FRI week."""
 
-    open_dates = pd.to_datetime(fetch_trade_dates(pro, start, requested_end))
+    if allow_no_completed and start > requested_end:
+        return None
+    open_dates = pd.to_datetime(fetch_trade_dates(
+        pro, start, requested_end, allow_no_open=allow_no_completed,
+    ))
     market_as_of = (
         pd.Timestamp(datetime.now(CHINA_MARKET_TIMEZONE)).tz_localize(None)
         if as_of is None
@@ -296,6 +326,8 @@ def resolve_completed_weekly_end(
         as_of=effective_as_of,
     )
     if len(completed_dates) == 0:
+        if allow_no_completed:
+            return None
         raise DataContractError(
             f"no completed weekly trading date for {start}..{requested_end}"
         )
@@ -1061,7 +1093,7 @@ def build_observed_bond_floor(
     provider_bond_value: pd.DataFrame,
     market_price: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Use Tushare's daily pure-bond value only on observed market cells."""
+    """Use positive, finite pure-bond values only on observed market cells."""
 
     aligned = provider_bond_value.reindex(
         index=market_price.index,
@@ -1069,12 +1101,35 @@ def build_observed_bond_floor(
     ).apply(pd.to_numeric, errors='coerce')
     observed_price = market_price.apply(pd.to_numeric, errors='coerce')
     valid = (
-        observed_price.notna()
+        np.isfinite(observed_price)
         & (observed_price > 0)
-        & aligned.notna()
+        & np.isfinite(aligned)
         & (aligned > 0)
     )
     return aligned.where(valid)
+
+
+def save_bond_floor_sources(floors, sources=None, *, replace_all=False):
+    """Record fallback cells, clearing a tag if a new primary value replaces it."""
+    names = ['trade_date', 'ts_code']
+    exists = os.path.exists(OUT_FLOOR_SOURCES)
+    if sources is None and not exists:
+        return
+    cells = floors.rename_axis(index=names[0], columns=names[1]).stack()
+    labels = (
+        sources.rename_axis(index=names[0], columns=names[1]).stack()
+        if sources is not None
+        else pd.Series(index=cells.index[:0], dtype=object)
+    )
+    recorded = pd.DataFrame({'source': labels, 'bond_value': cells.reindex(labels.index)})
+    if exists and not replace_all:
+        previous = pd.read_csv(OUT_FLOOR_SOURCES, parse_dates=['trade_date']).set_index(names)
+        recorded = pd.concat([previous.loc[~previous.index.isin(cells.index)], recorded])
+    elif not exists and recorded.empty:
+        return
+    temporary = f'{OUT_FLOOR_SOURCES}.tmp'
+    recorded.sort_index().to_csv(temporary)
+    os.replace(temporary, OUT_FLOOR_SOURCES)
 
 
 # ==========================================
@@ -1422,7 +1477,11 @@ def run_pipeline(
             pro,
             start=start,
             requested_end=requested_end,
+            allow_no_completed=not rebuild_all,
         )
+        if end is None:
+            print(f"No new completed weekly dates for {start}..{requested_end}.")
+            return
         if end != requested_end:
             print(
                 "Weekly rebuild excludes the incomplete current week: "
@@ -1460,8 +1519,9 @@ def run_pipeline(
         name="ts_code",
     )
     print(f"   Excluded {excluded_bond_count} exchangeable bonds")
-    cb_basic.to_csv(OUT_BASIC, index=False)
-    print(f"   已保存: {OUT_BASIC}  ({len(cb_basic)} 条)")
+    if not weekly_validation:
+        cb_basic.to_csv(OUT_BASIC, index=False)
+        print(f"   已保存: {OUT_BASIC}  ({len(cb_basic)} 条)")
 
     # --- 转债日线 ---
     daily = fetch_cb_daily(pro, start, end)
@@ -1470,22 +1530,31 @@ def run_pipeline(
         for label, frame in daily.items()
     }
     df_price_new = daily['price']
+    floor_sources = None
     if weekly_validation:
-        # Quotes can arrive hours before the provider's valuation fields.
+        df_floor_new = build_observed_bond_floor(
+            provider_bond_value=daily['provider_bond_value'], market_price=df_price_new,
+        )
+        min_coverage = float(os.environ.get("MIN_WEEKLY_SOURCE_COVERAGE", "0.98"))
+        min_count = int(os.environ.get("MIN_WEEKLY_SOURCE_COUNT", "20"))
+        if not rebuild_all:
+            df_floor_new, floor_sources = fill_bond_floors(
+                df_floor_new, df_price_new, min_coverage, min_count,
+            )
+        new_weeks = select_completed_weekly_dates(
+            df_price_new.index, as_of=weekly_validation_cutoff(end),
+        ).union(pd.DatetimeIndex([pd.Timestamp(end)]))
         validate_pricing_coverage(
             market_price=df_price_new,
-            model_price=build_observed_bond_floor(
-                provider_bond_value=daily['provider_bond_value'],
-                market_price=df_price_new,
-            ),
-            dates=select_completed_weekly_dates(
-                df_price_new.index, as_of=weekly_validation_cutoff(end)
-            )[-1:],
-            min_coverage=float(os.environ.get("MIN_WEEKLY_SOURCE_COVERAGE", "0.98")),
-            min_count=int(os.environ.get("MIN_WEEKLY_SOURCE_COUNT", "20")),
-            label="Tushare bond_value source (publication may be delayed)",
+            model_price=df_floor_new,
+            dates=new_weeks[-1:] if rebuild_all else new_weeks,
+            min_coverage=min_coverage,
+            min_count=min_count,
+            label="Observed bond floor sources (Tushare and Eastmoney)",
             min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
         )
+        cb_basic.to_csv(OUT_BASIC, index=False)
+        print(f"   已保存: {OUT_BASIC}  ({len(cb_basic)} 条)")
     df_price = (
         df_price_new
         if rebuild_all
@@ -1564,7 +1633,7 @@ def run_pipeline(
     latest_weekly_date = completed_weekly_dates[-1]
     source_validation_dates = (
         completed_weekly_dates
-        if rebuild_all and weekly_validation
+        if weekly_validation
         else pd.DatetimeIndex([latest_weekly_date])
     )
     clause_ok = (
@@ -1636,11 +1705,11 @@ def run_pipeline(
     # --- 无风险利率 ---
     yield_tbl = fetch_yield_curve(start, end)
 
-    # --- Tushare 每日纯债价值；不再以固定票息/利差自建 DCF 代替 ---
-    df_floor_new = build_observed_bond_floor(
-        provider_bond_value=daily['provider_bond_value'],
-        market_price=df_price_new,
-    )
+    # --- 每日纯债价值 ---
+    if not weekly_validation:
+        df_floor_new = build_observed_bond_floor(
+            provider_bond_value=daily['provider_bond_value'], market_price=df_price_new,
+        )
     df_floor = (
         df_floor_new
         if rebuild_all
@@ -1650,9 +1719,7 @@ def run_pipeline(
             bond_codes=bond_codes,
         )
     )
-    df_floor.to_csv(OUT_FLOOR)
-
-    # --- 由 Tushare 纯债价值 + 契约现金流 + AkShare 国债曲线反解信用利差 ---
+    # --- 由观测纯债价值 + 契约现金流 + AkShare 国债曲线反解信用利差 ---
     clause_maturity = (
         clause_terms.drop_duplicates("ts_code", keep="last")
         .set_index("ts_code")["maturity_redemption_price"]
@@ -1677,9 +1744,6 @@ def run_pipeline(
             bond_codes=bond_codes,
         )
     )
-    credit_spread_temp = f"{OUT_CREDIT_SPREAD}.tmp"
-    credit_spread.to_csv(credit_spread_temp)
-    os.replace(credit_spread_temp, OUT_CREDIT_SPREAD)
     print(
         f"   隐含信用利差非空率: "
         f"{credit_spread_new.notna().mean().mean():.1%}"
@@ -1705,6 +1769,13 @@ def run_pipeline(
         label="implied credit spread source",
         min_count_enforced_from=PUBLIC_CB_MIN_COUNT_ENFORCED_FROM,
     )
+    credit_spread_temp = f"{OUT_CREDIT_SPREAD}.tmp"
+    credit_spread.to_csv(credit_spread_temp)
+    floor_temp = f"{OUT_FLOOR}.tmp"
+    df_floor.to_csv(floor_temp)
+    save_bond_floor_sources(df_floor_new, floor_sources, replace_all=rebuild_all)
+    os.replace(floor_temp, OUT_FLOOR)
+    os.replace(credit_spread_temp, OUT_CREDIT_SPREAD)
 
     # --- 正股市值 ---
     df_mv_new  = fetch_stock_mv(pro, cb_basic, df_price_new, start, end)

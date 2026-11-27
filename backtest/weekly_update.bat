@@ -94,11 +94,15 @@ echo [7/8] Recalculating factors, IC, strategies, weekly reports, figures and RE
 "%PYTHON%" "%BACKTEST_DIR%rebuild_research_outputs.py" --full-history --refresh-inputs --promote --preserve-replaced >> "%LOG_FILE%" 2>&1
 if errorlevel 1 goto :fail
 
-echo [8/8] Publishing verified outputs ... >> "%LOG_FILE%"
 cd /d "%REPO_DIR%"
 
-"%PYTHON%" "%BACKTEST_DIR%publish_weekly_outputs.py" >> "%LOG_FILE%" 2>&1
-if errorlevel 1 goto :fail
+if "%~1"=="--no-publish" (
+    echo [8/8] Verified outputs ready locally. >> "%LOG_FILE%"
+) else (
+    echo [8/8] Publishing verified outputs ... >> "%LOG_FILE%"
+    "%PYTHON%" "%BACKTEST_DIR%publish_weekly_outputs.py" >> "%LOG_FILE%" 2>&1
+    if errorlevel 1 goto :fail
+)
 
 (
 echo ==============================================================

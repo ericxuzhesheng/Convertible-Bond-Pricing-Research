@@ -1284,7 +1284,7 @@ def build_implied_credit_spread_matrix(
     max_staleness_days: int = 7,
     backend: str = "auto",
 ) -> pd.DataFrame:
-    """Calibrate each bond-date spread to Tushare's daily pure-bond value."""
+    """Calibrate each bond-date spread to its observed pure-bond value."""
 
     from credit_spread_cuda import (
         STATUS_OK,

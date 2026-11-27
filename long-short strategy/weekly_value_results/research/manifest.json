@@ -1,14 +1,14 @@
 {
   "engine_revision": 4,
   "input_vintage": {
-    "daily": "2026-11-25T21:51:44.230801+08:00",
+    "daily": "2026-11-27T18:25:54.313135+08:00",
     "pricing": {
-      "BS": "d5f947ee0f80db9784e9a2ed27e2fa15b0d295d4dd59bc8e3d33748f0077577c",
-      "ZL": "e65b5b890e6e8961e0dc35d704641ccfa5aebecb064336b1faef638e22726d30",
-      "LSM": "c50904ab173d770bf0b4dc4a8ec74dcdaaa4a7bcf4b7888f20e54996c7a34dc8",
-      "CCB": "2c5dc40f61f332c5d55803484fd2f44ace7c29cbd53358703a7d0c319f9f6e8f"
+      "BS": "a0640168c5b77a602a9872a5b2498ba94f019bef27f528efe7f8f84546742985",
+      "ZL": "5d2d63b0e64fc61ee6611b26f3ca3c5626565f9fce5c493b79bd0018d17d4240",
+      "LSM": "644f55f4369e1a65e7c6ae1d4ca46eb1a32bdaeea840e14b06da8c29d9e1bc3b",
+      "CCB": "a1adc165de32654579abb76d4192f735caaa0b0aa859dc2d6ce06e4a927460a0"
     },
-    "events": "2026-11-25T21:53:18.860645+08:00",
+    "events": "2026-11-27T18:25:54.362865+08:00",
     "event_normalization": 2,
     "cashflows": 1795592556878516900,
     "suspensions": 1795592557123693700
@@ -30,9 +30,9 @@
     "start": "2019-01-01",
     "mode": "both"
   },
-  "input_cutoff": "2026-11-25",
-  "requested_end": "2026-11-25",
-  "last_signal": "2026-11-20",
+  "input_cutoff": "2026-11-27",
+  "requested_end": "2026-11-27",
+  "last_signal": "2026-11-27",
   "total_return_certified": false,
   "limitations": [
     "cb_call: 抱歉，您没有接口(cb_call)访问权限，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。",

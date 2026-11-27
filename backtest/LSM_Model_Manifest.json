@@ -406,10 +406,11 @@
     "2026-10-30",
     "2026-11-06",
     "2026-11-13",
-    "2026-11-20"
+    "2026-11-20",
+    "2026-11-27"
   ],
-  "input_cutoff": "2026-11-20",
-  "input_fingerprint": "aa687819108de43b9a8c1ac43d50bff5443629e1759e4750b10ef6e645af6404",
+  "input_cutoff": "2026-11-27",
+  "input_fingerprint": "333a89c133bc14f78a63a75d67a5ee50227dfab65c41757e820b642096f8cca3",
   "model_parameters": {
     "model": "LSM",
     "implementation": "cashflow-stopping-lsm-v2.4",
@@ -426,16 +427,16 @@
     "quote_basis": "full-price",
     "coupon_timing": "contractual-dates; next-simulation-observation"
   },
-  "output_sha256": "c50904ab173d770bf0b4dc4a8ec74dcdaaa4a7bcf4b7888f20e54996c7a34dc8",
+  "output_sha256": "644f55f4369e1a65e7c6ae1d4ca46eb1a32bdaeea840e14b06da8c29d9e1bc3b",
   "artifact_sha256": {
-    "LSM_Model_Prices.csv": "d72b95876423080e7e2adffcd10c5195c7171938bd33d8857c34695e6c3046e9",
-    "LSM_Market_Prices.csv": "865a24baeebf2783665132f6fc0a58b7204339a461405d020691793e41a4bbb4",
-    "LSM_Model_Deviation_Abs.csv": "08369afc10e576a8b66e19764675f1a2b7f0c02c732e096224eec10916394316",
-    "LSM_Model_Deviation_Pct.csv": "75d2ba5aea53c47b2a03d73e4c14746ba8fff817dc670788af1c884fc90d8a42",
-    "LSM_Monte_Carlo_SE.csv": "04b6da0f7ebeb2ae3e8691f5a7e089cc724381971e1bdc8b58648fe6286a4963",
-    "LSM_Implied_Credit_Spread.csv": "3ca580b03cebbde270fe816844c0f2daab18f4bef779a13a7ca8cf0637f00078",
-    "LSM_Pricing_Coverage.csv": "f31964abca02b70ec8179e75127d607e576f51e514ec633e4d5e0047c1fc1437",
-    "LSM_Pricing_Issues.csv": "84a4c9f335948e8a32e09261db20bb5198532e931bbd46420e4de751b60c1435"
+    "LSM_Model_Prices.csv": "7f3b983031d26e562310c4177045e57943b1721e6cdd07d8499cb21e23b451b2",
+    "LSM_Market_Prices.csv": "7a12c74258e66b9e4f722a8011b39b263741548d2ccb1f56ec5f209d0f5e5886",
+    "LSM_Model_Deviation_Abs.csv": "c24f82539e10efc99e3d10724d0585864112061bfbb7981dea220301c7fe7f0e",
+    "LSM_Model_Deviation_Pct.csv": "8071379c93d04a817720ab5f199f2b149d3306d48170e5de324ff7db092bc451",
+    "LSM_Monte_Carlo_SE.csv": "06d34a950b1495e00068defbd15c2cf0b9a8a4af1416085832f54fbf1ebc1752",
+    "LSM_Implied_Credit_Spread.csv": "21769dab9113f7032f5f015274c133ef95f72e8ce4294505d2ca5f384a960155",
+    "LSM_Pricing_Coverage.csv": "79650681203d3aa1efa9ecf2bcfb90b12245c01ec6d6926bb59353646e268d03",
+    "LSM_Pricing_Issues.csv": "25905ae4a88fd740935834a9d07ff7e7be72ae395e18f5db1d534a4f18943eb2"
   },
   "limitations": [
     "Zero dividend yield; no unverified future reset or discretionary waiver assumed.",

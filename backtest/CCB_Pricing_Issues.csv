@@ -3736,3 +3736,5 @@ date,code,reason
 2026-06-26,128119.SZ,unresolved_latest_notice
 2026-07-03,128119.SZ,unresolved_latest_notice
 2026-07-10,128119.SZ,unresolved_latest_notice
+2026-11-27,127033.SZ,missing or invalid observed inputs: floor
+2026-11-27,128044.SZ,"missing or invalid observed inputs: parity, floor, volatility"

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -92,3 +93,12 @@ def test_weekly_benchmark_must_cover_latest_completed_market_date() -> None:
         assert "2024-01-12" in str(exc)
     else:
         raise AssertionError("stale benchmark was accepted")
+
+
+def test_benchmark_end_on_a_completed_friday_requires_that_close(monkeypatch, tmp_path) -> None:
+    market = tmp_path / "market.csv"
+    market.write_text(",A\n2024-01-05,100\n2024-01-12,101\n", encoding="utf-8")
+    monkeypatch.setattr(BENCHMARK, "MARKET_FILE", market)
+    stale = pd.DataFrame({"Date": ["2024-01-05"], "close": [400.0]})
+    with pytest.raises(RuntimeError, match="2024-01-12"):
+        BENCHMARK._validate_current_benchmark(stale, "20240112")

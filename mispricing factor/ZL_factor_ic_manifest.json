@@ -2,8 +2,8 @@
   "model": "ZL",
   "methodology_version": 1,
   "last_rebalance_date": "2026-10-30",
-  "last_return_date": "2026-11-20",
-  "history_sha256": "e8e639173c53465b320eb1ec699fec22fb4aafd65a0cffde7c6eb7cceb9f27f8",
+  "last_return_date": "2026-11-27",
+  "history_sha256": "4f1f36b96f2745b49eebcdf58140c9332a6562e4a277881fd272c3becfeaebac",
   "historical_columns": [
     "110030.SH",
     "110031.SH",

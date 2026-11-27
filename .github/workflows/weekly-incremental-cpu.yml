@@ -136,6 +136,7 @@ jobs:
           path: |
             backtest/cb_*_cache.csv
             backtest/cb_*_events.csv
+            backtest/cb_bond_floor_sources.csv
             backtest/cb_amount_cache.csv
             backtest/cb_balance_cache.csv
             backtest/cb_rating_cache.csv
@@ -181,6 +182,9 @@ jobs:
           git add -u
           git add backtest/strategy_inputs "long-short strategy/weekly_results" "long-short strategy/weekly_value_results"
           git add backtest/Research_Migration.json
+          if [[ -f backtest/cb_bond_floor_sources.csv ]]; then
+            git add backtest/cb_bond_floor_sources.csv
+          fi
           git add -- ':(glob)long-short strategy/weekly_value_results_pricing_four_*/**' +            ':(glob)experiments/ccb_2023/inputs/waivers/index/*.json' +            ':(glob)experiments/ccb_2023/inputs/waivers/pdf/*.pdf' +            ':(glob)experiments/ccb_2023/inputs/waivers/text/*.txt'
           if git diff --cached --quiet; then
             echo "No weekly changes to publish."

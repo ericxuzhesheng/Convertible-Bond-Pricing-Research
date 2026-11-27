@@ -2,8 +2,8 @@
   "model": "BS",
   "methodology_version": 1,
   "last_rebalance_date": "2026-10-30",
-  "last_return_date": "2026-11-20",
-  "history_sha256": "df324d5ed3fa1d8d1863560c0193e9e3cda1c8c5417b5aba1415f9d0770056fe",
+  "last_return_date": "2026-11-27",
+  "history_sha256": "e06df3769b056d425cc98461201c043feffeeefc95f600bec4da4cef40d7be5f",
   "historical_columns": [
     "110030.SH",
     "110031.SH",

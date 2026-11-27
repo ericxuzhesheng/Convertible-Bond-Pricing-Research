@@ -406,10 +406,11 @@
     "2026-10-30",
     "2026-11-06",
     "2026-11-13",
-    "2026-11-20"
+    "2026-11-20",
+    "2026-11-27"
   ],
-  "input_cutoff": "2026-11-20",
-  "input_fingerprint": "35cf02fb2df4cb6a96a67e7dcbc23818768448c25e81a17936f785731b204a5b",
+  "input_cutoff": "2026-11-27",
+  "input_fingerprint": "a959abf0d33dd2405d60b948bfbc6104f6d58115b909392cfb82e19a5f2851b5",
   "model_parameters": {
     "model": "CCB",
     "implementation": "ccb-observed-curve-waivers-v1",
@@ -421,16 +422,16 @@
     "quote_basis": "full-price",
     "dividend_yield": 0.0
   },
-  "output_sha256": "2c5dc40f61f332c5d55803484fd2f44ace7c29cbd53358703a7d0c319f9f6e8f",
+  "output_sha256": "a1adc165de32654579abb76d4192f735caaa0b0aa859dc2d6ce06e4a927460a0",
   "artifact_sha256": {
-    "CCB_Model_Prices.csv": "f3833cea802cbc9433b057adbc9f7905da8c642aad600f5951d7bfcbb3866a66",
-    "CCB_Market_Prices.csv": "865a24baeebf2783665132f6fc0a58b7204339a461405d020691793e41a4bbb4",
-    "CCB_Model_Deviation_Abs.csv": "56ff06f66e6f277791eb80ffec480f366663aad4ef245d731e90162f63f033a3",
-    "CCB_Model_Deviation_Pct.csv": "3771d6776ad508c431f40258ef7300ff0c0236e7981023304efbf7cc7cc9c0d8",
-    "CCB_Monte_Carlo_SE.csv": "aea43b6d509f20d86b378468c5f164d3229b5ecd17390b147901d62e43fb7c50",
-    "CCB_Implied_Credit_Spread.csv": "6085aff591a598f42e3d4a440c4114bdef986341226436bff61e68f9ba97f9e2",
-    "CCB_Pricing_Coverage.csv": "accfd7c5319d4ff06dd7c0248394cf1f0a936afeb6241bf45386dd2634878a69",
-    "CCB_Pricing_Issues.csv": "f193cfb75c91e600c57a007ff5ea6f928c3b26d4543e867412c7f9e47d7d3bf1"
+    "CCB_Model_Prices.csv": "c45ad38c41443d70cdfa6c47cd95526c499b4bba85e88b6b76c0971c3257bd27",
+    "CCB_Market_Prices.csv": "7a12c74258e66b9e4f722a8011b39b263741548d2ccb1f56ec5f209d0f5e5886",
+    "CCB_Model_Deviation_Abs.csv": "9772848f94079247e08f071d361fa76ea3d9c85026c44af1ef4499b45af6fea5",
+    "CCB_Model_Deviation_Pct.csv": "b331ad9964381064de0e202c76b3c08b7b78584ca1085cb98a44d39e2332151e",
+    "CCB_Monte_Carlo_SE.csv": "b3a95fd491c182dcaa051ec344f560775e043be06e46871dbe1eb3c709523c16",
+    "CCB_Implied_Credit_Spread.csv": "a630321c7e30b254ba02d77093e19d2a086389b653264b21cbf15ad21e70fe14",
+    "CCB_Pricing_Coverage.csv": "8ed45926e257bbf9ad726331162a7d7170cd5f5c2b60cd1af69a3d9a5d7f81e7",
+    "CCB_Pricing_Issues.csv": "a596547a3b4cecf766d2a9a52433a4e69a71b88902232b4a1f3e8d86c3b24467"
   },
   "limitations": [
     "Continuous call barrier after verified non-call protection, with a one-month minimum.",

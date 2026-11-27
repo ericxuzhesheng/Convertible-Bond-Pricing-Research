@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/定价模型-BS%20%C2%B7%20ZL%20%C2%B7%20LSM%20%C2%B7%20CCB-F2C94C?style=for-the-badge" alt="BS + ZL + LSM + CCB">
-  <img src="https://img.shields.io/badge/定价截止-2026--11--20-4CAF50?style=for-the-badge" alt="Pricing through 2026-11-20">
+  <img src="https://img.shields.io/badge/定价截止-2026--11--27-4CAF50?style=for-the-badge" alt="Pricing through 2026-11-27">
   <img src="https://img.shields.io/badge/研究频率-周度定价与策略-9B51E0?style=for-the-badge" alt="Weekly pricing and strategy">
 </p>
 
@@ -68,15 +68,15 @@ BS、ZL、LSM、CCB 各占 25%。同一券日需有四个正且有限的估值�
 <!-- pricing-metrics-zh:start -->
 ## 定价结果
 
-同样本比较覆盖 **150,005 个有效券日、404 个观察周**，均价为四个模型价格的算术平均。MSE 单位为元²，RMSE、MAE 和平均偏差为元，MAPE 为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **93.54%**，最新周 **312/314** 只。指标衡量模型与市场报价的偏离。
+同样本比较覆盖 **150,317 个有效券日、405 个观察周**，均价为四个模型价格的算术平均。MSE 单位为元²，RMSE、MAE 和平均偏差为元，MAPE 为绝对百分比偏差。平均偏差为理论价减市场价，R²相对于市场报价均值计算。最低单周共同覆盖率 **93.54%**，最新周 **312/314** 只。指标衡量模型与市场报价的偏离。
 
 | 模型 | 样本数 | MSE | RMSE | MAE | MAPE | 平均偏差 | R² |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| BS | 150,005 | 935.68 | 30.59 | 13.19 | 9.13% | +1.73 | 0.821 |
-| ZL | 150,005 | 957.75 | 30.95 | 12.05 | 7.84% | -9.06 | 0.817 |
-| LSM | 150,005 | 929.56 | 30.49 | 10.97 | 7.02% | -6.44 | 0.822 |
-| CCB | 150,005 | 949.23 | 30.81 | 11.39 | 7.28% | -8.46 | 0.818 |
-| Mean | 150,005 | 908.34 | 30.14 | 10.89 | 7.07% | -5.56 | 0.826 |
+| BS | 150,317 | 936.05 | 30.59 | 13.18 | 9.12% | +1.71 | 0.821 |
+| ZL | 150,317 | 959.07 | 30.97 | 12.07 | 7.85% | -9.08 | 0.816 |
+| LSM | 150,317 | 930.66 | 30.51 | 10.98 | 7.03% | -6.46 | 0.822 |
+| CCB | 150,317 | 950.38 | 30.83 | 11.41 | 7.29% | -8.48 | 0.818 |
+| Mean | 150,317 | 909.29 | 30.15 | 10.90 | 7.07% | -5.58 | 0.826 |
 <!-- pricing-metrics-zh:end -->
 
 [指标数据](backtest/Pricing_Metrics.csv) · [当前研究来源](backtest/Research_Migration.json) · [历史重建验证](backtest/Pricing_Validation.json)
@@ -87,47 +87,47 @@ BS、ZL、LSM、CCB 各占 25%。同一券日需有四个正且有限的估值�
 
 | 模型 | 因子 | 持有期数 | IC | Rank IC | ICIR | Rank ICIR | IC 为正比例 |
 |---|---|---|---|---|---|---|---|
-| BS | 定价偏差 | 94 | 0.085 | 0.047 | 0.52 | 0.29 | 67.0% |
-| BS | 流动性 | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
-| BS | 动量 | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
-| BS | 量价相关性 | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
-| BS | 估值 | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
-| BS | 波动率 | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
-| ZL | 流动性 | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
-| ZL | 动量 | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
-| ZL | 量价相关性 | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
-| ZL | 估值 | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
-| ZL | 波动率 | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
-| ZL | 定价偏差 | 94 | 0.103 | 0.092 | 0.52 | 0.54 | 74.5% |
-| LSM | 流动性 | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
-| LSM | 定价偏差 | 94 | 0.104 | 0.111 | 0.48 | 0.59 | 76.6% |
-| LSM | 动量 | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
-| LSM | 量价相关性 | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
-| LSM | 估值 | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
-| LSM | 波动率 | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
-| CCB | 定价偏差 | 94 | 0.112 | 0.115 | 0.51 | 0.58 | 72.3% |
-| CCB | 流动性 | 94 | -0.036 | -0.078 | -0.16 | -0.42 | 46.8% |
-| CCB | 动量 | 94 | 0.030 | -0.005 | 0.14 | -0.03 | 64.9% |
-| CCB | 量价相关性 | 94 | -0.010 | -0.063 | -0.06 | -0.39 | 45.7% |
-| CCB | 估值 | 94 | 0.050 | 0.058 | 0.24 | 0.34 | 56.4% |
-| CCB | 波动率 | 94 | -0.028 | -0.080 | -0.10 | -0.30 | 50.0% |
-| Mean | 流动性 | 94 | -0.036 | -0.078 | -0.16 | -0.42 | 46.8% |
-| Mean | 均价偏差 | 94 | 0.108 | 0.094 | 0.54 | 0.55 | 73.4% |
-| Mean | 动量 | 94 | 0.030 | -0.005 | 0.14 | -0.03 | 64.9% |
-| Mean | 量价相关性 | 94 | -0.010 | -0.063 | -0.06 | -0.39 | 45.7% |
-| Mean | 估值 | 94 | 0.050 | 0.058 | 0.24 | 0.34 | 56.4% |
-| Mean | 波动率 | 94 | -0.028 | -0.080 | -0.10 | -0.30 | 50.0% |
+| BS | 定价偏差 | 94 | 0.082 | 0.046 | 0.50 | 0.28 | 66.0% |
+| BS | 流动性 | 94 | -0.031 | -0.076 | -0.14 | -0.41 | 46.8% |
+| BS | 动量 | 94 | 0.018 | -0.007 | 0.09 | -0.04 | 59.6% |
+| BS | 量价相关性 | 94 | -0.005 | -0.059 | -0.04 | -0.37 | 46.8% |
+| BS | 估值 | 94 | 0.055 | 0.060 | 0.27 | 0.35 | 62.8% |
+| BS | 波动率 | 94 | -0.025 | -0.076 | -0.09 | -0.29 | 45.7% |
+| ZL | 流动性 | 94 | -0.031 | -0.076 | -0.14 | -0.41 | 46.8% |
+| ZL | 动量 | 94 | 0.018 | -0.007 | 0.09 | -0.04 | 59.6% |
+| ZL | 量价相关性 | 94 | -0.005 | -0.059 | -0.04 | -0.37 | 46.8% |
+| ZL | 估值 | 94 | 0.055 | 0.060 | 0.27 | 0.35 | 62.8% |
+| ZL | 波动率 | 94 | -0.025 | -0.076 | -0.09 | -0.29 | 45.7% |
+| ZL | 定价偏差 | 94 | 0.098 | 0.089 | 0.50 | 0.52 | 73.4% |
+| LSM | 流动性 | 94 | -0.031 | -0.076 | -0.14 | -0.41 | 46.8% |
+| LSM | 定价偏差 | 94 | 0.099 | 0.107 | 0.46 | 0.57 | 75.5% |
+| LSM | 动量 | 94 | 0.018 | -0.007 | 0.09 | -0.04 | 59.6% |
+| LSM | 量价相关性 | 94 | -0.005 | -0.059 | -0.04 | -0.37 | 46.8% |
+| LSM | 估值 | 94 | 0.055 | 0.060 | 0.27 | 0.35 | 62.8% |
+| LSM | 波动率 | 94 | -0.025 | -0.076 | -0.09 | -0.29 | 45.7% |
+| CCB | 定价偏差 | 94 | 0.106 | 0.110 | 0.49 | 0.56 | 71.3% |
+| CCB | 流动性 | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 47.9% |
+| CCB | 动量 | 94 | 0.025 | -0.008 | 0.12 | -0.05 | 63.8% |
+| CCB | 量价相关性 | 94 | -0.006 | -0.058 | -0.04 | -0.36 | 46.8% |
+| CCB | 估值 | 94 | 0.048 | 0.057 | 0.23 | 0.33 | 56.4% |
+| CCB | 波动率 | 94 | -0.022 | -0.074 | -0.08 | -0.28 | 51.1% |
+| Mean | 流动性 | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 47.9% |
+| Mean | 均价偏差 | 94 | 0.102 | 0.090 | 0.51 | 0.52 | 72.3% |
+| Mean | 动量 | 94 | 0.025 | -0.008 | 0.12 | -0.05 | 63.8% |
+| Mean | 量价相关性 | 94 | -0.006 | -0.058 | -0.04 | -0.36 | 46.8% |
+| Mean | 估值 | 94 | 0.048 | 0.057 | 0.23 | 0.33 | 56.4% |
+| Mean | 波动率 | 94 | -0.022 | -0.074 | -0.08 | -0.28 | 51.1% |
 
 ## 组合规则与结果
 
 周度策略按四模型均价相对当日收盘价的估值余量排名，在风险合格池中最多选取前 20%，要求扣除往返成本后的估值余量至少为 2%。单边综合摩擦 5bp，单券最多 10%，未使用资金保留现金。下一交易日开盘重新检查冻结估值给出的买入上限。账户按日核算模拟成交、费用、年化 3% 的假设借券成本和有记录的陈旧估值。
 
-组合日度核算截至 **2026-11-25**。
+组合日度核算截至 **2026-11-27**。
 
 | 组合 | 年化研究收益 | 夏普 | 最大回撤 |
 |---|---|---|---|
-| long_only | 15.97% | 1.25 | -17.57% |
-| long_short | 13.14% | 1.34 | -12.09% |
+| long_only | 16.27% | 1.27 | -17.57% |
+| long_short | 12.67% | 1.27 | -12.09% |
 
 净值是观测价格与已核验现金流的研究估计。历史付息、原始财务版本和券源仍未全部核验，因此不能称为完整总收益或事前实盘记录。事后重算信号不会覆盖原有交易前冻结证据。
 
@@ -135,11 +135,11 @@ BS、ZL、LSM、CCB 各占 25%。同一券日需有四个正且有限的估值�
 
 | 模型 | 年化超额收益 | 夏普 | 最大回撤 |
 |---|---|---|---|
-| BS | 10.48% | 0.66 | -30.11% |
-| ZL | 9.74% | 0.65 | -28.66% |
-| LSM | 9.86% | 0.66 | -28.26% |
-| CCB | 10.72% | 0.7 | -29.05% |
-| Mean | 10.52% | 0.69 | -28.69% |
+| BS | 11.01% | 0.72 | -29.72% |
+| ZL | 10.10% | 0.7 | -27.59% |
+| LSM | 10.25% | 0.72 | -28.24% |
+| CCB | 11.11% | 0.75 | -29.05% |
+| Mean | 10.91% | 0.74 | -27.83% |
 
 ## 关键图表
 
@@ -270,15 +270,15 @@ The mean weights BS, ZL, LSM and CCB at 25% each. A bond-date requires four posi
 <!-- pricing-metrics-en:start -->
 ## Pricing results
 
-All models use the same **150,005 valid bond-date cells over 404 observed weeks**. MSE is in yuan²; RMSE, MAE and bias are in yuan. Bias is model minus market price; R² uses the market-price mean as its constant baseline. Minimum weekly common coverage is **93.54%**, with **312/314** bonds in the latest week. These are market-price deviation diagnostics.
+All models use the same **150,317 valid bond-date cells over 405 observed weeks**. MSE is in yuan²; RMSE, MAE and bias are in yuan. Bias is model minus market price; R² uses the market-price mean as its constant baseline. Minimum weekly common coverage is **93.54%**, with **312/314** bonds in the latest week. These are market-price deviation diagnostics.
 
 | Model | N | MSE | RMSE | MAE | MAPE | Bias | R² |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| BS | 150,005 | 935.68 | 30.59 | 13.19 | 9.13% | +1.73 | 0.821 |
-| ZL | 150,005 | 957.75 | 30.95 | 12.05 | 7.84% | -9.06 | 0.817 |
-| LSM | 150,005 | 929.56 | 30.49 | 10.97 | 7.02% | -6.44 | 0.822 |
-| CCB | 150,005 | 949.23 | 30.81 | 11.39 | 7.28% | -8.46 | 0.818 |
-| Mean | 150,005 | 908.34 | 30.14 | 10.89 | 7.07% | -5.56 | 0.826 |
+| BS | 150,317 | 936.05 | 30.59 | 13.18 | 9.12% | +1.71 | 0.821 |
+| ZL | 150,317 | 959.07 | 30.97 | 12.07 | 7.85% | -9.08 | 0.816 |
+| LSM | 150,317 | 930.66 | 30.51 | 10.98 | 7.03% | -6.46 | 0.822 |
+| CCB | 150,317 | 950.38 | 30.83 | 11.41 | 7.29% | -8.48 | 0.818 |
+| Mean | 150,317 | 909.29 | 30.15 | 10.90 | 7.07% | -5.58 | 0.826 |
 <!-- pricing-metrics-en:end -->
 
 [Pricing metrics](backtest/Pricing_Metrics.csv) · [Current research provenance](backtest/Research_Migration.json) · [Archived rebuild validation](backtest/Pricing_Validation.json)
@@ -289,47 +289,47 @@ Five observed factors accompany each model's valuation gap: liquidity, volatilit
 
 | Model | Factor | Periods | IC | Rank IC | ICIR | Rank ICIR | Positive IC |
 |---|---|---|---|---|---|---|---|
-| BS | Mispricing | 94 | 0.085 | 0.047 | 0.52 | 0.29 | 67.0% |
-| BS | Liquidity | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
-| BS | Momentum | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
-| BS | Price-volume | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
-| BS | Valuation | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
-| BS | Volatility | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
-| ZL | Liquidity | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
-| ZL | Momentum | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
-| ZL | Price-volume | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
-| ZL | Valuation | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
-| ZL | Volatility | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
-| ZL | Mispricing | 94 | 0.103 | 0.092 | 0.52 | 0.54 | 74.5% |
-| LSM | Liquidity | 94 | -0.036 | -0.080 | -0.16 | -0.43 | 45.7% |
-| LSM | Mispricing | 94 | 0.104 | 0.111 | 0.48 | 0.59 | 76.6% |
-| LSM | Momentum | 94 | 0.023 | -0.004 | 0.11 | -0.02 | 60.6% |
-| LSM | Price-volume | 94 | -0.009 | -0.064 | -0.06 | -0.40 | 45.7% |
-| LSM | Valuation | 94 | 0.057 | 0.061 | 0.28 | 0.36 | 62.8% |
-| LSM | Volatility | 94 | -0.031 | -0.082 | -0.11 | -0.31 | 44.7% |
-| CCB | Mispricing | 94 | 0.112 | 0.115 | 0.51 | 0.58 | 72.3% |
-| CCB | Liquidity | 94 | -0.036 | -0.078 | -0.16 | -0.42 | 46.8% |
-| CCB | Momentum | 94 | 0.030 | -0.005 | 0.14 | -0.03 | 64.9% |
-| CCB | Price-volume | 94 | -0.010 | -0.063 | -0.06 | -0.39 | 45.7% |
-| CCB | Valuation | 94 | 0.050 | 0.058 | 0.24 | 0.34 | 56.4% |
-| CCB | Volatility | 94 | -0.028 | -0.080 | -0.10 | -0.30 | 50.0% |
-| Mean | Liquidity | 94 | -0.036 | -0.078 | -0.16 | -0.42 | 46.8% |
-| Mean | Mean-price deviation | 94 | 0.108 | 0.094 | 0.54 | 0.55 | 73.4% |
-| Mean | Momentum | 94 | 0.030 | -0.005 | 0.14 | -0.03 | 64.9% |
-| Mean | Price-volume | 94 | -0.010 | -0.063 | -0.06 | -0.39 | 45.7% |
-| Mean | Valuation | 94 | 0.050 | 0.058 | 0.24 | 0.34 | 56.4% |
-| Mean | Volatility | 94 | -0.028 | -0.080 | -0.10 | -0.30 | 50.0% |
+| BS | Mispricing | 94 | 0.082 | 0.046 | 0.50 | 0.28 | 66.0% |
+| BS | Liquidity | 94 | -0.031 | -0.076 | -0.14 | -0.41 | 46.8% |
+| BS | Momentum | 94 | 0.018 | -0.007 | 0.09 | -0.04 | 59.6% |
+| BS | Price-volume | 94 | -0.005 | -0.059 | -0.04 | -0.37 | 46.8% |
+| BS | Valuation | 94 | 0.055 | 0.060 | 0.27 | 0.35 | 62.8% |
+| BS | Volatility | 94 | -0.025 | -0.076 | -0.09 | -0.29 | 45.7% |
+| ZL | Liquidity | 94 | -0.031 | -0.076 | -0.14 | -0.41 | 46.8% |
+| ZL | Momentum | 94 | 0.018 | -0.007 | 0.09 | -0.04 | 59.6% |
+| ZL | Price-volume | 94 | -0.005 | -0.059 | -0.04 | -0.37 | 46.8% |
+| ZL | Valuation | 94 | 0.055 | 0.060 | 0.27 | 0.35 | 62.8% |
+| ZL | Volatility | 94 | -0.025 | -0.076 | -0.09 | -0.29 | 45.7% |
+| ZL | Mispricing | 94 | 0.098 | 0.089 | 0.50 | 0.52 | 73.4% |
+| LSM | Liquidity | 94 | -0.031 | -0.076 | -0.14 | -0.41 | 46.8% |
+| LSM | Mispricing | 94 | 0.099 | 0.107 | 0.46 | 0.57 | 75.5% |
+| LSM | Momentum | 94 | 0.018 | -0.007 | 0.09 | -0.04 | 59.6% |
+| LSM | Price-volume | 94 | -0.005 | -0.059 | -0.04 | -0.37 | 46.8% |
+| LSM | Valuation | 94 | 0.055 | 0.060 | 0.27 | 0.35 | 62.8% |
+| LSM | Volatility | 94 | -0.025 | -0.076 | -0.09 | -0.29 | 45.7% |
+| CCB | Mispricing | 94 | 0.106 | 0.110 | 0.49 | 0.56 | 71.3% |
+| CCB | Liquidity | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 47.9% |
+| CCB | Momentum | 94 | 0.025 | -0.008 | 0.12 | -0.05 | 63.8% |
+| CCB | Price-volume | 94 | -0.006 | -0.058 | -0.04 | -0.36 | 46.8% |
+| CCB | Valuation | 94 | 0.048 | 0.057 | 0.23 | 0.33 | 56.4% |
+| CCB | Volatility | 94 | -0.022 | -0.074 | -0.08 | -0.28 | 51.1% |
+| Mean | Liquidity | 94 | -0.031 | -0.074 | -0.14 | -0.40 | 47.9% |
+| Mean | Mean-price deviation | 94 | 0.102 | 0.090 | 0.51 | 0.52 | 72.3% |
+| Mean | Momentum | 94 | 0.025 | -0.008 | 0.12 | -0.05 | 63.8% |
+| Mean | Price-volume | 94 | -0.006 | -0.058 | -0.04 | -0.36 | 46.8% |
+| Mean | Valuation | 94 | 0.048 | 0.057 | 0.23 | 0.33 | 56.4% |
+| Mean | Volatility | 94 | -0.022 | -0.074 | -0.08 | -0.28 | 51.1% |
 
 ## Portfolio rules and results
 
 The weekly value strategy ranks the four-model mean relative to the same-day close. It selects at most the highest eligible quintile and requires a 2% valuation margin after round-trip friction. One-way friction is 5bp. Each long is capped at 10%, with unused capital in cash. Frozen valuation limits are checked again at the next session's open. Daily accounting includes observed executions, transaction costs, a 3% annual short-borrow assumption and explicitly recorded stale or unexplained marks.
 
-Daily portfolio accounting through **2026-11-25**.
+Daily portfolio accounting through **2026-11-27**.
 
 | Portfolio | Annualized research return | Sharpe | Max drawdown |
 |---|---|---|---|
-| long_only | 15.97% | 1.25 | -17.57% |
-| long_short | 13.14% | 1.34 | -12.09% |
+| long_only | 16.27% | 1.27 | -17.57% |
+| long_short | 12.67% | 1.27 | -12.09% |
 
 These are research estimates from observed prices and verified cash flows. Complete historical coupons, original financial vintages and short availability remain unverified, so the curves are not certified total returns or prospective live records. Original frozen tracking evidence is never replaced by a retrospectively recalculated signal.
 
@@ -337,11 +337,11 @@ The monthly six-factor portfolios rank equal-weight standardized factors and hol
 
 | Model | Annualized excess return | Sharpe | Max drawdown |
 |---|---|---|---|
-| BS | 10.48% | 0.66 | -30.11% |
-| ZL | 9.74% | 0.65 | -28.66% |
-| LSM | 9.86% | 0.66 | -28.26% |
-| CCB | 10.72% | 0.7 | -29.05% |
-| Mean | 10.52% | 0.69 | -28.69% |
+| BS | 11.01% | 0.72 | -29.72% |
+| ZL | 10.10% | 0.7 | -27.59% |
+| LSM | 10.25% | 0.72 | -28.24% |
+| CCB | 11.11% | 0.75 | -29.05% |
+| Mean | 10.91% | 0.74 | -27.83% |
 
 ## Key figures
 

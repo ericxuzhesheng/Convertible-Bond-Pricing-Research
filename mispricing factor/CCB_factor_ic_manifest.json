@@ -2,8 +2,8 @@
   "model": "CCB",
   "methodology_version": 1,
   "last_rebalance_date": "2026-10-30",
-  "last_return_date": "2026-11-20",
-  "history_sha256": "efbe12a3bf13bc4ee83207cd58dc641b161a6490d075bf18a1eceae371f0fac0",
+  "last_return_date": "2026-11-27",
+  "history_sha256": "863a3c2e4187ee9c45cf48e2c758a787b2d46a0437d49382bdf126b782a3c398",
   "historical_columns": [
     "110030.SH",
     "110031.SH",

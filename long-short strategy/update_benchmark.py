@@ -13,6 +13,7 @@ import os
 import sys
 import argparse
 import datetime as dt
+import io
 
 import pandas as pd
 import tushare as ts
@@ -26,6 +27,9 @@ TS_CODE = "000832.CSI"
 sys.path.insert(0, BACKTEST_DIR)
 
 from market_data_contracts import select_completed_weekly_dates  # noqa: E402
+
+if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 
 def _load_token():
@@ -63,10 +67,12 @@ def _validate_current_benchmark(series: pd.DataFrame, end: str) -> None:
         index_col=0,
         usecols=[0],
     ).index
+    end_of_day = pd.Timestamp(end) + pd.Timedelta(days=1, nanoseconds=-1)
+    market_now = pd.Timestamp.now(tz="Asia/Shanghai").tz_localize(None)
     target = validate_benchmark_freshness(
         benchmark=series,
         market_dates=market_dates,
-        as_of=pd.Timestamp(end),
+        as_of=min(end_of_day, market_now),
     )
     print(f"benchmark freshness verified through {target.date()}")
 
@@ -114,8 +120,8 @@ def main():
     merged_series = pd.concat([series, new], ignore_index=True)
     merged_series = merged_series.drop_duplicates(subset="Date").sort_values("Date")
 
-    merged_series.to_csv(BENCH_FILE, index=False)
     _validate_current_benchmark(merged_series, args.end)
+    merged_series.to_csv(BENCH_FILE, index=False)
     print(f"已写回 {BENCH_FILE}  (总 {len(merged_series)} 行时序)")
 
 

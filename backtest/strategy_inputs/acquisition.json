@@ -1,9 +1,9 @@
 {
   "start": "2019-01-01",
-  "cutoff": "2026-11-25",
-  "daily_dates": 1915,
-  "issuers": 0,
-  "fetched_at": "2026-11-25T21:51:44.230801+08:00",
+  "cutoff": "2026-11-27",
+  "daily_dates": 1917,
+  "issuers": 129,
+  "fetched_at": "2026-11-27T18:25:54.313135+08:00",
   "status": "complete",
   "failures": [],
   "research_limitations": [

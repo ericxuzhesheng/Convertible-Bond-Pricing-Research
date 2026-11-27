@@ -499,3 +499,5 @@ date,code,reason
 2026-11-13,128044.SZ,"missing observed market, parity, floor or volatility"
 2026-11-20,118065.SH,missing or invalid observed inputs: volatility
 2026-11-20,128044.SZ,missing or invalid observed inputs: volatility
+2026-11-27,127033.SZ,missing or invalid observed inputs: floor
+2026-11-27,128044.SZ,"missing or invalid observed inputs: parity, floor, volatility"

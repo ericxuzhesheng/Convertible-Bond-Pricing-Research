@@ -33,7 +33,15 @@ if (-not (Test-Path $batchFile)) {
 if ((Get-TimeZone).Id -ne 'China Standard Time') { throw 'Set the intended local timezone before registering the 16:30 task.' }
 & $launcher -PythonExe $PythonExe -CheckOnly
 if ($LASTEXITCODE -ne 0) { throw 'Weekly runtime preflight failed.' }
-$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At "16:30"
+$now = Get-Date
+$daysUntilFriday = ([int][DayOfWeek]::Friday - [int]$now.DayOfWeek + 7) % 7
+$firstRun = $now.Date.AddDays($daysUntilFriday).AddHours(16).AddMinutes(30)
+if ($firstRun -le $now) { $firstRun = $firstRun.AddDays(7) }
+# Explicit triggers provide catch-up even when RestartOnFailure does not fire.
+$triggers = foreach ($offset in 0..12) {
+    $attempt = $firstRun.AddHours($offset)
+    New-ScheduledTaskTrigger -Weekly -DaysOfWeek $attempt.DayOfWeek -At $attempt
+}
 
 # ── 操作：隐藏 PowerShell 窗口，使用已验证环境运行 batch ──────────────────────
 $action = New-ScheduledTaskAction `
@@ -45,8 +53,6 @@ $action = New-ScheduledTaskAction `
 # 注: -WakeToRun 是 switch 参数，默认即为关闭；写成 "-WakeToRun $false" 会导致参数绑定错误
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
-    -RestartCount 12 `
-    -RestartInterval (New-TimeSpan -Hours 1) `
     -RunOnlyIfNetworkAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Hours 6) `
     -AllowStartIfOnBatteries `
@@ -61,7 +67,7 @@ $principal = New-ScheduledTaskPrincipal `
 
 Register-ScheduledTask `
     -TaskName $taskName `
-    -Trigger $trigger `
+    -Trigger $triggers `
     -Action $action `
     -Settings $settings `
     -Principal $principal `
@@ -71,7 +77,7 @@ Register-ScheduledTask `
 Write-Host ""
 Write-Host "任务注册成功！" -ForegroundColor Green
 Write-Host "  任务名称  : $taskName"
-Write-Host "  触发时间  : 每周五 16:30"
+Write-Host "  触发时间  : 周五 16:30 至周六 04:30，每小时一次，成功后跳过余下场次"
 Write-Host "  执行脚本  : $batchFile"
 Write-Host "  日志目录  : $logDir"
 Write-Host ""

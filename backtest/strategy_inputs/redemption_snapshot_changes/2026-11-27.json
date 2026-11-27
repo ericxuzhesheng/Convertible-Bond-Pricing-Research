@@ -1,0 +1,8 @@
+{
+  "source": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+  "cutoff": "2026-11-27",
+  "observed_at": "2026-11-27T18:25:54.362865+08:00",
+  "previous_cutoff": "2026-11-25",
+  "previous_observed_at": "2026-11-25T21:53:18.860645+08:00",
+  "changes": []
+}

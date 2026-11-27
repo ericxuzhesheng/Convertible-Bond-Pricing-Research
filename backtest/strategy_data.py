@@ -10,6 +10,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 import pandas as pd
 import requests
+from market_calendar_source import sina_open_dates
+from market_data_contracts import DataContractError
 from token_loader import load_tushare_token
 
 BASE = Path(__file__).resolve().parent
@@ -99,6 +101,27 @@ def cached_query(reader, root, key, api, fields="", **params):
         write_json(path, value)
     return pd.DataFrame(value["records"]), value["fetched_at"]
 
+def fetch_strategy_calendar(reader, root, start, end):
+    calendar_end = (pd.Timestamp(end) + pd.Timedelta(days=20)).strftime("%Y%m%d")
+    try:
+        calendar, _ = cached_query(reader, root, f"calendar/{start}-{end}", "trade_cal",
+            "cal_date,is_open", exchange="SSE", start_date=start.replace("-", ""),
+            end_date=calendar_end)
+        if not calendar.empty and {"cal_date", "is_open"}.issubset(calendar):
+            opened = calendar.loc[pd.to_numeric(calendar.is_open, errors="coerce").eq(1)]
+            if not opened.empty:
+                return opened.sort_values("cal_date")
+        raise SourceError("Tushare trading calendar unavailable")
+    except SourceError as primary_error:
+        try:
+            dates = sina_open_dates(start, calendar_end)
+        except (requests.RequestException, DataContractError) as error:
+            raise SourceError(f"{primary_error}; alternate calendar: {error}") from error
+        if not dates:
+            raise SourceError("Sina SSE calendar has no open strategy dates") from primary_error
+        print(f"Strategy calendar: {len(dates)} dates from Sina SSE ({primary_error})", flush=True)
+        return pd.DataFrame({"cal_date": dates, "is_open": 1})
+
 def merge_financial_versions(old, new):
     """A changed same-key record becomes available only when observed."""
     if old.empty:
@@ -182,12 +205,7 @@ def update_inputs(root, start, end, initialize=False):
             raise SourceError("Cannot truncate existing strategy input history")
         start = min(start, state["start"])
     reader = TushareReader()
-    calendar, _ = cached_query(reader, root, f"calendar/{start}-{end}", "trade_cal",
-        "cal_date,is_open", exchange="SSE", start_date=start.replace("-", ""),
-        end_date=(pd.Timestamp(end) + pd.Timedelta(days=20)).strftime("%Y%m%d"))
-    if calendar.empty or not {"cal_date", "is_open"}.issubset(calendar):
-        raise SourceError("Trading calendar unavailable")
-    calendar = calendar.loc[pd.to_numeric(calendar.is_open).eq(1)].sort_values("cal_date")
+    calendar = fetch_strategy_calendar(reader, root, start, end)
     write_csv(root / "calendar.csv", calendar)
     dates = calendar.cal_date.astype(str)
     dates = dates.loc[dates.le(end.replace("-", ""))]

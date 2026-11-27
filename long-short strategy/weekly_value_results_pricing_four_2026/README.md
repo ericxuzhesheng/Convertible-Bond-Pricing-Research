@@ -51,3 +51,4 @@
 - [2026-11-06](weeks/2026-11-06.md)：historical_research
 - [2026-11-13](weeks/2026-11-13.md)：historical_research
 - [2026-11-20](weeks/2026-11-20.md)：historical_research
+- [2026-11-27](weeks/2026-11-27.md)：historical_research

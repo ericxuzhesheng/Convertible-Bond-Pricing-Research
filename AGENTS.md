@@ -14,7 +14,7 @@ Absolute pricing research for Chinese A-share convertible bonds using four model
 
 The pipeline goes: raw data → pricing → mispricing signal → long-short strategy.
 
-Current verified local model cutoff: **2026-11-20**; daily strategy-input cutoff: **2026-11-25**. The production ensemble equally weights BS, ZL, LSM and CCB on the shared weekly calendar from 2019. The standalone CCB archive also includes 2017 and 2018. Pricing and six-factor text tables dated **2026-08-28** are archived evidence. Routine weekly work is strictly
+Current verified local model cutoff and daily strategy-input cutoff are both **2026-11-27**. The production ensemble equally weights BS, ZL, LSM and CCB on the shared weekly calendar from 2019. The standalone CCB archive also includes 2017 and 2018. Pricing and six-factor text tables dated **2026-08-28** are archived evidence. Routine weekly work is strictly
 incremental for market data and pricing. Recalculate derived factors, IC,
 strategies, figures and README on every weekly update using the verified pricing
 baseline. A full-history pricing rebuild requires an explicit maintainer request.
@@ -106,10 +106,15 @@ python backtest/regenerate_plots.py
 Routine updates run locally every Friday at 16:30 Asia/Shanghai through
 `run_scheduled_weekly.ps1` and `weekly_update.bat`. Register with
 `backtest/setup_weekly_task.ps1`. The computer must be on, online and the
-user logged in. Failed runs retry hourly up to 12 times using Windows Task
-Scheduler. Each attempt retains the existing validation and publishing guards.
-Weekly acquisition checks observed pure-bond-value coverage before writing
-market caches, because provider valuation fields may arrive after closing quotes.
+user logged in. Windows Task Scheduler triggers hourly from Friday 16:30
+through Saturday 04:30. After successful publication the launcher skips the
+remaining attempts for that week. Each attempt uses the same validation and
+publishing guards. Weekly acquisition prefers Tushare pure-bond values and
+fills undercovered dates with same-session Eastmoney valuations checked against
+the primary close. It checks coverage before writing market caches and records
+accepted alternate values in `backtest/cb_bond_floor_sources.csv`.
+When Tushare's trade calendar is unavailable, pricing and strategy acquisition
+use Sina's SSE calendar within the dates it explicitly covers.
 
 The pipeline updates weekly inputs and volatility, runs independent BS/ZL/LSM/CCB
 incremental pricing, updates the index benchmark, then stages and validates
@@ -361,12 +366,11 @@ Factor CSV bond code format: `sh110030` → normalized to `110030.SH` by `_stand
 | 登录类型 | Interactive（当前用户，需已登录） |
 | 网络要求 | 仅在网络可用时运行 |
 | 超时 | 6 小时 |
-| 失败补跑 | 每小时一次，最多12次 |
+| 失败补跑 | 每小时触发，至周六 04:30，成功后跳过本周剩余触发 |
 
-If Friday is a public holiday, `data_pipeline.py` fetches no new completed week,
-the models find no dates after the verified cutoff, and
-`git diff --cached --quiet` returns 0 — the commit is skipped automatically. No
-special holiday handling is needed.
+When Friday is a public holiday, the completed pricing date is the last open
+session of that week. If there are no new completed sessions, acquisition skips
+market-cache writes and the downstream stages can resume from verified inputs.
 
 ---
 

@@ -15,11 +15,13 @@ def test_local_task_schedule_and_runtime():
     launcher = (ROOT/'backtest/run_scheduled_weekly.ps1').read_text(encoding='utf-8')
     assert "$env:PYTHONNOUSERSITE = '1'" in launcher
     assert 'logs\\plot_runtime' in launcher
-    assert '-DaysOfWeek Friday -At "16:30"' in setup
+    assert '.AddHours(16).AddMinutes(30)' in setup
     assert '-WindowStyle Hidden' in setup
     assert '-StartWhenAvailable' in setup
-    assert '-RestartCount 12' in setup
-    assert '-RestartInterval (New-TimeSpan -Hours 1)' in setup
+    assert 'foreach ($offset in 0..12)' in setup
+    assert '-Trigger $triggers' in setup
+    assert 'weekly_scheduler_success.txt' in launcher
+    assert '$result -eq 0 -and -not $CheckOnly' in launcher
     assert '-MultipleInstances IgnoreNew' in setup
     assert 'set "PYTHON=%CB_PYTHON%"' in batch
     assert 'git add -u' not in batch

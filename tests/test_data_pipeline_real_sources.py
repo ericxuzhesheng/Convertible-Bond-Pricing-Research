@@ -13,7 +13,10 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 BACKTEST_DIR = REPO_ROOT / "backtest"
 sys.path.insert(0, str(BACKTEST_DIR))
 
+import bond_floor_sources  # noqa: E402
 import data_pipeline  # noqa: E402
+import market_calendar_source  # noqa: E402
+import strategy_data  # noqa: E402
 from market_data_contracts import DataContractError  # noqa: E402
 
 
@@ -134,7 +137,7 @@ def test_cb_daily_downloads_observed_conversion_and_bond_values(
     ] == pytest.approx(96.2)
 
 
-@pytest.mark.parametrize("available", [False, True])
+@pytest.mark.parametrize("available", ["missing", "primary", "fallback"])
 def test_weekly_bond_value_readiness_precedes_market_cache_writes(monkeypatch, tmp_path, available):
     dates = pd.to_datetime(["2026-11-13"])
     price = pd.DataFrame({f"{i:06d}.SH": [100.] for i in range(20)}, index=dates)
@@ -146,19 +149,111 @@ def test_weekly_bond_value_readiness_precedes_market_cache_writes(monkeypatch, t
     monkeypatch.setattr(data_pipeline, "OUT_AMOUNT", str(tmp_path / "amount.csv"))
     price.to_csv(data_pipeline.OUT_PRICE)
     before = Path(data_pipeline.OUT_PRICE).read_bytes()
+    def alternate(date):
+        assert available != "primary", "covered dates should not query alternate sources"
+        if available == "missing":
+            raise requests.ConnectionError("feed unavailable")
+        return pd.DataFrame({
+            "trade_date": date, "ts_code": price.columns, "close": 110.0,
+            "bond_value": 100.0, "premium": 10.0,
+        })
+    monkeypatch.setattr(bond_floor_sources, "eastmoney_history", alternate)
+    monkeypatch.setattr(bond_floor_sources, "eastmoney_close_snapshot", alternate)
     monkeypatch.setattr(data_pipeline, "fetch_cb_daily", lambda *_: {
         "price": price * 1.1, "amount": price,
-        "provider_bond_value": price if available else price * np.nan,
+        "provider_bond_value": price if available == "primary" else price * np.nan,
     })
     class ReachedConversion(Exception):
         pass
     def stop(*_, **__):
         raise ReachedConversion
     monkeypatch.setattr(data_pipeline, "load_conversion_price_events", stop)
-    with pytest.raises(ReachedConversion if available else DataContractError,
-                       match=None if available else "Tushare bond_value source"):
+    ready = available != "missing"
+    with pytest.raises(ReachedConversion if ready else DataContractError,
+                       match=None if ready else "Observed bond floor sources"):
         data_pipeline.run_pipeline("20261107", "20261113", weekly_validation=True)
-    assert (Path(data_pipeline.OUT_PRICE).read_bytes() == before) == (not available)
+    assert (Path(data_pipeline.OUT_PRICE).read_bytes() != before) == ready
+    assert Path(data_pipeline.OUT_BASIC).exists() == ready
+
+
+def test_bond_floor_alternates_keep_primary_and_require_matching_session(monkeypatch):
+    date = pd.Timestamp("2026-11-27")
+    codes = [f"{i:06d}.SH" for i in range(1, 8)]
+    primary = pd.DataFrame([[93.0] + [np.nan] * 6], index=[date], columns=codes)
+    close = pd.DataFrame(110.0, index=[date], columns=codes)
+    dated = pd.DataFrame([
+        (date, codes[0], 110, 100, 10),
+        (date, codes[1], 110, 100, 10),
+        (date - pd.Timedelta(days=1), codes[2], 110, 100, 10),
+        (date, codes[3], 111, 100, 11),
+        (date, codes[4], 110, 100, 2),
+        (date, codes[5], 110, 100, 10),
+        (date, codes[5], 110, 110, 0),
+    ], columns=bond_floor_sources.COLUMNS)
+    snapshot = pd.DataFrame([(date, codes[6], 110, 100, 10)], columns=dated.columns)
+    monkeypatch.setattr(bond_floor_sources, "eastmoney_history", lambda _: dated)
+    monkeypatch.setattr(bond_floor_sources, "eastmoney_close_snapshot", lambda _: snapshot)
+    floors, sources = bond_floor_sources.fill_bond_floors(primary, close, 0.98, 1)
+    assert floors.loc[date].dropna().to_dict() == {codes[0]: 93, codes[1]: 100, codes[6]: 100}
+    assert sources.loc[date].dropna().to_dict() == {
+        codes[1]: "Eastmoney history", codes[6]: "Eastmoney close snapshot",
+    }
+
+
+def test_retry_can_skip_reacquisition_when_no_new_week_is_open(monkeypatch):
+    class Weekend:
+        def trade_cal(self, **_):
+            return pd.DataFrame({"cal_date": ["20261128"], "is_open": [0]})
+
+    monkeypatch.setattr(data_pipeline, "init_tushare", Weekend)
+    def unexpected_fetch(_):
+        pytest.fail("A retry with verified pricing should resume downstream")
+    monkeypatch.setattr(data_pipeline, "fetch_cb_basic", unexpected_fetch)
+    data_pipeline.run_pipeline("20261128", "20261127", weekly_validation=True)
+    assert data_pipeline.resolve_completed_weekly_end(
+        Weekend(), start="20261128", requested_end="20261128", allow_no_completed=True,
+    ) is None
+
+
+def test_calendar_uses_sina_only_within_published_dates(monkeypatch):
+    class EmptyPrimary:
+        def trade_cal(self, **_):
+            return pd.DataFrame()
+
+    dates = pd.to_datetime(["2026-11-20", "2026-11-23", "2026-11-27", "2026-11-30"])
+    monkeypatch.setattr(market_calendar_source, "fetch_sina_calendar", lambda: dates)
+    assert data_pipeline.fetch_trade_dates(EmptyPrimary(), "20261121", "20261128") == [
+        "20261123", "20261127",
+    ]
+    with pytest.raises(DataContractError, match="Sina SSE calendar does not cover"):
+        data_pipeline.fetch_trade_dates(EmptyPrimary(), "20261128", "20261201")
+
+
+def test_strategy_calendar_falls_back_through_its_future_session_window(monkeypatch, tmp_path):
+    class EmptyPrimary:
+        def query(self, *_args, **_kwargs):
+            return pd.DataFrame()
+
+    dates = pd.to_datetime(["2026-11-27", "2026-11-30", "2026-12-17"])
+    monkeypatch.setattr(market_calendar_source, "fetch_sina_calendar", lambda: dates)
+    calendar = strategy_data.fetch_strategy_calendar(
+        EmptyPrimary(), tmp_path, "2026-11-27", "2026-11-27",
+    )
+    assert calendar.cal_date.tolist() == ["20261127", "20261130", "20261217"]
+
+
+def test_bond_floor_audit_tracks_only_current_alternate_cells(monkeypatch, tmp_path):
+    path = tmp_path / "sources.csv"
+    monkeypatch.setattr(data_pipeline, "OUT_FLOOR_SOURCES", str(path))
+    date = pd.Timestamp("2026-11-27")
+    prices = pd.DataFrame({"110081.SH": [96.0], "123001.SZ": [99.0]}, index=[date])
+    sources = pd.DataFrame("Eastmoney history", index=prices.index, columns=prices.columns)
+    data_pipeline.save_bond_floor_sources(prices, sources)
+    data_pipeline.save_bond_floor_sources(prices[["110081.SH"]])
+    assert pd.read_csv(path).to_dict("records") == [{
+        "trade_date": "2026-11-27", "ts_code": "123001.SZ",
+        "source": "Eastmoney history", "bond_value": 99.0,
+    }]
 
 
 def test_cb_basic_explicitly_requests_nondefault_maturity_price() -> None:

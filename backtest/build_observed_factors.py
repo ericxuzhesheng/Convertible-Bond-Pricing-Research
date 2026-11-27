@@ -173,7 +173,8 @@ def main() -> None:
             ),
             "bond_floor": (
                 "backtest/cb_bond_floor_cache.csv "
-                "(Tushare cb_daily bond_value)"
+                "(Tushare cb_daily bond_value and same-session Eastmoney fallback; "
+                "fallback cells in backtest/cb_bond_floor_sources.csv)"
             ),
         },
         "lookback_trading_days": args.lookback,
