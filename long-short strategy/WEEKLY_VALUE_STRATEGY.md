@@ -71,6 +71,8 @@ python "long-short strategy/weekly_value_strategy.py" --compare
 
 默认目录为 `weekly_value_results/research` 和 `weekly_value_results/tracking_four_models`。原三模型冻结账本保存在 `weekly_value_results/tracking`。排名、目标、覆盖率、日净值、交易、持仓和异常均有独立文件，目标状态区分待开盘复核和模拟交易。
 
+逐券排名按实际信号日期的年份保存在各结果目录的 `rankings/YYYY.csv.gz`。每个年度分卷都是有表头的完整 CSV，可用 `pandas.read_csv` 直接读取。
+
 年度研究周报列出收盘价记录、正成交量、零成交、共同定价覆盖和缺项。供应商强赎快照的变动按数据截止日追加到 [变动记录](../backtest/strategy_inputs/redemption_snapshot_changes/)，保存旧值、新值及两版的实际观测时间。逐期公告核查可放在 [周报补充说明](../backtest/strategy_inputs/weekly_notes/)，重生成周报时一并载入。
 
 跟踪信号保留参数和冻结时间；新增日账本先校验历史一致性，相同输入重复运行不改写、不重复交易。旧 weekly_results 与六因子研究不覆盖。正常周更新已接入新入口；手动策略回测不调用包含定价、因子或发布动作的总流水线。

@@ -185,7 +185,10 @@ jobs:
           if [[ -f backtest/cb_bond_floor_sources.csv ]]; then
             git add backtest/cb_bond_floor_sources.csv
           fi
-          git add -- ':(glob)long-short strategy/weekly_value_results_pricing_four_*/**' +            ':(glob)experiments/ccb_2023/inputs/waivers/index/*.json' +            ':(glob)experiments/ccb_2023/inputs/waivers/pdf/*.pdf' +            ':(glob)experiments/ccb_2023/inputs/waivers/text/*.txt'
+          git add -- ':(glob)long-short strategy/weekly_value_results_pricing_four_*/**' \
+            ':(glob)experiments/ccb_2023/inputs/waivers/index/*.json' \
+            ':(glob)experiments/ccb_2023/inputs/waivers/pdf/*.pdf' \
+            ':(glob)experiments/ccb_2023/inputs/waivers/text/*.txt'
           if git diff --cached --quiet; then
             echo "No weekly changes to publish."
           else

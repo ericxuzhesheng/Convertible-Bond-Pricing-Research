@@ -13,6 +13,7 @@ BASE = HERE.parent / "backtest"
 sys.path.insert(0, str(BASE))
 from strategy_data import write_csv, write_json, write_text, now_local
 from market_data_contracts import observed_average_risk_free_rate
+from ranking_archive import write_rankings
 from weekly_strategy_core import MODELS, Config, ValueConfig, net_valuation_upside, Inputs, build_ranking, next_session, select_targets, simulate, performance, timestamp
 
 METHOD = "weekly-ensemble-four-model-v2"
@@ -145,7 +146,6 @@ def run_one(data, config, start, end, output, mode="both", detail=True):
         if len(rankings) % 100 == 0:
             print(f"{config.risk_mode}/{config.model}/{config.frequency}: {len(rankings)} signals", flush=True)
     files = {}
-    files["rankings.csv"] = pd.concat(rankings, ignore_index=True) if rankings else pd.DataFrame()
     files["targets.csv"] = pd.DataFrame(selections)
     modes = ["long_only", "long_short"] if mode == "both" else [mode]
     metrics, windows = [], []
@@ -208,7 +208,7 @@ def run_one(data, config, start, end, output, mode="both", detail=True):
             "st_coverage": pre.st_known.mean() if len(pre) else None})
     files["coverage.csv"] = pd.DataFrame(coverage_rows)
     if not detail:
-        files = {name: frame for name, frame in files.items() if name != "rankings.csv" and not name.endswith("_holdings.csv")}
+        files = {name: frame for name, frame in files.items() if not name.endswith("_holdings.csv")}
     if config.risk_mode == "tracking":
         # Validate ALL ledger prefixes before replacing any confirmed ledger.
         for name, frame in files.items():
@@ -218,6 +218,8 @@ def run_one(data, config, start, end, output, mode="both", detail=True):
                          for name, frame in files.items() if name.endswith("_daily_nav.csv"))
     for name, frame in files.items():
         write_csv(output/name, frame)
+    if detail:
+        write_rankings(output, rankings)
     report = ["# 周度四模型均价安全边际策略" if is_value else "# 周度四模型相对排名策略", "", f"模型：{config.model}；频率：{config.frequency}；模式：{config.risk_mode}。",
               "", "采用每日OHLCV和日持仓账本，下一交易日开盘调仓。", "", LIMITATION, ""]
     if rankings:

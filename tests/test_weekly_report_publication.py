@@ -10,8 +10,35 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'backtest'))
 sys.path.insert(0, str(ROOT / 'long-short strategy'))
 import rebuild_research_outputs as rebuild
+from publish_weekly_outputs import is_output
+from ranking_archive import read_rankings, write_rankings
 from rebuild_weekly_reports_2026 import pricing_coverage_line
 from update_research_readme import header
+
+
+def test_rankings_are_partitioned_by_signal_year_and_publishable(tmp_path):
+    rankings = [
+        pd.DataFrame({'signal_date': [date], 'code': [code], 'signal': [score]})
+        for date, code, score in [('2025-12-31', '113001.SH', 0.1), ('2026-01-09', '123001.SZ', 0.2)]
+    ]
+    write_rankings(tmp_path, rankings)
+    archive = tmp_path / 'rankings'
+    assert sorted(path.name for path in archive.iterdir()) == ['2025.csv.gz', '2026.csv.gz']
+    assert not (tmp_path / 'rankings.csv').exists()
+    assert all(is_output(f'long-short strategy/weekly_value_results/research/rankings/{path.name}')
+               for path in archive.iterdir())
+    assert read_rankings(tmp_path, pd.to_datetime(['2026-01-09'])).code.tolist() == ['123001.SZ']
+    dates = pd.to_datetime(['2025-12-31', '2026-01-09'])
+    pd.testing.assert_frame_equal(read_rankings(tmp_path, dates), pd.concat(rankings, ignore_index=True))
+    old = (archive / '2025.csv.gz').stat().st_mtime_ns
+    write_rankings(tmp_path, rankings)
+    assert (archive / '2025.csv.gz').stat().st_mtime_ns == old
+
+
+def test_reports_can_read_older_unpartitioned_rankings(tmp_path):
+    frame = pd.DataFrame({'signal_date': ['2025-12-31'], 'code': ['113001.SH']})
+    frame.to_csv(tmp_path / 'rankings.csv', index=False)
+    pd.testing.assert_frame_equal(read_rankings(tmp_path, pd.to_datetime(frame.signal_date)), frame)
 
 
 def fake_reports(command, **kwargs):

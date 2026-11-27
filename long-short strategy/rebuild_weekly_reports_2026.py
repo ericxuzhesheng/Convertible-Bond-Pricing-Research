@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import pandas as pd
 
+from ranking_archive import read_rankings
 from weekly_strategy_core import MODELS, Inputs, ValueConfig
 from weekly_ensemble_strategy import run_one, LIMITATION
 
@@ -62,10 +63,12 @@ def main(*, year=2026, output_dir=OUT, research_dir=None):
         research_link = '../research'
     else:
         research_link = '../../weekly_value_results/research'
-    ranks = pd.read_csv(research_dir / 'rankings.csv', low_memory=False)
-    ranks['signal_date'] = pd.to_datetime(ranks.signal_date)
-    navs = {p: pd.read_csv(research_dir / f'{p}_daily_nav.csv', parse_dates=['date']) for p in ('long_only','long_short')}
     dates = data.signal_dates(first_session, last_session, 'weekly')
+    ranks = read_rankings(research_dir, dates)
+    if len(dates):
+        ranks['signal_date'] = pd.to_datetime(ranks.signal_date)
+    navs = {p: pd.read_csv(research_dir / f'{p}_daily_nav.csv', parse_dates=['date']) for p in ('long_only','long_short')}
+    ranking_link = 'rankings/' if (research_dir / 'rankings').is_dir() else 'rankings.csv'
     reports = OUT / 'weeks'
     reports.mkdir(exist_ok=True)
     inputs = BASE / 'strategy_inputs'
@@ -121,7 +124,7 @@ def main(*, year=2026, output_dir=OUT, research_dir=None):
                        if (inputs / 'redemption_snapshot_changes' / f'{day.date()}.json').is_file()]
         if week_audits:
             lines += ['', '供应商事件版本记录 ' + ' · '.join(week_audits)]
-        lines += ['', f'来源记录 [定价版本](../pricing_sources.json) · [逐券排名]({research_link}/rankings.csv) · [成交与持仓]({research_link}/)']
+        lines += ['', f'来源记录 [定价版本](../pricing_sources.json) · [逐券排名]({research_link}/{ranking_link}) · [成交与持仓]({research_link}/)']
         (reports / f'{week_end.date()}.md').write_text('\n'.join(lines)+'\n', encoding='utf-8')
     pd.DataFrame(index).to_csv(OUT / 'report_index.csv', index=False)
     assert {x['signal_date'] for x in index if x['signal_date']} == {str(x.date()) for x in dates}
